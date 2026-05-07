@@ -149,7 +149,7 @@ For $G = GL_n(\mathbb{R})$ with the standard upper unipotent, positive diagonal,
 orthogonal Iwasawa data, the explicit formula in Equation (3) of §I.2 of
 Jorgenson and Lang reads
 
-$$\delta(a) = \prod_{i<j} \frac{a_i}{a_j} = \prod_{i=1}^{n} a_i^{n - 2i + 1}.$$
+$$\delta(a) = \prod_{i \lt j} \frac{a_i}{a_j} = \prod_{i=1}^{n} a_i^{n - 2i + 1}.$$
 
 This is the **explicit Jacobian** of the change of coordinates from
 ambient matrix entries to Iwasawa coordinates $(u, a, k)$. The
@@ -159,7 +159,7 @@ strictly upper triangular matrices, because the Lie algebra $\mathfrak{n}$
 is the *tangent space to $U$ at the identity*, and the change of
 variable formula on a Lie group near a point is governed by the
 adjoint action on the Lie algebra (Equations (1) through (3) of §I.2 of Jorgenson and Lang).
-The eigenvalues of $\mathrm{Ad}(a)$ on the basis $E_{ij}$ ($i < j$) of $\mathfrak{n}$
+The eigenvalues of $\mathrm{Ad}(a)$ on the basis $E_{ij}$ (for $i \lt j$) of $\mathfrak{n}$
 are exactly the characters $\chi_{ij}(a) = a_i / a_j$, and $\delta(a)$ is
 the product of these.
 
@@ -288,7 +288,7 @@ the Jorgenson and Lang form, since:
 * $u^{-1}$ is upper unipotent (the inverse of an upper unipotent
   matrix is upper unipotent, an easy proof by induction on $n$ or by
   explicitly truncating the geometric series),
-* $a^{-1}$ is positive diagonal (diagonal entries $1/a_i > 0$),
+* $a^{-1}$ is positive diagonal (diagonal entries $1/a_i \gt 0$),
 * $k^T$ is orthogonal ($k^T \cdot (k^T)^T = k^T k = 1$).
 
 So **inversion** is the change of coordinates between Lang's $g$
@@ -336,7 +336,7 @@ formula:
 $$u_j = \frac{1}{D_{j-1}} \det \begin{pmatrix} \langle v_1, v_1 \rangle & \langle v_2, v_1 \rangle & \cdots & \langle v_j, v_1 \rangle \\\\ \vdots & \vdots & \ddots & \vdots \\\\ \langle v_1, v_{j-1} \rangle & \cdots & \cdots & \langle v_j, v_{j-1} \rangle \\\\ v_1 & v_2 & \cdots & v_j \end{pmatrix}$$
 
 where $D_{j-1}$ is the Gram determinant of the previous vectors.
-Since each entry is a polynomial in the $v_i$ and $D_{j-1} > 0$
+Since each entry is a polynomial in the $v_i$ and $D_{j-1} \gt 0$
 on the linearly independent locus, each $u_j$ is rational with
 non vanishing denominator there, hence continuous.
 
@@ -344,7 +344,7 @@ Mathlib does **not** package this continuity result. We prove it
 inline by induction on the index $i : \mathrm{Fin}\,n$ using
 `gramSchmidt_def`, which expresses
 
-$$\mathrm{gramSchmidt}(f)(i) = f(i) - \sum_{j < i} (\mathbb{R} \cdot \mathrm{gramSchmidt}(f)(j))\text{.starProjection}\,(f(i)).$$
+$$\mathrm{gramSchmidt}(f)(i) = f(i) - \sum_{j \lt i} (\mathbb{R} \cdot \mathrm{gramSchmidt}(f)(j))\text{.starProjection}\,(f(i)).$$
 
 Each term in the sum is continuous in $f$ by induction (the
 projection onto a 1 dimensional subspace is the rational expression
@@ -395,8 +395,8 @@ homeomorphism
 $$A\,n \to \mathbb{R}^n, \qquad D \mapsto (\log D_{11}, \ldots, \log D_{nn})$$
 
 with inverse $v \mapsto \mathrm{diag}(\exp v_1, \ldots, \exp v_n)$ provides a single
-chart. The map is well defined because $D_{ii} > 0$, so $\log$ is
-continuous, and $\exp v_i > 0$ for all real $v_i$, so the inverse
+chart. The map is well defined because $D_{ii} \gt 0$, so $\log$ is
+continuous, and $\exp v_i \gt 0$ for all real $v_i$, so the inverse
 lands back in $A\,n$. This is `A.toFinNRHomeomorph`. Modeled on
 $\mathrm{Fin}\,n \to \mathbb{R}$ (Pi normed space).
 
@@ -423,7 +423,7 @@ Two crucial facts:
    matrix $X \cdot X^T$ is positive semi definite (it is the Gram matrix
    of the rows of $X$), so $1 + X \cdot X^T$ is positive definite, in
    particular invertible. Taking determinants of $(1 + X)(1 - X) = 1 + X \cdot X^T$
-   shows $\det(1 + X)^2 > 0$, so $\det(1 + X) \ne 0$.
+   shows $\det(1 + X)^2 \gt 0$, so $\det(1 + X) \ne 0$.
 
 2. **$\mathrm{cayley}(X)$ is orthogonal whenever $X$ is skew symmetric.**
    This is `cayley_isOrthogonal`. Proof: a direct computation using
@@ -562,19 +562,19 @@ decomposition:
   by diagonality.
 * `disjoint_KK_NN`: $\mathfrak{k} \cap \mathfrak{n} = 0$. Below the diagonal, strict upper
   membership gives $M_{ij} = 0$. On and above the diagonal we use
-  skew symmetry: at $(j, i)$ for $i < j$ we have $M_{ji} = 0$ (below
+  skew symmetry: at $(j, i)$ for $i \lt j$ we have $M_{ji} = 0$ (below
   diagonal), and skew gives $M_{ij} = -M_{ji} = 0$.
 * `iwasawa_codisjoint`: $\mathfrak{k} + \mathfrak{a} + \mathfrak{n} = \mathfrak{gl}_n(\mathbb{R})$. For any $M$, we
   construct the explicit decomposition
 
 $$A_{ij} = \begin{cases} M_{ii} & \text{if } i = j \\\\ 0 & \text{otherwise} \end{cases} \quad (\text{diagonal of } M)$$
 
-$$K_{ij} = \begin{cases} M_{ij} & \text{if } j < i \\\\ -M_{ji} & \text{if } i < j \\\\ 0 & \text{if } i = j \end{cases}$$
+$$K_{ij} = \begin{cases} M_{ij} & \text{if } j \lt i \\\\ -M_{ji} & \text{if } i \lt j \\\\ 0 & \text{if } i = j \end{cases}$$
 
-$$N_{ij} = \begin{cases} M_{ij} + M_{ji} & \text{if } i < j \\\\ 0 & \text{otherwise} \end{cases}$$
+$$N_{ij} = \begin{cases} M_{ij} + M_{ji} & \text{if } i \lt j \\\\ 0 & \text{otherwise} \end{cases}$$
 
   and verify $A + K + N = M$ on each of the three cases
-  ($j < i$, $j = i$, $i < j$).
+  ($j \lt i$, $j = i$, $i \lt j$).
 
 These four conditions, combined, give `iwasawaLieDecomp`, the full
 internal direct sum statement.
@@ -593,12 +593,12 @@ and prove:
 * `iwasawaLieMap_injective`: the kernel is trivial. Suppose
   $X + Y + Z = 0$ with $X$ skew, $Y$ diagonal, $Z$ strict upper.
   By the entry wise trichotomy:
-    * $j < i$: $Y_{ij} = 0$ (off diagonal of a diagonal),
+    * $j \lt i$: $Y_{ij} = 0$ (off diagonal of a diagonal),
       $Z_{ij} = 0$ ($j \le i$ triggers strict upper zero), so
       $X_{ij} = 0$.
     * $j = i$: skew says $X_{ii} = -X_{ii}$, so $X_{ii} = 0$, and
       similarly the other two are zero on the diagonal.
-    * $i < j$: by the previous case at $(j, i)$ we have $X_{ji} = 0$;
+    * $i \lt j$: by the previous case at $(j, i)$ we have $X_{ji} = 0$;
       skew gives $X_{ij} = -X_{ji} = 0$. The remaining $Y_{ij}$ and
       $Z_{ij}$ are zero by the same arguments as above.
   So $X = Y = Z = 0$.
@@ -966,11 +966,11 @@ with
 
 $$A_{ij} = \begin{cases} M_{ii} & \text{if } i = j \\\\ 0 & \text{else} \end{cases} \quad (\text{in } \mathfrak{a})$$
 
-$$K_{ij} = \begin{cases} M_{ij} & \text{if } j < i \\\\ -M_{ji} & \text{if } i < j \\\\ 0 & \text{if } i = j \end{cases} \quad (\text{in } \mathfrak{k}, \text{ skew symmetrized})$$
+$$K_{ij} = \begin{cases} M_{ij} & \text{if } j \lt i \\\\ -M_{ji} & \text{if } i \lt j \\\\ 0 & \text{if } i = j \end{cases} \quad (\text{in } \mathfrak{k}, \text{ skew symmetrized})$$
 
-$$N_{ij} = \begin{cases} M_{ij} + M_{ji} & \text{if } i < j \\\\ 0 & \text{otherwise} \end{cases} \quad (\text{in } \mathfrak{n}, \text{ strict upper})$$
+$$N_{ij} = \begin{cases} M_{ij} + M_{ji} & \text{if } i \lt j \\\\ 0 & \text{otherwise} \end{cases} \quad (\text{in } \mathfrak{n}, \text{ strict upper})$$
 
-Verification is entry by entry on the trichotomy $j < i$, $j = i$, $i < j$.
+Verification is entry by entry on the trichotomy $j \lt i$, $j = i$, $i \lt j$.
 
 `iwasawaLieDecomp` bundles the four conditions.
 
@@ -978,9 +978,9 @@ Verification is entry by entry on the trichotomy $j < i$, $j = i$, $i < j$.
 $(X, Y, Z) \in \mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \mapsto X + Y + Z$. Surjectivity is
 `iwasawa_codisjoint`. Injectivity is the entry wise argument:
 
-* $j < i$: $Y_{ij} = 0$ (off diagonal), $Z_{ij} = 0$ ($j \le i$), so $X_{ij} = 0$.
+* $j \lt i$: $Y_{ij} = 0$ (off diagonal), $Z_{ij} = 0$ ($j \le i$), so $X_{ij} = 0$.
 * $j = i$: $X_{ii} = -X_{ii}$ (skew) gives $X_{ii} = 0$; same for $Y$, $Z$.
-* $i < j$: by the previous case at $(j, i)$ we have $X_{ji} = 0$; skew
+* $i \lt j$: by the previous case at $(j, i)$ we have $X_{ji} = 0$; skew
   gives $X_{ij} = -X_{ji} = 0$, then $Y_{ij} = 0$ (off diagonal), $Z_{ij} = 0$.
 
 This is the algebraic content of "the differential of the Iwasawa map
