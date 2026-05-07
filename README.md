@@ -90,6 +90,586 @@ The Cartan involution `θ : g ↦ (gᵀ)⁻¹` is a separate involution that
 J–L use on p. 2 to characterize `K` as its fixed-point subgroup. We
 formalize both.
 
+## Mathematical motivation: why the Iwasawa decomposition is a change of coordinates
+
+### From decomposition to coordinates
+
+`GL_n(ℝ)` is an open subset of the `n²`-dimensional matrix space
+`Mat_n(ℝ)`, so as a manifold it is `n²`-dimensional. The three
+subgroups in the Iwasawa decomposition contribute exactly the right
+dimensions to add up to `n²`:
+
+```
+dim K = dim O(n)              = n(n−1)/2     (skew-symmetric matrices)
+dim A = dim {pos. diagonals}  = n            (one positive real per diagonal entry)
+dim U = dim {upper unipotent} = n(n−1)/2     (strictly-upper entries)
+                                ───────
+                                  n²
+```
+
+The product map
+
+```
+Φ : K × A × U → GL_n(ℝ),     Φ(k, a, u) = k · a · u
+```
+
+is therefore a map between two manifolds of equal dimension. The
+content of Theorem 1.1 is that `Φ` is not merely a bijection but a
+*differential isomorphism* (diffeomorphism). What this **really
+means** is that `(k, a, u)` is a **system of global coordinates**
+on `GL_n(ℝ)` — or equivalently, that the Iwasawa decomposition
+gives a *change of coordinates* from the ambient matrix entries
+`(g_{ij})` to the triple `(k, a, u)`.
+
+This is more than a curiosity. The Iwasawa coordinates are far
+better adapted to the structure of the group than the ambient
+entries: `K` carries a compact Lie group structure, `A` is a free
+abelian group `(ℝ⁺)ⁿ`, and `U` is a unipotent group on which the
+exponential map is a *polynomial* diffeomorphism with the Lie
+algebra of strictly-upper triangular matrices. Many constructions
+in representation theory, harmonic analysis on Lie groups, and
+spherical-function theory either *cannot* or are dramatically
+harder to express in the ambient `(g_{ij})` coordinates and become
+natural in the Iwasawa coordinates.
+
+### The Jacobian bridge: invariant measure transforms by the Iwasawa character
+
+The classical bridge between "Iwasawa decomposition" and
+"change-of-coordinates Jacobian" is the **Haar-measure
+decomposition formula**. If `dx` is a (left) Haar measure on
+`G = GL_n(ℝ)`, `du`, `da`, `dk` are Haar measures on `U`, `A`, `K`,
+and the product map `U × A × K → UAK = G` is the J–L Iwasawa map,
+then for any `f ∈ C_c(G)`
+
+```
+∫_G f(x) dx = c · ∫_U ∫_A ∫_K f(uak) · δ(a)⁻¹ du da dk
+```
+
+for a constant `c` and a homomorphism `δ : A → ℝ⁺` called the
+**Iwasawa character**. (J–L Proposition 2.1, 2.3, 2.4.) The
+Jacobian factor is precisely `δ(a)⁻¹`: changing variables from
+`x ∈ G` to `(u, a, k) ∈ U × A × K` introduces the determinant of
+the differential of the Iwasawa map, which equals `δ(a)` (up to the
+constant `c`).
+
+For `G = GL_n(ℝ)` with the standard upper-unipotent / positive-diagonal /
+orthogonal Iwasawa data, J–L's explicit formula (Equation (3) of §I.2)
+gives
+
+```
+δ(a) = ∏_{i<j} (a_i / a_j) = ∏_{i=1}^{n} a_i^{n − 2i + 1}.
+```
+
+This is the **explicit Jacobian** of the change of coordinates from
+ambient matrix entries to Iwasawa coordinates `(u, a, k)`. The
+proof is a direct computation: `δ(a)` is the determinant of the
+conjugation action of `a ∈ A` on the Lie algebra `𝔫 = Lie(U)` of
+strictly upper-triangular matrices, because the Lie algebra `𝔫`
+is the *tangent space to U at the identity*, and the change-of-
+variable formula on a Lie group near a point is governed by the
+adjoint action on the Lie algebra (J–L Equations (1)–(3) of §I.2).
+The eigenvalues of `Ad(a)` on the basis `E_{ij}` (`i < j`) of `𝔫`
+are exactly the characters `χ_{ij}(a) = a_i / a_j`, and `δ(a)` is
+the product of these.
+
+### Why a *differential* isomorphism (not just a bijection)
+
+A bijection just renames points: it lets you say "every `g` has a
+unique `(k, a, u)`". A homeomorphism additionally guarantees that
+the renaming is continuous in both directions: convergence of `g_n`
+to `g` translates to convergence of `(k_n, a_n, u_n)` to `(k, a, u)`.
+A *diffeomorphism* additionally guarantees that the renaming is
+**smooth in both directions**: derivatives, vector fields, and
+integrals all transform correctly under the change of coordinates.
+
+For our purposes, only the diffeomorphism level is strong enough to
+support the Haar-measure decomposition formula: the Jacobian of a
+change of coordinates is the absolute value of the determinant of
+the differential of the change, so without a *differential*
+isomorphism we cannot even *state* the Jacobian formula. This is
+why Theorem 1.1 of Jorgenson–Lang asserts a **differential**
+isomorphism, and why our project's central technical content is
+the smooth-manifold story (the Cayley transform giving a
+diffeomorphism `Sk n ≃ K_open n`, and the Sphere-pattern multi-chart
+atlas covering all of `K = O(n)`).
+
+### Connection to the Lie algebra: infinitesimal change of coordinates
+
+Every smooth change of coordinates on a Lie group induces an
+**infinitesimal change of coordinates** at the identity, namely a
+linear isomorphism between Lie algebras. For the Iwasawa map
+`Φ : K × A × U → G`, the differential at the identity
+`(1, 1, 1) ∈ K × A × U` is a linear map
+
+```
+dΦ_(1,1,1) : 𝔨 × 𝔞 × 𝔫 → 𝔤𝔩_n(ℝ),     (X, Y, Z) ↦ X + Y + Z
+```
+
+where `𝔨 = Lie(K) = {skew-symmetric matrices} = Sk_n`,
+`𝔞 = Lie(A) = {real diagonal matrices}`,
+`𝔫 = Lie(U) = {strictly upper-triangular matrices}`.
+
+For `dΦ_(1,1,1)` to be a linear isomorphism, the three subspaces
+`𝔨, 𝔞, 𝔫` must form a **direct sum decomposition** of `𝔤𝔩_n(ℝ)`.
+This is the **Iwasawa Lie decomposition**:
+
+```
+𝔤𝔩_n(ℝ) = 𝔨 ⊕ 𝔞 ⊕ 𝔫.
+```
+
+This is the *purely linear-algebraic shadow* of Theorem 1.1, and
+has the same dimension count (`n(n−1)/2 + n + n(n−1)/2 = n²`) and
+the same role: it expresses every matrix as a sum of a skew, a
+diagonal, and a strictly upper-triangular piece in a unique way.
+The decomposition is also the natural setting for the structure
+theory of semisimple Lie algebras (root spaces, parabolic
+subalgebras, Borel subalgebras, etc.).
+
+The closely-related **Cartan Lie decomposition** is the coarser
+splitting
+
+```
+𝔤𝔩_n(ℝ) = Sym_n ⊕ Sk_n
+```
+
+into symmetric and skew-symmetric parts. The Iwasawa decomposition
+*refines* the symmetric component into `𝔞 ⊕ 𝔫_sym`, where
+`𝔫_sym = (1/2)(𝔫 + 𝔫ᵀ)` is the symmetrization of the strictly
+upper-triangular subalgebra (J–L §I.3, p. 14).
+
+In this project we prove both the Iwasawa Lie decomposition
+(`iwasawaLieDecomp` and `iwasawaLieEquiv`) and the Cartan Lie
+decomposition (`cartanLieDecomp`). The geometric statement
+"`dΦ_(1,1,1)` equals the linear sum map" is the content of the
+deferred `iwasawaMap_mfderiv_at_one`; what we prove
+algebraically is exactly the statement that *the candidate linear
+map* `(X, Y, Z) ↦ X + Y + Z` is a `LinearEquiv`. Once the smooth
+manifold structure on the full `K = O(n)` is in place, the
+geometric statement follows from a direct Jacobian computation of
+the Cayley chart at `0 ∈ Sk` (whose first-order Taylor expansion
+is `cayley(X) = 1 + 2X + O(X²)`).
+
+## The mathematics formalized in this project
+
+The remainder of this section walks through every theorem,
+definition, and instance in the file in mathematical detail, in
+the order they appear in `IwasawaCoC.lean`. (See [Theorem
+statements](#theorem-statements) below for the exact Lean
+signatures, and [Proof outlines](#proof-outlines) for the
+proof-level summaries.)
+
+### 1. The Iwasawa decomposition: `K × A × U ≃ GL_n(ℝ)`
+
+The starting point. Every invertible real `n × n` matrix `g` admits
+a unique factorization
+
+```
+g = k · a · u           (k ∈ O(n), a positive diagonal, u upper unipotent).
+```
+
+The proof goes through Gram–Schmidt orthonormalization: write `g`'s
+columns as a tuple of vectors `(v_1, …, v_n)`, run the Gram–Schmidt
+procedure to produce an orthonormal basis `(e_1', …, e_n')` of `ℝⁿ`,
+let `Q` be the matrix of `e_i'` (orthogonal), and `R = Qᵀ g` (upper
+triangular with positive diagonal). Then `R = a · u` for `a` the
+diagonal of `R` and `u = a⁻¹ R` upper unipotent. Set `k = Q`.
+
+Uniqueness comes from a clever orthogonality argument: an
+orthogonal upper-triangular matrix with positive diagonal must be
+the identity. This existence + uniqueness is the parent project
+[`project.Iwasawa`](../project/Iwasawa.lean), which we wrap as
+`iwasawaEquiv : K × A × U ≃ GL_n(ℝ)`.
+
+The mathematical content "Iwasawa decomposition is QR
+decomposition" should be appreciated here: in numerical linear
+algebra parlance this *is* the QR factorization, and the
+Iwasawa-coordinate Jacobian formula above is the Jacobian of QR
+in disguise.
+
+### 2. Convention swap (Lang ↔ Jorgenson–Lang) and the Cartan involution
+
+The convention swap is a useful exercise in matrix algebra. Lang
+writes `g = k · a · u`. J–L write `g = u · a · k`. These are *not*
+related by simply re-labeling factors of the *same* `g`: they are
+two different factorizations.
+
+The connection is **inversion**: if `g = kau` in Lang form, then
+taking inverses
+
+```
+g⁻¹ = u⁻¹ · a⁻¹ · k⁻¹ = u⁻¹ · a⁻¹ · kᵀ
+```
+
+(using `k⁻¹ = kᵀ` for orthogonal `k`). The right-hand side is in
+J–L form, since:
+
+* `u⁻¹` is upper-unipotent (the inverse of an upper-unipotent
+  matrix is upper-unipotent — easy proof by induction on `n` or by
+  explicitly truncating the geometric series),
+* `a⁻¹` is positive diagonal (diagonal entries `1/a_i > 0`),
+* `kᵀ` is orthogonal (`kᵀ · (kᵀ)ᵀ = kᵀ k = 1`).
+
+So **inversion** is the change of coordinates between Lang's `g`
+and J–L's `g⁻¹`. This is `inv_iwasawa_jl`.
+
+The **Cartan involution** is a *different* operation:
+
+```
+θ : GL_n(ℝ) → GL_n(ℝ),     θ(g) = (gᵀ)⁻¹ = (g⁻¹)ᵀ.
+```
+
+It is an order-2 group automorphism (`cartanInvolution_involutive`).
+J–L use it on p. 2 to characterize the orthogonal subgroup as its
+fixed-point set:
+
+```
+K = { g ∈ GL_n(ℝ) | θ(g) = g }
+   = { g ∈ GL_n(ℝ) | (gᵀ)⁻¹ = g }
+   = { g ∈ GL_n(ℝ) | g · gᵀ = 1 }
+```
+
+which is exactly the orthogonality condition. The Cartan involution
+also induces an involution `θ_*` on the Lie algebra `𝔤𝔩_n(ℝ)` whose
+fixed-point set is `𝔨 = Sk_n` and whose `−1`-eigenspace is `𝔭 = Sym_n`,
+giving the **Cartan Lie decomposition** `𝔤𝔩_n = 𝔨 ⊕ 𝔭` of Milestone 4.
+
+### 3. Topology: the Iwasawa map is a homeomorphism
+
+The forward direction of continuity is straightforward: matrix
+multiplication `(k, a, u) ↦ k · a · u` is jointly continuous (a
+finite product of bilinear matrix-multiplication operations,
+each of which is continuous by `Continuous.matrix_mul`), and we
+embed the result back into the open subtype `GL_n(ℝ)` via
+`Continuous.subtype_mk`. This gives `continuous_iwasawaMap`.
+
+The inverse direction is substantially harder, and is the most
+technically interesting topological content of the project. Given
+`g ∈ GL_n(ℝ)`, we need to show that the maps `g ↦ k`, `g ↦ a`,
+`g ↦ u` are continuous. Each of these is built from Gram–Schmidt
+orthonormalization applied to the columns of `g`, so we are
+asking: **is Gram–Schmidt continuous in its input function?**
+
+The answer is yes — on the open set of input tuples that are
+linearly independent. The intuition: the Gram–Schmidt outputs are
+rational functions of the input vectors, with positive denominators
+(norms of intermediate vectors) on the linearly-independent locus,
+so they are continuous (in fact smooth). Concretely, Wikipedia's
+"Gram–Schmidt process" article gives an explicit determinantal
+formula:
+
+```
+u_j = (1 / D_{j-1}) · det
+        ⎛ ⟨v_1, v_1⟩  ⟨v_2, v_1⟩  ⋯  ⟨v_j, v_1⟩ ⎞
+        ⎜    ⋮            ⋮         ⋱     ⋮      ⎟
+        ⎜ ⟨v_1, v_{j−1}⟩ ⋯           ⟨v_j, v_{j−1}⟩ ⎟
+        ⎝    v_1          v_2       ⋯    v_j        ⎠
+```
+
+where `D_{j−1}` is the Gram determinant of the previous vectors.
+Since each entry is a polynomial in the `v_i`'s and `D_{j−1} > 0`
+on the linearly-independent locus, each `u_j` is rational with
+non-vanishing denominator there, hence continuous.
+
+Mathlib does **not** package this continuity result. We prove it
+inline by induction on the index `i : Fin n` using
+`gramSchmidt_def`, which expresses
+
+```
+gramSchmidt(f)(i) = f(i) − Σ_{j < i} (𝕜 ∙ gramSchmidt(f)(j)).starProjection (f(i)).
+```
+
+Each term in the sum is continuous in `f` by induction (the
+projection onto a 1-dimensional subspace is the rational expression
+`(⟨v, w⟩ / ‖v‖²) · v` via `Submodule.starProjection_singleton`,
+which is continuous when `‖v‖ ≠ 0` — and the previous Gram–Schmidt
+outputs are nonzero on the linearly-independent locus).
+
+This is the proof of `continuous_gramSchmidt_at`, which feeds into
+`continuous_qMat_subtype`, `continuous_dMat_subtype`,
+`continuous_uMat_subtype`, and finally `continuous_iwasawaSymm`.
+Combining with the forward continuity gives `iwasawaHomeomorph`.
+(This continuity result for `gramSchmidt`/`gramSchmidtNormed` is
+itself a candidate Mathlib upstream contribution.)
+
+### 4. Smooth structures on the easy three subgroups
+
+The three "easy" subgroups admit single-chart smooth structures.
+
+**`G n = GL_n(ℝ)` as an open submanifold of `Mat_n(ℝ)`:** the
+determinant map is continuous, so `{g : Mat_n(ℝ) | g.det ≠ 0}` is
+open in `Mat_n(ℝ)`. Hence `G n` is an open submanifold modeled on
+`Mat_n(ℝ)`, with smooth structure provided by Mathlib's
+`IsOpenEmbedding.singletonChartedSpace` and
+`IsOpenEmbedding.isManifold_singleton`. The norm on `Mat_n(ℝ)` is
+chosen via `attribute [local instance]` as the standard sup-of-sup
+norm `Matrix.normedAddCommGroup` (Mathlib intentionally does not
+register a canonical matrix norm globally because several natural
+choices exist). This is `instChartedSpaceG`, `instIsManifoldG`.
+
+**`UU n` as an affine slice of `Mat_n(ℝ)`:** an upper-unipotent
+matrix is `1 + X` for `X` strictly upper triangular (i.e.,
+`X ∈ NN n = 𝔫`), so the natural chart is the *translation*
+
+```
+UU n → NN n,     U ↦ U − 1
+```
+
+with inverse `X ↦ X + 1`. Both maps are continuous (subtraction
+and addition by a constant matrix), and the bijection is the
+homeomorphism `UU.toNNHomeomorph`. The chart's source is all of
+`UU n`, so we can use
+`OpenPartialHomeomorph.singletonChartedSpace` to get
+`ChartedSpace (NN n) (UU n)` and `IsManifold` modeled on the
+normed space `NN n` (a `Submodule` of `Mat_n(ℝ)`).
+
+**`A n` via diagonal logs:** a positive diagonal matrix is
+characterized by its `n` strictly-positive diagonal entries; the
+homeomorphism
+
+```
+A n → ℝⁿ,     D ↦ (log D_{11}, …, log D_{nn})
+```
+
+with inverse `v ↦ diag(exp v_1, …, exp v_n)` provides a single
+chart. The map is well-defined because `D_{ii} > 0`, so `log` is
+continuous, and `exp v_i > 0` for all real `v_i`, so the inverse
+lands back in `A n`. This is `A.toFinNRHomeomorph`. Modeled on
+`Fin n → ℝ` (Pi-normed space).
+
+### 5. The Cayley transform: parametrizing `O(n)` by skew-symmetric matrices
+
+The hard subgroup is `K = O(n)`. Unlike `G`, `A`, `UU`, the
+orthogonal group is not a single coordinate chart's worth of
+material: it is a **compact closed submanifold** cut out by the
+quadratic equations `Q · Qᵀ = 1`. Single charts cannot cover
+compact manifolds (the image would be both compact and
+homeomorphic to an open subset of a Euclidean space, which is
+impossible for compact manifolds of positive dimension).
+
+The standard way around this is the **Cayley transform**, due to
+Cayley (1846):
+
+```
+cayley : Mat_n(ℝ) → Mat_n(ℝ),     cayley(X) = (1 − X)(1 + X)⁻¹.
+```
+
+Two crucial facts:
+
+1. **`(1 + X)` is invertible whenever `X` is skew-symmetric.** This
+   is `one_add_skew_isUnit`. Proof: `(1 + X)(1 − X) = 1 − X²` and
+   since `X` is skew, `X² = −X · Xᵀ`, so `1 − X² = 1 + X · Xᵀ`. The
+   matrix `X · Xᵀ` is positive semi-definite (it is the Gram matrix
+   of the rows of `X`), so `1 + X · Xᵀ` is positive definite, in
+   particular invertible. Taking determinants of `(1 + X)(1 − X) =
+   1 + X · Xᵀ` shows `det(1 + X)² > 0`, so `det(1 + X) ≠ 0`.
+
+2. **`cayley(X)` is orthogonal whenever `X` is skew-symmetric.**
+   This is `cayley_isOrthogonal`. Proof: a direct computation using
+   that `(1 − X)`, `(1 + X)` and their inverses all commute (because
+   they are polynomials in `X`):
+
+   ```
+   cayley(X) · cayley(X)ᵀ = (1 − X)(1 + X)⁻¹ · ((1 + X)⁻¹)ᵀ (1 − X)ᵀ
+                          = (1 − X)(1 + X)⁻¹ · (1 + Xᵀ)⁻¹(1 − Xᵀ)
+                          = (1 − X)(1 + X)⁻¹ · (1 − X)⁻¹(1 + X)
+                          = (1 − X)(1 − X)⁻¹ · (1 + X)⁻¹(1 + X)
+                          = 1.
+   ```
+
+In words: as `X` ranges over skew-symmetric matrices `Sk n`, the
+formula `cayley(X) = (1 − X)(1 + X)⁻¹` ranges over orthogonal
+matrices `Q` for which `1 + Q` is invertible (i.e., `−1` is not an
+eigenvalue of `Q`). This is a dense open subset of `O(n)`, called
+`K_open n` in our file.
+
+The transform is **its own inverse**: applying `cayley` twice
+returns the input (when both `1 + X` and `1 + cayley(X)` are
+invertible). This is `cayley_self_inverse`, proved by deriving
+the algebraic identity
+
+```
+1 − cayley(X) = X · (1 + cayley(X))
+```
+
+(which holds for any `X` with `1 + X` invertible, and follows from
+the two key Cayley identities `(1 ± cayley(X))(1 + X) = (something
+linear in X)` proved as `one_add_cayley_mul` and
+`one_sub_cayley_mul`), then dividing both sides by
+`1 + cayley(X)` (also invertible).
+
+Since `cayley` and `cayleyInv` have *the same formula*
+`(1 − M)(1 + M)⁻¹` (one is just the name we give to the function
+when going one direction or the other), `cayley_self_inverse`
+immediately gives both `cayleyInv ∘ cayley = id_{Sk}` and
+`cayley ∘ cayleyInv = id_{K_open}`. Bundling these gives
+`cayleyEquiv : Sk n ≃ K_open n` (set-theoretic bijection).
+
+For the **continuity** of Cayley, both directions reduce to
+continuity of matrix inversion on units, which Mathlib provides
+via `continuousAt_matrix_inv` (matrix inverse is continuous at
+any non-singular matrix) plus `NormedRing.inverse_continuousAt`
+(the abstract `Ring.inverse` is continuous at any unit). Bundling
+gives `cayleyHomeomorph : Sk n ≃ₜ K_open n`.
+
+For the **smoothness** (i.e., `C∞`-ness), the same matrix-inverse-
+on-units lemmas give `ContDiff` smoothness of the underlying
+matrix-valued formulas; lifting to `ContMDiff` between manifolds
+modeled on `Sk n` (with `K_open n` modeled via the Cayley chart
+itself) is achieved through `contMDiff_isOpenEmbedding` and
+`contMDiffOn_isOpenEmbedding_symm` plus a function-equality
+identification. Bundling all of this gives `cayleyDiffeomorph :
+Sk n ≃ₘ K_open n` — a `C∞` diffeomorphism between the
+skew-symmetric matrices and the dense open subset of `O(n)`.
+
+### 6. The Sphere-pattern multi-chart atlas covering all of `K = O(n)`
+
+Cayley centered at the identity covers `K_open n`, the open subset
+where `1 + Q` is invertible. To cover the rest of `O(n)` we follow
+Mathlib's `Sphere.lean` pattern (Heather Macbeth, 2021): put a
+Cayley chart **at every point** of `K`.
+
+The translated Cayley chart at `Q₀ ∈ K` is
+
+```
+chart_{Q₀} : K → Sk,     chart_{Q₀}(Q) = cayleyInv(Q · Q₀ᵀ),
+```
+
+defined on the open subset `K_open_at Q₀ = { Q ∈ K | 1 + Q · Q₀ᵀ
+invertible }`. The inverse goes `X ↦ cayley(X) · Q₀`. This is a
+direct generalization of the identity-centered chart and reduces to
+it via the substitution `Q' = Q · Q₀ᵀ` (which sends `K_open_at Q₀`
+to `K_open` bijectively). The `cayleyEquivAt` in our file packages
+this as `Sk n ≃ K_open_at Q₀`.
+
+The crucial covering property: **every `Q ∈ K` lies in
+`K_open_at Q` itself**, because `Q · Qᵀ = 1` and `1 + 1 = 2 · 1`
+has determinant `2ⁿ ≠ 0`. This is `self_mem_K_open_at`. So the
+family `{ K_open_at Q | Q ∈ K }` is an open cover of `K`, and the
+chart at `Q` is `cayleyOpenChartAt Q`. Atlas: take all
+`cayleyOpenChartAt Q₀` for `Q₀` ranging over `K`.
+
+This is `instChartedSpaceK`. The resulting `ChartedSpace (Sk n) (K n)`
+gives `K = O(n)` a topological manifold structure modeled on the
+skew-symmetric matrices. The `IsManifold` instance —
+i.e., the smoothness of all chart-transition maps — is the
+deferred `instIsManifoldK`. The transition is
+
+```
+chart_{Q₁} ∘ (chart_{Q₀})⁻¹ : X ∈ Sk ↦ cayleyInv(cayley(X) · Q₀ · Q₁ᵀ),
+```
+
+defined on the open subset of `Sk n` where `1 + cayley(X) · Q₀ · Q₁ᵀ`
+is invertible. This is a composition of three smooth pieces (cayley,
+right-multiplication by a fixed orthogonal matrix, cayleyInv), and
+its smoothness reduces to standard `ContDiff` lemmas about matrix
+multiplication and matrix inversion on units, plus
+`isManifold_of_contDiffOn` to lift to `IsManifold`.
+
+### 7. The Cartan Lie decomposition `gl_n(ℝ) = Sym_n ⊕ Sk_n`
+
+This is the simplest of the Lie-algebra-side decompositions and a
+classical fact: every real square matrix is the sum of a symmetric
+and a skew-symmetric matrix in a unique way. The decomposition is
+
+```
+M = (1/2)(M + Mᵀ) + (1/2)(M − Mᵀ),
+```
+
+with the symmetric part `(1/2)(M + Mᵀ) ∈ Sym_n` and the
+skew-symmetric part `(1/2)(M − Mᵀ) ∈ Sk_n`. Uniqueness: if
+`M ∈ Sym ∩ Sk` then `Mᵀ = M = −M`, so `2M = 0`, so `M = 0`.
+
+In Lean this is `cartanLieDecomp : IsCompl (Sym n) (Sk n)`, where
+`IsCompl` is the lattice-theoretic statement that `Sym ∩ Sk = ⊥`
+(the disjoint condition) and `Sym ⊔ Sk = ⊤` (the sum-is-everything
+condition). `Sym` and `Sk` are realized as `Submodule ℝ Mat_n(ℝ)`.
+
+This is exactly the Cartan decomposition in the sense of Lie
+theory: `Sk_n = Lie(O(n)) = 𝔨` is the maximal compact subalgebra,
+and `Sym_n = 𝔭` is the orthogonal complement under the trace form.
+The corresponding Cartan involution on the Lie algebra is `θ_*(M)
+= −Mᵀ`, with `+1` eigenspace `𝔨` and `−1` eigenspace `𝔭`.
+
+### 8. The Iwasawa Lie decomposition `gl_n(ℝ) = 𝔨 ⊕ 𝔞 ⊕ 𝔫`
+
+This is the Lie-algebra shadow of the Iwasawa group decomposition,
+and the most substantial piece of pure linear algebra in the
+project. The three subspaces are
+
+```
+𝔨 = Sk_n     (skew-symmetric matrices, `Lie(O(n))`)
+𝔞 = AA_n     (real diagonal matrices, `Lie(positive diagonals)`)
+𝔫 = NN_n     (strictly upper-triangular matrices, `Lie(upper unipotent)`)
+```
+
+with dimensions `n(n−1)/2 + n + n(n−1)/2 = n²` summing to
+`dim 𝔤𝔩_n(ℝ)`.
+
+We prove the four conditions for an internal direct-sum
+decomposition:
+
+* `disjoint_AA_NN`: `𝔞 ∩ 𝔫 = 0`. A diagonal-and-strictly-upper
+  matrix has zero off-diagonal entries (by `𝔞`) and zero diagonal
+  entries (by `𝔫`), so it is the zero matrix.
+* `disjoint_KK_AA`: `𝔨 ∩ 𝔞 = 0`. A skew diagonal matrix has
+  `M_{ii} = −M_{ii}` (skew), so `M_{ii} = 0`, and zero off-diagonal
+  by diagonality.
+* `disjoint_KK_NN`: `𝔨 ∩ 𝔫 = 0`. Below the diagonal, strict-upper
+  membership gives `M_{ij} = 0`. On and above the diagonal we use
+  skew-symmetry: at `(j, i)` for `i < j` we have `M_{ji} = 0` (below
+  diagonal), and skew gives `M_{ij} = −M_{ji} = 0`.
+* `iwasawa_codisjoint`: `𝔨 + 𝔞 + 𝔫 = 𝔤𝔩_n(ℝ)`. For any `M`, we
+  construct the explicit decomposition
+  ```
+  A_{ij} = M_{ii} if i = j else 0           (diagonal of M)
+  K_{ij} = M_{ij} if j < i, −M_{ji} if i < j, else 0   (skew lower part)
+  N_{ij} = M_{ij} + M_{ji} if i < j else 0  (symmetrized strict upper part)
+  ```
+  and verify `A + K + N = M` on each of the three cases
+  (`j < i`, `j = i`, `i < j`).
+
+These four conditions, combined, give `iwasawaLieDecomp`, the full
+internal direct-sum statement.
+
+### 9. The algebraic differential at the identity: `KK × AA × NN ≃ gl_n`
+
+The Lie-algebra version of "the Iwasawa map is a diffeomorphism"
+is "the Lie sum map is a linear isomorphism." We define
+
+```
+iwasawaLieMap : 𝔨 × 𝔞 × 𝔫 →ₗ[ℝ] 𝔤𝔩_n(ℝ),    (X, Y, Z) ↦ X + Y + Z
+```
+
+and prove:
+
+* `iwasawaLieMap_surjective` — every `M ∈ 𝔤𝔩_n(ℝ)` is in the image,
+  immediately from `iwasawa_codisjoint`.
+* `iwasawaLieMap_injective` — the kernel is trivial. Suppose
+  `X + Y + Z = 0` with `X` skew, `Y` diagonal, `Z` strict upper.
+  By the entry-wise trichotomy:
+    * `j < i`: `Y_{ij} = 0` (off-diagonal of a diagonal),
+      `Z_{ij} = 0` (`j ≤ i` triggers strict-upper zero), so
+      `X_{ij} = 0`.
+    * `j = i`: skew says `X_{ii} = −X_{ii}`, so `X_{ii} = 0`, and
+      similarly the other two are zero on the diagonal.
+    * `i < j`: by the previous case at `(j, i)` we have `X_{ji} = 0`;
+      skew gives `X_{ij} = −X_{ji} = 0`. The remaining `Y_{ij}` and
+      `Z_{ij}` are zero by the same arguments as above.
+  So `X = Y = Z = 0`.
+* `iwasawaLieEquiv` bundles these as `LinearEquiv.ofBijective`.
+
+This is the **algebraic differential at the identity** of the
+Iwasawa map. The deferred geometric statement `iwasawaMap_mfderiv_at_one`
+would identify `mfderiv (iwasawaMap) (1, 1, 1)` with `iwasawaLieEquiv`
+(modulo Cayley's first-order Taylor expansion contributing a factor
+of `2`).
+
+This linear isomorphism is the "infinitesimal change of coordinates"
+between the ambient Lie algebra `𝔤𝔩_n(ℝ)` and the Iwasawa Lie
+factor `𝔨 × 𝔞 × 𝔫`. It is the Lie-algebra-level Jacobian of the
+Iwasawa map at the identity — and the inverse map `M ↦ (K, A, N)`
+gives the explicit formulas above.
+
 ## Milestones
 
 | # | Goal | Status | J–L reference |
