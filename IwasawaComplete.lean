@@ -747,14 +747,37 @@ theorem hasFDerivWithinAt_iwasawaCharted {p : Sk n × (Fin n → ℝ) × NN n}
 /-- At the chart-center coordinate of `(1, a, 1)`, namely
 `(0, log_diag a, U_one)` where `U_one := UU.toNNHomeomorph ⟨1, IsUpperUnipotent.one⟩`,
 the Fréchet derivative of `iwasawaCharted` equals the manifold-level
-`iwasawaMatrixLeibnizCLM (1, a, 1)`. -/
+`iwasawaMatrixLeibnizCLM (1, a, 1)`.
+
+Proof: `hasFDerivAt_iwasawaActualLocal_at` at `k₀ = 1, u₀ = 1` gives
+`HasFDerivAt` of the function `fun p => cayley p.1.1 * 1 * diag(exp p.2.1) * (p.2.2.1 + 1)`,
+which equals `iwasawaCharted` by `Matrix.mul_one`. Then
+`HasFDerivAt.fderiv` extracts the derivative equality. -/
 theorem fderiv_iwasawaCharted_at_chart_center (a : A n) :
     fderiv ℝ (iwasawaCharted (n := n))
         ((0 : Sk n), (fun i => Real.log (a.1 i i)),
           UU.toNNHomeomorph (⟨1, IsUpperUnipotent.one⟩ : UU n)) =
       iwasawaMatrixLeibnizCLM (⟨1, IsOrthogonal.one⟩ : K n) a
         (⟨1, IsUpperUnipotent.one⟩ : UU n) := by
-  sorry
+  have h := hasFDerivAt_iwasawaActualLocal_at
+    (⟨1, IsOrthogonal.one⟩ : K n) a (⟨1, IsUpperUnipotent.one⟩ : UU n)
+  -- Rewrite the function `cayley p.1.1 * 1 * ... * (... + 1)` as `iwasawaCharted p`
+  -- using `Matrix.mul_one` (the K factor is the identity matrix).
+  have h_fun_eq :
+      (fun p : Sk n × (Fin n → ℝ) × NN n =>
+        (cayley p.1.1 * (⟨1, IsOrthogonal.one⟩ : K n).1) *
+          Matrix.diagonal (Real.exp ∘ p.2.1) *
+          ((p.2.2.1 : Matrix (Fin n) (Fin n) ℝ) + 1)) =
+        (iwasawaCharted (n := n)) := by
+    funext p
+    show cayley p.1.1 * (1 : Matrix (Fin n) (Fin n) ℝ) *
+        Matrix.diagonal (Real.exp ∘ p.2.1) *
+        ((p.2.2.1 : Matrix (Fin n) (Fin n) ℝ) + 1) =
+      iwasawaCharted (n := n) p
+    rw [Matrix.mul_one]
+    rfl
+  rw [h_fun_eq] at h
+  exact h.fderiv
 
 /-! ### Absolute determinant of the charted Fréchet derivative
 
@@ -768,8 +791,10 @@ next stage (RemainingWork.md). -/
 /-- At the chart center `(0, log_diag a, U_one)`, the absolute
 determinant of the Fréchet derivative (expressed in the Iwasawa
 source basis on the source side and the standard matrix basis on
-the target) equals `2^{n(n-1)/2} · |det a|^n · |det (adNN a)|`,
-the explicit Iwasawa Jacobian formula. -/
+the target) equals `2^{n(n-1)/2} · a.det^n · det (adNN a)`,
+the explicit Iwasawa Jacobian formula. Combining
+`fderiv_iwasawaCharted_at_chart_center` with the existing
+`absDetInIwasawaBases_one_a_one_eq_scaled_det_pow_mul_det_adNN`. -/
 theorem absDetInIwasawaBases_fderiv_iwasawaCharted_at_chart_center
     (a : A n) :
     absDetInIwasawaBases
@@ -778,7 +803,8 @@ theorem absDetInIwasawaBases_fderiv_iwasawaCharted_at_chart_center
             UU.toNNHomeomorph (⟨1, IsUpperUnipotent.one⟩ : UU n))) =
       (2 : ℝ) ^ Fintype.card (nnIndex n) *
         a.1.det ^ n * LinearMap.det (adNN a).toLinearMap := by
-  sorry
+  rw [fderiv_iwasawaCharted_at_chart_center]
+  exact absDetInIwasawaBases_one_a_one_eq_scaled_det_pow_mul_det_adNN a
 
 end EveryPointFDeriv
 
