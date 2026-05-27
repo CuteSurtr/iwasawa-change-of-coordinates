@@ -207,7 +207,117 @@ theorem modularCharacterFormulaFilter (a : A n) :
   rw [Finset.mem_filter] at hij
   exact div_pos (a.2.2 ij.1) (a.2.2 ij.2)
 
-/-! ## 8. Haar bridge (proved, no longer axiomatic)
+/-! ## 8. General factored-point absolute Jacobian (conditional)
+
+The full Iwasawa Jacobian formula at any factored point `(k, a, u)`:
+
+  |det iwasawaMatrixLeibnizCLM k a u|
+    = 2^{n(n-1)/2} * |det a|^n * |det adNN a|
+
+is the natural endpoint of the project's Jacobian layer. The
+existing file `IwasawaJacobianExplicit.lean` proves this formula
+**conditionally** on the lemma
+
+  |det (skOrthConjCLM k)| = 1
+
+where `skOrthConjCLM k : Sk n →L[ℝ] Sk n` is the conjugation
+`X ↦ kᵀ X k`. Mathematically this is true because, for orthogonal
+`k`, the conjugation is an isometry of `Sk n` under the Frobenius
+inner product, hence has matrix `±1`. Formalizing this in Lean
+requires either Mathlib's exterior algebra (`Λ² k`), an inner
+product structure on the `Submodule` `Sk n`, or a connectedness
+argument on `O(n)`. We expose the conditional result here and
+prove the partial fact that the determinant times its
+"transposed-k" companion equals one, leaving only the equality of
+the two determinants as the remaining gap. -/
+
+/-- **Conditional general-point absolute Jacobian formula.** If
+`|det (skOrthConjCLM k)| = 1` (a known but currently
+unformalized fact for orthogonal `k`), then the absolute Jacobian
+of the Iwasawa derivative at any factored point `(k, a, u)` is the
+expected `2^{n(n-1)/2} * |det a|^n * |det adNN a|`. -/
+theorem absDetIwasawaMatrixLeibnizCLM_at_factored
+    (k : K n) (a : A n) (u : UU n)
+    (hsk : |LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap| = 1) :
+    absDetInIwasawaBases (iwasawaMatrixLeibnizCLM k a u) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        a.1.det ^ n * LinearMap.det (adNN a).toLinearMap :=
+  absDetInIwasawaBases_factored_eq_scaled_det_pow_mul_det_adNN_of_abs_det_skOrthConj
+    k a u hsk
+
+/-- **Transposed orthogonal element.** For `k : K n` (orthogonal),
+the transpose `k.1.transpose` is also orthogonal, so it gives
+another element of `K n`. -/
+noncomputable def kTransposeAsK (k : K n) : K n :=
+  ⟨k.1.transpose, by
+    change k.1.transpose * k.1.transpose.transpose = 1
+    rw [Matrix.transpose_transpose]
+    have hk : k.1 * k.1.transpose = 1 := k.2
+    -- For orthogonal `k`, `kᵀ * k = 1` follows from `k * kᵀ = 1`
+    -- by the right-inverse-is-left-inverse principle on finite
+    -- matrices via `mul_eq_one_comm`.
+    exact mul_eq_one_comm.mp hk⟩
+
+/-- **The two conjugation directions are linear inverses.** For
+orthogonal `k`, the composition of `skOrthConjCLM k` and
+`skOrthConjCLM (kᵀ)` is the identity on `Sk n`. -/
+theorem skOrthConjCLM_comp_transpose_eq_id (k : K n) :
+    (skOrthConjCLM (n := n) k).comp
+        (skOrthConjCLM (n := n) (kTransposeAsK k)) =
+      ContinuousLinearMap.id ℝ (Sk n) := by
+  apply ContinuousLinearMap.ext
+  intro X
+  apply Subtype.ext
+  -- Goal after subtype.ext: kᵀ * (k * X * kᵀ) * k = X
+  -- That is: (kᵀ * k) * X * (kᵀ * k) = X using associativity and kᵀ k = 1.
+  show k.1.transpose * (k.1 * X.1 * k.1.transpose) * k.1 = X.1
+  have hk : k.1.transpose * k.1 = 1 := mul_eq_one_comm.mp k.2
+  rw [← Matrix.mul_assoc, ← Matrix.mul_assoc, hk, Matrix.one_mul,
+      Matrix.mul_assoc, hk, Matrix.mul_one]
+
+/-- **The other direction.** Composition the other way is also the
+identity. -/
+theorem skOrthConjCLM_transpose_comp_eq_id (k : K n) :
+    (skOrthConjCLM (n := n) (kTransposeAsK k)).comp
+        (skOrthConjCLM (n := n) k) =
+      ContinuousLinearMap.id ℝ (Sk n) := by
+  apply ContinuousLinearMap.ext
+  intro X
+  apply Subtype.ext
+  show k.1 * (k.1.transpose * X.1 * k.1) * k.1.transpose = X.1
+  have hk : k.1 * k.1.transpose = 1 := k.2
+  rw [← Matrix.mul_assoc, ← Matrix.mul_assoc, hk, Matrix.one_mul,
+      Matrix.mul_assoc, hk, Matrix.mul_one]
+
+/-- **Product of the two determinants is one.** This is the
+"`det × det = 1`" half of `|det| = 1`. The remaining gap to fully
+close `|det skOrthConjCLM k| = 1` is showing the two determinants
+are equal (which is true because the matrices are transposes in any
+Frobenius-orthonormal basis; the formalization needs either an
+inner product structure on the `Submodule Sk n`, or an exterior
+algebra identification `Sk n ≃ Λ²(ℝⁿ)`). -/
+theorem det_skOrthConjCLM_mul_det_skOrthConjCLM_transpose (k : K n) :
+    LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap *
+      LinearMap.det (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap = 1 := by
+  have h : (skOrthConjCLM (n := n) k).comp
+      (skOrthConjCLM (n := n) (kTransposeAsK k)) =
+      ContinuousLinearMap.id ℝ (Sk n) :=
+    skOrthConjCLM_comp_transpose_eq_id k
+  have h_lm : (skOrthConjCLM (n := n) k).toLinearMap.comp
+      (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap =
+      LinearMap.id := by
+    rw [← ContinuousLinearMap.coe_comp, h]
+    rfl
+  have := congrArg LinearMap.det h_lm
+  rwa [LinearMap.det_comp, LinearMap.det_id] at this
+
+/-- **Absolute values multiply to one.** Direct corollary. -/
+theorem abs_det_skOrthConjCLM_mul_eq_one (k : K n) :
+    |LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap| *
+      |LinearMap.det (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap| = 1 := by
+  rw [← abs_mul, det_skOrthConjCLM_mul_det_skOrthConjCLM_transpose, abs_one]
+
+/-! ## 9. Haar bridge (proved, no longer axiomatic)
 
 The file `IwasawaBridge.lean` declares
 `iwasawa_haar_pushforward_bridge` as a future facing axiom asserting
@@ -276,6 +386,12 @@ three Mathlib axioms `[propext, Classical.choice, Quot.sound]`. -/
 #print axioms modularCharacterFormulaFilter
 #print axioms iwasawaHaarBridge
 #print axioms iwasawaPushforwardWeightedHaarExists
+#print axioms absDetIwasawaMatrixLeibnizCLM_at_factored
+#print axioms kTransposeAsK
+#print axioms skOrthConjCLM_comp_transpose_eq_id
+#print axioms skOrthConjCLM_transpose_comp_eq_id
+#print axioms det_skOrthConjCLM_mul_det_skOrthConjCLM_transpose
+#print axioms abs_det_skOrthConjCLM_mul_eq_one
 
 end Complete
 
