@@ -568,6 +568,166 @@ three Mathlib axioms `[propext, Classical.choice, Quot.sound]`. -/
 #print axioms abs_det_skOrthConjCLM_eq_one
 #print axioms absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional
 
+/-! ## 10. Every-point HasFDerivAt for the charted Iwasawa map
+
+The change-of-variables theorem
+`MeasureTheory.integral_image_eq_integral_abs_det_fderiv_smul`
+needs `HasFDerivWithinAt f (f' x) s x` at every point `x ∈ s`,
+with `f : E → E` between equidimensional flat normed spaces.
+This section sets up the single-global-chart version of the
+Iwasawa map and proves it has a Fréchet derivative at every point
+of its chart domain.
+
+Chart setup:
+* Source: `Sk n × (Fin n → ℝ) × NN n`, a normed space of dimension
+  `n(n-1)/2 + n + n(n-1)/2 = n²`.
+* Target: `Matrix (Fin n) (Fin n) ℝ`, dimension `n²`.
+* Map: `(X, v, Z) ↦ cayley(X) · diag(exp v) · (Z + 1)`.
+* Domain: open set where `1 + X` is invertible (the Cayley chart
+  domain).
+
+Strategy: `ContDiffOn ⊤` on the open domain (route a), then
+`HasFDerivAt` via `ContDiffOn.differentiableOn`. The derivative at
+the chart center coincides with `iwasawaMatrixLeibnizCLM (1, a, 1)`.
+At general points the derivative is `fderiv ℝ iwasawaCharted p`;
+the explicit chain-rule expression matches the named CLM only at
+the chart center, but the `|det|` formula can still be expressed
+via the chart-corrected Iwasawa Jacobian. -/
+
+section EveryPointFDeriv
+
+attribute [local instance] Matrix.linftyOpSeminormedAddCommGroup
+attribute [local instance] Matrix.linftyOpNormedAddCommGroup
+attribute [local instance] Matrix.linftyOpNormedSpace
+attribute [local instance] Matrix.linftyOpNonUnitalSemiNormedRing
+attribute [local instance] Matrix.linftyOpSemiNormedRing
+attribute [local instance] Matrix.linftyOpNonUnitalNormedRing
+attribute [local instance] Matrix.linftyOpNormedRing
+attribute [local instance] Matrix.linftyOpNormedAlgebra
+
+variable {n : ℕ}
+
+/-- **The charted Iwasawa map.** Takes a chart coordinate
+`(X, v, Z) ∈ Sk n × (Fin n → ℝ) × NN n` to the matrix
+`cayley(X) · diag(exp v) · (Z + 1)`. On the open subset where
+`1 + X` is invertible, this is a chart-inverse of `iwasawaMap`
+composed with the obvious chart inverses on `K`, `A`, `UU`. -/
+noncomputable def iwasawaCharted (p : Sk n × (Fin n → ℝ) × NN n) :
+    Matrix (Fin n) (Fin n) ℝ :=
+  cayley p.1.1 * Matrix.diagonal (Real.exp ∘ p.2.1) *
+    ((p.2.2.1 : Matrix (Fin n) (Fin n) ℝ) + 1)
+
+/-- The open chart domain: triples `(X, v, Z)` with `1 + X` invertible. -/
+def iwasawaChartedDomain : Set (Sk n × (Fin n → ℝ) × NN n) :=
+  {p | IsUnit ((1 + p.1.1 : Matrix (Fin n) (Fin n) ℝ)).det}
+
+/-! ### Component-level ContDiff -/
+
+/-- Cayley is `ContDiffOn ⊤` on the Sk-side invertibility open set. -/
+lemma contDiffOn_cayley_sk :
+    ContDiffOn ℝ ⊤ (fun X : Sk n => cayley X.1)
+      {X : Sk n | IsUnit ((1 + X.1 : Matrix (Fin n) (Fin n) ℝ)).det} := by
+  sorry
+
+/-- The map `v ↦ Matrix.diagonal (Real.exp ∘ v)` is `ContDiff ⊤`. -/
+lemma contDiff_diag_exp :
+    ContDiff ℝ ⊤ (fun v : Fin n → ℝ => Matrix.diagonal (Real.exp ∘ v)) := by
+  sorry
+
+/-- The affine map `Z ↦ Z.1 + 1` on `NN n` is `ContDiff ⊤`. -/
+lemma contDiff_NN_plus_one :
+    ContDiff ℝ ⊤ (fun Z : NN n => (Z.1 : Matrix (Fin n) (Fin n) ℝ) + 1) := by
+  sorry
+
+/-! ### Domain openness -/
+
+lemma iwasawaChartedDomain_isOpen :
+    IsOpen (iwasawaChartedDomain (n := n)) := by
+  sorry
+
+/-! ### Main: ContDiffOn of the charted map -/
+
+/-- **Charted Iwasawa map is `ContDiffOn ⊤`** on the open chart domain. -/
+theorem contDiffOn_iwasawaCharted :
+    ContDiffOn ℝ ⊤ (iwasawaCharted (n := n)) iwasawaChartedDomain := by
+  sorry
+
+/-- **Differentiable on the chart domain.** -/
+theorem differentiableOn_iwasawaCharted :
+    DifferentiableOn ℝ (iwasawaCharted (n := n)) iwasawaChartedDomain := by
+  sorry
+
+/-- **HasFDerivAt at every point of the open chart domain.** This is the
+core deliverable needed by `integral_image_eq_integral_abs_det_fderiv_smul`. -/
+theorem hasFDerivAt_iwasawaCharted_at {p : Sk n × (Fin n → ℝ) × NN n}
+    (hp : p ∈ iwasawaChartedDomain) :
+    HasFDerivAt (iwasawaCharted (n := n))
+      (fderiv ℝ (iwasawaCharted (n := n)) p) p := by
+  sorry
+
+/-- **HasFDerivWithinAt form.** Suitable for direct plug-in to
+`integral_image_eq_integral_abs_det_fderiv_smul`. -/
+theorem hasFDerivWithinAt_iwasawaCharted {p : Sk n × (Fin n → ℝ) × NN n}
+    (hp : p ∈ iwasawaChartedDomain) :
+    HasFDerivWithinAt (iwasawaCharted (n := n))
+      (fderiv ℝ (iwasawaCharted (n := n)) p) iwasawaChartedDomain p := by
+  sorry
+
+/-! ### Identification with `iwasawaMatrixLeibnizCLM` at the chart center -/
+
+/-- At the chart-center coordinate of `(1, a, 1)`, namely
+`(0, log_diag a, U_one)` where `U_one := UU.toNNHomeomorph ⟨1, IsUpperUnipotent.one⟩`,
+the Fréchet derivative of `iwasawaCharted` equals the manifold-level
+`iwasawaMatrixLeibnizCLM (1, a, 1)`. -/
+theorem fderiv_iwasawaCharted_at_chart_center (a : A n) :
+    fderiv ℝ (iwasawaCharted (n := n))
+        ((0 : Sk n), (fun i => Real.log (a.1 i i)),
+          UU.toNNHomeomorph (⟨1, IsUpperUnipotent.one⟩ : UU n)) =
+      iwasawaMatrixLeibnizCLM (⟨1, IsOrthogonal.one⟩ : K n) a
+        (⟨1, IsUpperUnipotent.one⟩ : UU n) := by
+  sorry
+
+/-! ### Absolute determinant of the charted Fréchet derivative
+
+For the change-of-variables formula, we need
+`|LinearMap.det (fderiv ℝ iwasawaCharted p).toLinearMap|` as a
+function of `p`. At the chart center we have the closed form via
+the existing Jacobian theorem. At general `p` the formula has chart
+corrections; the precise general-point determinant is left for the
+next stage (RemainingWork.md). -/
+
+/-- At the chart center `(0, log_diag a, U_one)`, the absolute
+determinant of the Fréchet derivative (expressed in the Iwasawa
+source basis on the source side and the standard matrix basis on
+the target) equals `2^{n(n-1)/2} · |det a|^n · |det (adNN a)|`,
+the explicit Iwasawa Jacobian formula. -/
+theorem absDetInIwasawaBases_fderiv_iwasawaCharted_at_chart_center
+    (a : A n) :
+    absDetInIwasawaBases
+        (fderiv ℝ (iwasawaCharted (n := n))
+          ((0 : Sk n), (fun i => Real.log (a.1 i i)),
+            UU.toNNHomeomorph (⟨1, IsUpperUnipotent.one⟩ : UU n))) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        a.1.det ^ n * LinearMap.det (adNN a).toLinearMap := by
+  sorry
+
+end EveryPointFDeriv
+
+/-! ### Axiom check for the every-point fderiv section -/
+
+#print axioms iwasawaCharted
+#print axioms iwasawaChartedDomain
+#print axioms iwasawaChartedDomain_isOpen
+#print axioms contDiffOn_cayley_sk
+#print axioms contDiff_diag_exp
+#print axioms contDiff_NN_plus_one
+#print axioms contDiffOn_iwasawaCharted
+#print axioms differentiableOn_iwasawaCharted
+#print axioms hasFDerivAt_iwasawaCharted_at
+#print axioms hasFDerivWithinAt_iwasawaCharted
+#print axioms fderiv_iwasawaCharted_at_chart_center
+#print axioms absDetInIwasawaBases_fderiv_iwasawaCharted_at_chart_center
+
 end Complete
 
 end IwasawaCoC
