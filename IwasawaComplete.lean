@@ -317,6 +317,174 @@ theorem abs_det_skOrthConjCLM_mul_eq_one (k : K n) :
       |LinearMap.det (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap| = 1 := by
   rw [← abs_mul, det_skOrthConjCLM_mul_det_skOrthConjCLM_transpose, abs_one]
 
+/-! ### Closing the gap by direct matrix computation in `skBasis`
+
+We compute the matrix of `skOrthConjCLM k` in `skBasis` and show
+it has the Plücker form. Then the matrix of `skOrthConjCLM kᵀ` is
+the transpose, the inverse identity becomes `M · Mᵀ = I`, and
+`(det M)² = 1` follows. -/
+
+private lemma matrix_transpose_mul_single_mul_apply
+    (M N : Matrix (Fin n) (Fin n) ℝ) (i j : Fin n) (a : ℝ) (r s : Fin n) :
+    (M.transpose * Matrix.single i j a * N) r s = M i r * a * N j s := by
+  rw [Matrix.mul_apply]
+  rw [Finset.sum_eq_single j]
+  · rw [Matrix.mul_single_apply_same, Matrix.transpose_apply]
+  · intro b _ hb
+    have h_zero : (M.transpose * Matrix.single i j a) r b = 0 :=
+      Matrix.mul_single_apply_of_ne a i j r b hb M.transpose
+    rw [h_zero, zero_mul]
+  · intro h
+    exact absurd (Finset.mem_univ _) h
+
+/-- **Key structural lemma.** As a raw matrix, `skBasis col` equals
+the difference of two `Matrix.single` matrices. -/
+lemma skBasis_val_eq_single_sub_single (col : nnIndex n) :
+    ((skBasis col : Sk n) : Matrix (Fin n) (Fin n) ℝ) =
+      Matrix.single col.1.1 col.1.2 (1 : ℝ) -
+        Matrix.single col.1.2 col.1.1 (1 : ℝ) := by
+  have hne : col.1.1 ≠ col.1.2 := ne_of_lt col.2
+  ext i j
+  rw [Matrix.sub_apply, Matrix.single_apply, Matrix.single_apply]
+  rcases lt_trichotomy i j with hlt | heq | hgt
+  · rw [skBasis_apply, skCoordLinearEquiv_symm_apply_upper _ hlt]
+    by_cases h_eq : (⟨(i, j), hlt⟩ : nnIndex n) = col
+    · rw [h_eq, Pi.single_eq_same]
+      have hi : col.1.1 = i := by
+        have := congrArg (fun p : nnIndex n => p.1.1) h_eq
+        simpa using this.symm
+      have hj : col.1.2 = j := by
+        have := congrArg (fun p : nnIndex n => p.1.2) h_eq
+        simpa using this.symm
+      have h_up : col.1.1 = i ∧ col.1.2 = j := ⟨hi, hj⟩
+      have h_low : ¬ (col.1.2 = i ∧ col.1.1 = j) := by
+        rintro ⟨h1, _⟩
+        exact hne (hi.trans h1.symm)
+      rw [if_pos h_up, if_neg h_low, sub_zero]
+    · have h_zero : Pi.single (M := fun _ : nnIndex n => ℝ) col (1 : ℝ) ⟨(i, j), hlt⟩ = 0 :=
+        Pi.single_eq_of_ne h_eq 1
+      rw [h_zero]
+      have h_up : ¬ (col.1.1 = i ∧ col.1.2 = j) := by
+        rintro ⟨h1, h2⟩
+        exact h_eq (Subtype.ext (Prod.ext h1.symm h2.symm))
+      have h_low : ¬ (col.1.2 = i ∧ col.1.1 = j) := by
+        rintro ⟨h1, h2⟩
+        have h_lt' : col.1.2 < col.1.1 := h1 ▸ h2 ▸ hlt
+        exact absurd h_lt' (asymm col.2)
+      rw [if_neg h_up, if_neg h_low, sub_self]
+  · subst heq
+    rw [skBasis_apply_diag]
+    have h_up : ¬ (col.1.1 = i ∧ col.1.2 = i) :=
+      fun ⟨h1, h2⟩ => hne (h1.trans h2.symm)
+    have h_low : ¬ (col.1.2 = i ∧ col.1.1 = i) :=
+      fun ⟨h1, h2⟩ => hne (h2.trans h1.symm)
+    rw [if_neg h_up, if_neg h_low, sub_self]
+  · rw [skBasis_apply, skCoordLinearEquiv_symm_apply_lower _ hgt]
+    by_cases h_eq : (⟨(j, i), hgt⟩ : nnIndex n) = col
+    · have hj : col.1.1 = j := by
+        have := congrArg (fun p : nnIndex n => p.1.1) h_eq
+        simpa using this.symm
+      have hi : col.1.2 = i := by
+        have := congrArg (fun p : nnIndex n => p.1.2) h_eq
+        simpa using this.symm
+      rw [h_eq, Pi.single_eq_same]
+      have h_up : ¬ (col.1.1 = i ∧ col.1.2 = j) := by
+        rintro ⟨h1, _⟩
+        rw [hj] at h1
+        exact absurd h1 (ne_of_lt hgt)
+      have h_low : col.1.2 = i ∧ col.1.1 = j := ⟨hi, hj⟩
+      rw [if_neg h_up, if_pos h_low, zero_sub]
+    · have h_zero : Pi.single (M := fun _ : nnIndex n => ℝ) col (1 : ℝ) ⟨(j, i), hgt⟩ = 0 :=
+        Pi.single_eq_of_ne h_eq 1
+      rw [h_zero, neg_zero]
+      have h_up : ¬ (col.1.1 = i ∧ col.1.2 = j) := by
+        rintro ⟨h1, h2⟩
+        have h_lt' : col.1.2 < col.1.1 := h1 ▸ h2 ▸ hgt
+        exact absurd h_lt' (asymm col.2)
+      have h_low : ¬ (col.1.2 = i ∧ col.1.1 = j) := by
+        rintro ⟨h1, h2⟩
+        exact h_eq (Subtype.ext (Prod.ext h2.symm h1.symm))
+      rw [if_neg h_up, if_neg h_low, sub_self]
+
+/-- **Plücker entry formula.** The matrix of `skOrthConjCLM k` in
+`skBasis` at `(row, col)` is the 2×2 minor of `k.1` with rows
+`(col.1.1, col.1.2)` and columns `(row.1.1, row.1.2)`. -/
+lemma skOrthConjCLM_toMatrix_apply (k : K n) (row col : nnIndex n) :
+    LinearMap.toMatrix skBasis skBasis (skOrthConjCLM (n := n) k).toLinearMap row col =
+      k.1 col.1.1 row.1.1 * k.1 col.1.2 row.1.2 -
+        k.1 col.1.2 row.1.1 * k.1 col.1.1 row.1.2 := by
+  rw [LinearMap.toMatrix_apply, skBasis_repr_apply]
+  show ((skOrthConjCLM (n := n) k) (skBasis col) : Sk n).1 row.1.1 row.1.2 = _
+  rw [skOrthConjCLM_apply_val, skBasis_val_eq_single_sub_single]
+  rw [Matrix.mul_sub, Matrix.sub_mul, Matrix.sub_apply]
+  rw [matrix_transpose_mul_single_mul_apply, matrix_transpose_mul_single_mul_apply]
+  ring
+
+/-- The matrix of `skOrthConjCLM (kᵀ)` equals the transpose of the
+matrix of `skOrthConjCLM k`. -/
+lemma skOrthConjCLM_kTranspose_toMatrix_eq_transpose (k : K n) :
+    LinearMap.toMatrix skBasis skBasis
+        (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap =
+      (LinearMap.toMatrix skBasis skBasis
+        (skOrthConjCLM (n := n) k).toLinearMap).transpose := by
+  ext row col
+  rw [Matrix.transpose_apply, skOrthConjCLM_toMatrix_apply,
+      skOrthConjCLM_toMatrix_apply]
+  show k.1.transpose col.1.1 row.1.1 * k.1.transpose col.1.2 row.1.2 -
+       k.1.transpose col.1.2 row.1.1 * k.1.transpose col.1.1 row.1.2 =
+       k.1 row.1.1 col.1.1 * k.1 row.1.2 col.1.2 -
+         k.1 row.1.2 col.1.1 * k.1 row.1.1 col.1.2
+  rw [Matrix.transpose_apply, Matrix.transpose_apply, Matrix.transpose_apply,
+      Matrix.transpose_apply]
+  ring
+
+/-- The matrix of `skOrthConjCLM k` times its transpose equals the
+identity. -/
+lemma skOrthConjCLM_toMatrix_mul_transpose_eq_one (k : K n) :
+    LinearMap.toMatrix skBasis skBasis (skOrthConjCLM (n := n) k).toLinearMap *
+      (LinearMap.toMatrix skBasis skBasis
+        (skOrthConjCLM (n := n) k).toLinearMap).transpose = 1 := by
+  rw [← skOrthConjCLM_kTranspose_toMatrix_eq_transpose]
+  rw [← LinearMap.toMatrix_comp skBasis skBasis skBasis]
+  have h : (skOrthConjCLM (n := n) k).toLinearMap.comp
+      (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap =
+      LinearMap.id := by
+    rw [← ContinuousLinearMap.coe_comp, skOrthConjCLM_comp_transpose_eq_id]
+    rfl
+  rw [h, LinearMap.toMatrix_id]
+
+/-- `(det (skOrthConjCLM k))² = 1`. -/
+lemma sq_det_skOrthConjCLM_eq_one (k : K n) :
+    (LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap) ^ 2 = 1 := by
+  have h := skOrthConjCLM_toMatrix_mul_transpose_eq_one (n := n) k
+  have h_det := congrArg Matrix.det h
+  rw [Matrix.det_mul, Matrix.det_transpose, Matrix.det_one] at h_det
+  rw [LinearMap.det_toMatrix skBasis] at h_det
+  rw [sq]
+  exact h_det
+
+/-- **The gap is closed.** `|det (skOrthConjCLM k)| = 1` for any
+orthogonal `k`. -/
+theorem abs_det_skOrthConjCLM_eq_one (k : K n) :
+    |LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap| = 1 := by
+  have h_sq := sq_det_skOrthConjCLM_eq_one (n := n) k
+  have h_abs_sq : |LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap| ^ 2 = 1 := by
+    rw [sq_abs]; exact h_sq
+  have h_abs_nonneg : 0 ≤ |LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap| :=
+    abs_nonneg _
+  nlinarith [h_abs_sq, h_abs_nonneg]
+
+/-- **Unconditional general-point absolute Jacobian.** At any factored
+point `(k, a, u)`, the absolute Jacobian of `iwasawaMatrixLeibnizCLM`
+in the Iwasawa source bases equals
+`2^{n(n-1)/2} * |det a|^n * |det (adNN a)|`. -/
+theorem absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional
+    (k : K n) (a : A n) (u : UU n) :
+    absDetInIwasawaBases (iwasawaMatrixLeibnizCLM k a u) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        a.1.det ^ n * LinearMap.det (adNN a).toLinearMap :=
+  absDetIwasawaMatrixLeibnizCLM_at_factored k a u (abs_det_skOrthConjCLM_eq_one k)
+
 /-! ## 9. Haar bridge (proved, no longer axiomatic)
 
 The file `IwasawaBridge.lean` declares
@@ -392,6 +560,13 @@ three Mathlib axioms `[propext, Classical.choice, Quot.sound]`. -/
 #print axioms skOrthConjCLM_transpose_comp_eq_id
 #print axioms det_skOrthConjCLM_mul_det_skOrthConjCLM_transpose
 #print axioms abs_det_skOrthConjCLM_mul_eq_one
+#print axioms skBasis_val_eq_single_sub_single
+#print axioms skOrthConjCLM_toMatrix_apply
+#print axioms skOrthConjCLM_kTranspose_toMatrix_eq_transpose
+#print axioms skOrthConjCLM_toMatrix_mul_transpose_eq_one
+#print axioms sq_det_skOrthConjCLM_eq_one
+#print axioms abs_det_skOrthConjCLM_eq_one
+#print axioms absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional
 
 end Complete
 
