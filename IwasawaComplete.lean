@@ -617,61 +617,131 @@ noncomputable def iwasawaCharted (p : Sk n × (Fin n → ℝ) × NN n) :
   cayley p.1.1 * Matrix.diagonal (Real.exp ∘ p.2.1) *
     ((p.2.2.1 : Matrix (Fin n) (Fin n) ℝ) + 1)
 
-/-- The open chart domain: triples `(X, v, Z)` with `1 + X` invertible. -/
+/-- The open chart domain: triples `(X, v, Z)` with `1 + X` invertible.
+By `one_add_skew_isUnit`, this condition holds for every `X : Sk n` —
+real skew-symmetric matrices have purely imaginary eigenvalues, so
+`-1` is never an eigenvalue and `det (1 + X) ≥ 1 > 0`. The set is
+therefore all of the source space; we keep the named definition for
+API readability and prove the universality below. -/
 def iwasawaChartedDomain : Set (Sk n × (Fin n → ℝ) × NN n) :=
   {p | IsUnit ((1 + p.1.1 : Matrix (Fin n) (Fin n) ℝ)).det}
 
+/-- **Universality of the chart domain.** Over the reals, every skew
+matrix `X` satisfies `IsUnit ((1 + X).det)`, so the chart domain
+covers all of `Sk n × (Fin n → ℝ) × NN n`. This is the user-requested
+sharpening: there is no chart complement to argue is measure zero
+later. -/
+lemma iwasawaChartedDomain_eq_univ :
+    iwasawaChartedDomain (n := n) = Set.univ := by
+  ext p
+  refine ⟨fun _ => Set.mem_univ _, fun _ => ?_⟩
+  exact one_add_skew_isUnit p.1
+
 /-! ### Component-level ContDiff -/
 
-/-- Cayley is `ContDiffOn ⊤` on the Sk-side invertibility open set. -/
+/-- Cayley is `ContDiffOn ⊤` on the Sk-side invertibility open set
+(which is in fact universal by `one_add_skew_isUnit`, but the named
+set is kept for API). -/
 lemma contDiffOn_cayley_sk :
     ContDiffOn ℝ ⊤ (fun X : Sk n => cayley X.1)
       {X : Sk n | IsUnit ((1 + X.1 : Matrix (Fin n) (Fin n) ℝ)).det} := by
-  sorry
+  intro X hX
+  have h : IsUnit (1 + X.1 : Matrix (Fin n) (Fin n) ℝ) :=
+    (Matrix.isUnit_iff_isUnit_det _).mpr hX
+  have h_cayley_at : ContDiffAt ℝ ⊤
+      (cayley : Matrix (Fin n) (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ) X.1 :=
+    contDiffAt_cayley h
+  have h_subtype_at : ContDiffAt ℝ ⊤
+      (Subtype.val : Sk n → Matrix (Fin n) (Fin n) ℝ) X :=
+    (Sk n).subtypeL.contDiff.contDiffAt
+  exact (h_cayley_at.comp X h_subtype_at).contDiffWithinAt
 
-/-- The map `v ↦ Matrix.diagonal (Real.exp ∘ v)` is `ContDiff ⊤`. -/
+/-- The map `v ↦ Matrix.diagonal (Real.exp ∘ v)` is `ContDiff ⊤`.
+Compose componentwise `Real.exp` with the linear map `Matrix.diagonal`. -/
 lemma contDiff_diag_exp :
     ContDiff ℝ ⊤ (fun v : Fin n → ℝ => Matrix.diagonal (Real.exp ∘ v)) := by
-  sorry
+  have h_pi_exp : ContDiff ℝ ⊤ (fun v : Fin n → ℝ => Real.exp ∘ v) :=
+    contDiff_pi.mpr fun i => Real.contDiff_exp.comp (contDiff_apply (𝕜 := ℝ) (E := ℝ) i)
+  have h_diag : ContDiff ℝ ⊤
+      ((Matrix.diagonalLinearMap (Fin n) ℝ ℝ).toContinuousLinearMap :
+        (Fin n → ℝ) → Matrix (Fin n) (Fin n) ℝ) :=
+    ((Matrix.diagonalLinearMap (Fin n) ℝ ℝ).toContinuousLinearMap).contDiff
+  exact h_diag.comp h_pi_exp
 
-/-- The affine map `Z ↦ Z.1 + 1` on `NN n` is `ContDiff ⊤`. -/
+/-- The affine map `Z ↦ Z.1 + 1` on `NN n` is `ContDiff ⊤`.
+The linear part is `(NN n).subtypeL` (a CLM, hence smooth); the
+constant `1` adds smoothly. -/
 lemma contDiff_NN_plus_one :
-    ContDiff ℝ ⊤ (fun Z : NN n => (Z.1 : Matrix (Fin n) (Fin n) ℝ) + 1) := by
-  sorry
+    ContDiff ℝ ⊤ (fun Z : NN n => (Z.1 : Matrix (Fin n) (Fin n) ℝ) + 1) :=
+  ((NN n).subtypeL.contDiff).add contDiff_const
 
 /-! ### Domain openness -/
 
 lemma iwasawaChartedDomain_isOpen :
     IsOpen (iwasawaChartedDomain (n := n)) := by
-  sorry
+  rw [iwasawaChartedDomain_eq_univ]
+  exact isOpen_univ
 
 /-! ### Main: ContDiffOn of the charted map -/
 
-/-- **Charted Iwasawa map is `ContDiffOn ⊤`** on the open chart domain. -/
+/-- **Charted Iwasawa map is `ContDiffOn ⊤`** on the open chart domain.
+Combination of `contDiffOn_cayley_sk`, `contDiff_diag_exp`, and
+`contDiff_NN_plus_one` via matrix multiplication. -/
 theorem contDiffOn_iwasawaCharted :
     ContDiffOn ℝ ⊤ (iwasawaCharted (n := n)) iwasawaChartedDomain := by
-  sorry
+  -- Projections of the product space are CLMs, hence ContDiff.
+  have h_p1 : ContDiff ℝ ⊤ (fun p : Sk n × (Fin n → ℝ) × NN n => p.1) :=
+    (ContinuousLinearMap.fst ℝ (Sk n) ((Fin n → ℝ) × NN n)).contDiff
+  have h_p21 : ContDiff ℝ ⊤ (fun p : Sk n × (Fin n → ℝ) × NN n => p.2.1) :=
+    (ContinuousLinearMap.fst ℝ (Fin n → ℝ) (NN n)).contDiff.comp
+      (ContinuousLinearMap.snd ℝ (Sk n) ((Fin n → ℝ) × NN n)).contDiff
+  have h_p22 : ContDiff ℝ ⊤ (fun p : Sk n × (Fin n → ℝ) × NN n => p.2.2) :=
+    (ContinuousLinearMap.snd ℝ (Fin n → ℝ) (NN n)).contDiff.comp
+      (ContinuousLinearMap.snd ℝ (Sk n) ((Fin n → ℝ) × NN n)).contDiff
+  -- ContDiffOn the K component by composition with the projection p ↦ p.1.
+  have h_K : ContDiffOn ℝ ⊤ (fun p : Sk n × (Fin n → ℝ) × NN n => cayley p.1.1)
+      iwasawaChartedDomain := by
+    apply ContDiffOn.comp contDiffOn_cayley_sk h_p1.contDiffOn
+    intro p hp
+    exact hp
+  -- ContDiff the A and UU components.
+  have h_A : ContDiff ℝ ⊤
+      (fun p : Sk n × (Fin n → ℝ) × NN n => Matrix.diagonal (Real.exp ∘ p.2.1)) :=
+    contDiff_diag_exp.comp h_p21
+  have h_U : ContDiff ℝ ⊤
+      (fun p : Sk n × (Fin n → ℝ) × NN n =>
+        (p.2.2.1 : Matrix (Fin n) (Fin n) ℝ) + 1) :=
+    contDiff_NN_plus_one.comp h_p22
+  -- Combine via matrix multiplication (ContDiffOn.mul for the open-set case).
+  exact (h_K.mul h_A.contDiffOn).mul h_U.contDiffOn
 
-/-- **Differentiable on the chart domain.** -/
+/-- **Differentiable on the chart domain.** Direct corollary of
+`contDiffOn_iwasawaCharted`. -/
 theorem differentiableOn_iwasawaCharted :
-    DifferentiableOn ℝ (iwasawaCharted (n := n)) iwasawaChartedDomain := by
-  sorry
+    DifferentiableOn ℝ (iwasawaCharted (n := n)) iwasawaChartedDomain :=
+  contDiffOn_iwasawaCharted.differentiableOn (by decide)
 
 /-- **HasFDerivAt at every point of the open chart domain.** This is the
-core deliverable needed by `integral_image_eq_integral_abs_det_fderiv_smul`. -/
+core deliverable needed by `integral_image_eq_integral_abs_det_fderiv_smul`.
+Since `iwasawaChartedDomain` is open and the map is differentiable on it,
+each point in the domain has a Fréchet derivative. -/
 theorem hasFDerivAt_iwasawaCharted_at {p : Sk n × (Fin n → ℝ) × NN n}
     (hp : p ∈ iwasawaChartedDomain) :
     HasFDerivAt (iwasawaCharted (n := n))
       (fderiv ℝ (iwasawaCharted (n := n)) p) p := by
-  sorry
+  have h_diff : DifferentiableAt ℝ (iwasawaCharted (n := n)) p :=
+    (differentiableOn_iwasawaCharted p hp).differentiableAt
+      (iwasawaChartedDomain_isOpen.mem_nhds hp)
+  exact h_diff.hasFDerivAt
 
-/-- **HasFDerivWithinAt form.** Suitable for direct plug-in to
-`integral_image_eq_integral_abs_det_fderiv_smul`. -/
+/-- **HasFDerivWithinAt form.** Direct corollary of
+`hasFDerivAt_iwasawaCharted_at`. Suitable for direct plug-in to
+`MeasureTheory.integral_image_eq_integral_abs_det_fderiv_smul`. -/
 theorem hasFDerivWithinAt_iwasawaCharted {p : Sk n × (Fin n → ℝ) × NN n}
     (hp : p ∈ iwasawaChartedDomain) :
     HasFDerivWithinAt (iwasawaCharted (n := n))
-      (fderiv ℝ (iwasawaCharted (n := n)) p) iwasawaChartedDomain p := by
-  sorry
+      (fderiv ℝ (iwasawaCharted (n := n)) p) iwasawaChartedDomain p :=
+  (hasFDerivAt_iwasawaCharted_at hp).hasFDerivWithinAt
 
 /-! ### Identification with `iwasawaMatrixLeibnizCLM` at the chart center -/
 
@@ -717,6 +787,7 @@ end EveryPointFDeriv
 
 #print axioms iwasawaCharted
 #print axioms iwasawaChartedDomain
+#print axioms iwasawaChartedDomain_eq_univ
 #print axioms iwasawaChartedDomain_isOpen
 #print axioms contDiffOn_cayley_sk
 #print axioms contDiff_diag_exp
