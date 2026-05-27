@@ -1,0 +1,6 @@
+[InternetShortcut]
+URL=https://math.mit.edu/~edelman/publications/random_matrix_theory.pdf
+; Edelman, Rao "Random matrix theory", Acta Numerica 14 (2005), 233-297.
+; Author preprint at MIT.
+; Eq (3.6): (dA) = prod_i r_ii^{β(m-i+1)-1} (dR) (Q^T dQ).
+; For real square (β=1, m=n): exponent is n-i.

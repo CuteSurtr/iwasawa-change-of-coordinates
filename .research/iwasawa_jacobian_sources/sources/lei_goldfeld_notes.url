@@ -1,0 +1,5 @@
+[InternetShortcut]
+URL=https://www.math.columbia.edu/~alei/autformsnotes/goldfeldnotes.pdf
+; Lei, notes on Goldfeld's GL(n,R) book, Columbia.
+; Section 1.4: two-sided invariant measure dμ(g) = ∏ dg_{ij} / det(g)^n.
+; Section 1.5: Iwasawa-coord Haar with explicit y_k^{-k(n-k)-1} factors.

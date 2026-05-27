@@ -1,0 +1,8 @@
+[InternetShortcut]
+URL=https://www.math.stonybrook.edu/~aknapp/download/Beyond2.pdf
+; Knapp, Lie Groups Beyond an Introduction, Digital Second Edition.
+; Author-hosted full PDF. Key references:
+;   Thm 6.46 (Iwasawa for semisimple G)
+;   Examples 1 p. 371 (SL(n,R) restricted roots)
+;   Prop 8.43 (Haar dx = e^{2ρ log a} dk da dn, KAN order)
+;   Eq 8.38 (Δ = det Ad_n(a) = e^{2ρ log a})

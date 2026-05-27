@@ -1,0 +1,4 @@
+[InternetShortcut]
+URL=https://www.math.lsu.edu/~olafsson/pdf_files/chaptr06.pdf
+; Olafsson, Chapter 6 "Basic Representation Theory".
+; Example 1: derives μ = ∫ |det X|^{-n} dλ(X) as left Haar on GL_n(R).
