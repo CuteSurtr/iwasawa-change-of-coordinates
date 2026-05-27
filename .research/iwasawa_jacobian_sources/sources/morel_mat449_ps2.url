@@ -1,0 +1,5 @@
+[InternetShortcut]
+URL=https://web.math.princeton.edu/~smorel/449/PS2_solutions.pdf
+; Morel, MAT 449 PS2 solutions, Princeton.
+; Explicit: det(c_a) = prod a_i^{n-2i+1} (Knapp's a^{+2ρ}).
+; Explicit: Δ_P(p) = prod a_i^{2i-n-1} (Bourbaki's a^{-2ρ}).

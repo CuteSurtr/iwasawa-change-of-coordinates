@@ -6,15 +6,18 @@ Jorgenson and Lang, *Spherical Inversion on SL_n(R)* (Springer, 2001):
 the Iwasawa product map `K × A × U → GL_n(ℝ)`, `(k, a, u) ↦ k·a·u`, is
 a differential isomorphism.
 
-This file is structured around five milestones (see `README.md`):
+This file is structured around the core algebraic and topological
+milestones (see `README.md`). The smooth diffeomorphism and derivative
+layers are completed in the companion files `IwasawaDiffeomorph.lean`,
+`IwasawaMFDerivAtOne.lean`, and `IwasawaMFDeriv.lean`.
 
   1.  `iwasawaEquiv`        — the map is a set-theoretic bijection
   1b. `inv_iwasawa_jl`      — convention swap `kau ↔ uak` (Lang ↔ J-L) via inversion
   1b. `cartanInvolution`    — `θ(g) = (gᵀ)⁻¹`, an order-2 automorphism (J-L p.2)
-  2.  `iwasawaHomeomorph`   — topological isomorphism                  [TODO]
-  3.  `iwasawaDiffeomorph`  — differential isomorphism                  [TODO]
+  2.  `iwasawaHomeomorph`   — topological isomorphism
+  3.  `iwasawaDiffeomorph`  — differential isomorphism
   4.  `cartanLieDecomp`     — `gl_n(ℝ) = Sym_n ⊕ Sk_n`
-  5.  `iwasawaLieDecomp`    — link to the Iwasawa Lie decomposition     [TODO]
+  5.  `iwasawaLieDecomp`    — link to the Iwasawa Lie decomposition
 
 The convention `g = k · a · u` follows Lang's *Linear Algebra* and is
 inherited from `project.Iwasawa`. The Jorgenson-Lang convention
@@ -53,10 +56,9 @@ variable (n : ℕ)
 We package the three Iwasawa subgroups and the ambient group as plain
 subtypes of `Matrix (Fin n) (Fin n) ℝ`. This keeps the API close to
 `project.Iwasawa` (which states results in terms of predicates on raw
-matrices) and is sufficient for Milestone 1.
-
-Milestones 2–3 will equip these types with topological / smooth
-structures via the natural inclusions into the ambient matrix space. -/
+matrices). Later sections and companion files equip these types with
+the topological and smooth structures used by the diffeomorphism and
+derivative theorems. -/
 
 /-- The orthogonal group `K = O(n) = { Q | Q · Qᵀ = 1 }`. -/
 abbrev K : Type := { Q : Matrix (Fin n) (Fin n) ℝ // IsOrthogonal Q }
@@ -404,19 +406,10 @@ Mathlib v4.30:
     of `Matrix`, although the underlying constant-rank /
     inverse-function-theorem machinery is present.
 
-The forward map `iwasawaMap` is smooth because matrix multiplication
-is smooth on a normed algebra. The inverse direction is smooth on
-`{g | g.det ≠ 0}` because Gram-Schmidt is rational with positive
-denominators — *smoothness* of Gram-Schmidt in the input is the
-strengthening of `continuous_iwasawaSymm` above and inherits the same
-dependency.
-
-For Scope C, both directions are stated below. The forward direction
-is fully proved (smoothness of matrix multiplication into the open
-submanifold `G`). The inverse direction is stated and `sorry`-d on
-the same Gram-Schmidt-smoothness gap as above. The `Diffeomorph`
-bundle additionally requires `K n`'s smooth structure, which is a
-separate Mathlib-level missing piece. -/
+The forward and inverse smoothness statements, and the bundled
+`Diffeomorph`, are now proved in `IwasawaDiffeomorph.lean`. The
+historical Gram-Schmidt smoothness route is no longer the active
+blocker for this project. -/
 
 -- Smooth structure on G n via the open-embedding construction.
 -- (G n is an open subset of `Matrix (Fin n) (Fin n) ℝ` since `det` is continuous.)
@@ -852,10 +845,12 @@ noncomputable def iwasawaLieEquiv :
   LinearEquiv.ofBijective iwasawaLieMap
     ⟨iwasawaLieMap_injective, iwasawaLieMap_surjective⟩
 
-/-- Placeholder retained for naming consistency with the README; the
-actual content (linear isomorphism on the Lie-algebra side) is
-`iwasawaLieEquiv` above. The full `mfderiv` realization is deferred
-pending Milestone 3 smooth structures on `K, A, UU`. -/
+/-- Placeholder retained for compatibility with older notes. The real
+manifold derivative statements are now proved in
+`IwasawaMFDerivAtOne.lean` and `IwasawaMFDeriv.lean`; in particular,
+`iwasawaMap_mfderiv_at_one_eq_lieEquiv` gives the identity-point
+formula with the Cayley `-2` factor, and
+`mfderiv_iwasawaMap_at_factored` gives the general-point formula. -/
 theorem iwasawaMap_mfderiv_at_one : True := trivial
 
 /-! ### Smooth structure on `UU n` (upper unipotent matrices)

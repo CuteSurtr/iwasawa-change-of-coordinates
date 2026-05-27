@@ -1,0 +1,5 @@
+[InternetShortcut]
+URL=https://math.berkeley.edu/~cjdowd/haar1.pdf
+; Dowd, "Notes on Haar measures on Lie groups", UC Berkeley.
+; Section 3.1: GL_n(R) Haar = |det h|^{-n} dM (general n).
+; Section 3.3: GL_2(R) Iwasawa-coord Haar = du dx dy/(|u| y^2) dθ.

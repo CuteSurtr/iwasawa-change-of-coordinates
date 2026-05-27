@@ -16,7 +16,7 @@ is asserted by Jorgenson and Lang to be a *differential isomorphism*
 - $A$ is the group of positive diagonal $n \times n$ real matrices,
 - $U$ is the group of unipotent upper triangular $n \times n$ real matrices.
 
-This project formalizes the algebraic, topological, and (largely) smooth
+This project formalizes the algebraic, topological, and smooth
 content of that theorem, building on top of the parent project's
 [`project.Iwasawa`](../project/Iwasawa.lean), which provides the
 set theoretic existence and uniqueness of the Iwasawa factorization
@@ -26,44 +26,40 @@ following Lang's *Linear Algebra*.
 
 | Quantity | Value |
 |---|---|
-| Lines of Lean | 1666 (plus 56 line `AxiomCheck.lean`) |
-| `sorry` count | **0** |
-| User declared axioms | 0 |
-| Build errors | 0 |
-| Build warnings | 0 |
-| Axiom dependencies (every named theorem / instance) | `propext`, `Classical.choice`, `Quot.sound` only |
-| Theorems / instances tested in `AxiomCheck.lean` | **46** |
+| Build status | `lake build` succeeds |
+| Active Lean `sorry` declarations in `iwasawa_change_of_coords/` | 0 |
+| Core diffeomorphism / derivative axioms | `propext`, `Classical.choice`, `Quot.sound` only |
+| Quarantined future axiom | 1 explicit Haar/change-of-variables bridge axiom in `IwasawaBridge.lean` |
 
-Every named theorem and instance in the file is proved without `sorry`
-and depends only on the three standard Mathlib axioms.
+The diffeomorphism layer is now closed: `contMDiff_iwasawaSymm` and
+`iwasawaDiffeomorph` are proved without `sorryAx`. The general derivative
+theorem `mfderiv_iwasawaMap_at_factored` is also proved without `sorryAx`.
+All three currently print only the standard Lean/Mathlib axioms
+`[propext, Classical.choice, Quot.sound]`.
 
-## Honest disclaimer
+The whole repository should therefore not be described as having zero
+user-declared axioms without qualification: `IwasawaBridge.lean` still
+contains one explicit future-facing axiom for the Haar/change-of-variables
+layer.
 
-We were not able to close out the very last layer of Scope C, namely the
-`IsManifold` instance on the full orthogonal group, the bundled
-`iwasawaDiffeomorph`, and the geometric `mfderiv` at the identity.
-These pieces require fluency with Mathlib's `ContDiff` / `ContMDiff` /
-`isManifold_of_contDiffOn` machinery (specifically the chart transition
-`ContDiffOn` proof for the Cayley atlas, plus set equality bookkeeping
-between the abstract chart transition source and the concrete
-"$1 + \cdots$ is invertible" set) that exceeded our reliable working
-knowledge at the time. Each attempt at writing the proof either
-introduced `sorry`s (which break Mathlib's warnings as errors build) or
-got tangled in idiomatic ContDiff and model with corners unfolding we
-could not resolve.
+## Current Scope Boundary
 
-What is in the file is therefore the entire mathematical content
-**up to but not including** that final layer: every Cayley side
-prerequisite (definitions, invertibility, orthogonality, two sided
-inverses, skewness of inverse, set theoretic equivalence, continuity,
-Homeomorph, ChartedSpace, plus a fully proved $C^\infty$ Diffeomorph on the
-identity centered chart $\mathrm{Sk}\,n \simeq K_{\mathrm{open}}\,n$) is in place and checked.
-The `Sphere` style multi chart atlas (`instChartedSpaceK`) is also
-proved. What remains is the chart transition smoothness proof and the
-`IsManifold` and `Diffeomorph` bundling on top of it. We document the
-shape of the missing proof concretely below in
-[Remaining work](#remaining-work) so anyone with the right Mathlib
-fluency can pick up from where we stopped.
+The proved core includes the Iwasawa equivalence, homeomorphism,
+diffeomorphism, smooth forward and inverse maps, and the manifold derivative
+of the product map. The derivative theorem uses the actual chart convention:
+`iwasawaMatrixLeibnizCLM` is the derivative of `iwasawaMap` in the current
+Cayley/log/affine charts.
+
+The Jacobian/Haar layer is not yet a theorem of measure theory. The map
+`lieTwistCLM` is retained as an auxiliary twist map because its `NN` block
+is `adNN a`, and `adNN_det_eq_pair_product` computes the positive-root
+product
+
+$$\prod_{i<j} \frac{a_i}{a_j}.$$
+
+That determinant is the expected root-density ingredient for the future
+Haar formula, but it is not by itself the full Jacobian of the charted
+Iwasawa map.
 
 ## Provenance and convention
 
@@ -758,8 +754,14 @@ end IwasawaCoC
 ```
 iwasawa_change_of_coords/
 ├── README.md           this file
-├── IwasawaCoC.lean     the main file (1666 lines)
-└── AxiomCheck.lean     prints axiom dependencies of every named theorem
+├── IwasawaCoC.lean     core definitions and algebraic/topological layer
+├── IwasawaDiffeomorph.lean
+├── IwasawaMFDerivAtOne.lean
+├── IwasawaMFDeriv.lean
+├── IwasawaJacobianAbstract.lean
+├── IwasawaJacobianExplicit.lean
+├── IwasawaBridge.lean  quarantined future Haar/change-of-variables bridge
+└── AxiomCheck*.lean    diagnostic files for axiom dependencies
 ```
 
 The project shares the parent's Lake build (single `lakefile.toml`,
@@ -771,8 +773,9 @@ toolchain configuration.
 From `/Users/jiho/Desktop/math 157`:
 
 ```sh
-lake build iwasawa_change_of_coords.IwasawaCoC
-lake build iwasawa_change_of_coords.AxiomCheck   # prints axiom deps
+lake build
+lake build iwasawa_change_of_coords.AxiomCheckDiffeomorph
+lake build iwasawa_change_of_coords.AxiomCheckMFDerivAtOne
 ```
 
 The first build will compile the parent project's `project.Iwasawa`
@@ -780,11 +783,17 @@ as a dependency.
 
 ## Verifying the result
 
-After a successful build, `AxiomCheck.lean` prints the axiom dependency
-of every named theorem and instance in the file. All forty six listed
-items depend only on `[propext, Classical.choice, Quot.sound]`, i.e.,
-exactly the three axioms used by classical Mathlib, with no
-project specific assumption and no `sorry`.
+After a successful build, the diagnostic files print axiom dependencies.
+The current checks for
+
+```lean
+IwasawaCoC.contMDiff_iwasawaSymm
+IwasawaCoC.iwasawaDiffeomorph
+IwasawaCoC.mfderiv_iwasawaMap_at_factored
+```
+
+report only `[propext, Classical.choice, Quot.sound]`. The namespace is
+`IwasawaCoC`.
 
 ## Proof outlines
 
@@ -986,88 +995,26 @@ $(X, Y, Z) \in \mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \mapsto X + 
 This is the algebraic content of "the differential of the Iwasawa map
 at the identity is invertible," realized as a `LinearEquiv`.
 
-## Remaining work
+## Remaining Work
 
-Three pieces are not closed in this file:
+The next mathematical layer is the Jacobian/Haar story, not another
+Gram-Schmidt smoothness route.
 
-### 1. `instIsManifoldK`: chart transition `ContDiffOn`
+1. Make the determinant target for the actual derivative precise. The
+   canonical derivative object is `iwasawaMatrixLeibnizCLM k a u`, not
+   the older `lieTwistCLM` factorization.
+2. Prove a basis-level determinant theorem for that derivative, keeping
+   track of the constant Cayley factor and the chart conventions for
+   `A` and `UU`.
+3. Connect the explicit positive-root product
+   `adNN_det_eq_pair_product` to the derivative determinant theorem.
+4. Only after that, replace the quarantined axiom in `IwasawaBridge.lean`
+   with a real measure-theoretic statement involving product measures,
+   Haar measures, and a change-of-variables theorem.
 
-The chart compatibility for the multi chart atlas. After
-`isManifold_of_contDiffOn` reduces it to a `ContDiffOn` statement, the
-remaining content is the smoothness of the transition
-
-$$X \in \mathrm{Sk}\,n \mapsto \mathrm{cayleyInv}((\mathrm{cayley}\,X \cdot Q_0.1) \cdot Q_1.1^T)$$
-
-on the open set
-
-$$\\{ X : \mathrm{Sk}\,n \mid \mathrm{IsUnit}((1 + (\mathrm{cayley}\,X \cdot Q_0.1) \cdot Q_1.1^T).\det) \\}.$$
-
-This decomposes through:
-
-* `ContDiff ℝ ⊤ (cayley : Sk n → Matrix _ _ ℝ)`: Cayley as a rational
-  expression with non vanishing denominator on `Sk n`. Each piece is
-  `ContDiff` (linear maps for $1 \pm X$, `contDiffAt_ringInverse` for
-  inversion on units).
-* `ContDiff ℝ ⊤ (· * R)` for fixed orthogonal $R$: linear, hence
-  smooth (`ContinuousLinearMap.contDiff` or the bilinear map lemma
-  `isBoundedBilinearMap_apply.contDiff`).
-* `ContDiffOn ℝ ⊤ cayleyInv {M | (1+M).det.IsUnit}`: same shape as
-  the cayley `ContDiff`.
-
-The composition is `ContDiffOn` on the relevant open set, with
-`ContDiffOn.comp` and `ContDiffOn.congr` to massage the set definitions
-to align with Mathlib's abstract `(e.symm ≫ₕ e').source`.
-
-We have the file documented with the precise structure of the proof
-at the end of the `CayleyTransform` section. Closing this one item
-gives `instIsManifoldK`.
-
-### 2. `iwasawaDiffeomorph : K × A × U ≃ₘ GL_n(ℝ)`
-
-Once `instIsManifoldK` is in place, this is an assembly of
-`iwasawaEquiv` (set theoretic), forward smoothness (matrix
-multiplication is `ContMDiff` on a normed algebra), and inverse
-smoothness (a $C^\infty$ upgrade of `continuous_iwasawaSymm` using
-`ContDiff` of Gram, Schmidt, the same inductive proof structure as
-the continuity proof we already gave, lifted to the smooth category).
-Approximately 80 to 150 more lines.
-
-### 3. `iwasawaMap_mfderiv_at_one`: geometric `mfderiv` at the identity
-
-Showing the differential of `iwasawaMap` at $(1, 1, 1)$ equals the
-linear sum map $(X, Y, Z) \mapsto X + Y + Z$ realized by `iwasawaLieEquiv`.
-The proof uses `mfderiv_eq_fderiv` (when manifolds are themselves
-normed spaces, `mfderiv` reduces to `fderiv`), plus a direct Jacobian
-computation of the Cayley chart at $0 \in \mathrm{Sk}$ (the first order Taylor
-expansion of $\mathrm{cayley}$ at $0$ is $X \mapsto 1 + 2X + O(X^2)$, so the
-differential of `cayleyHomeomorph` at $0$ is multiplication by $2$,
-which is invertible). Approximately 100 lines.
-
-## Why this is the natural stopping point for us
-
-The three remaining pieces are concrete Mathlib pattern work, not
-research gaps. The mathematical content, every Cayley algebraic
-identity, every continuity proof, every set theoretic equivalence,
-the Iwasawa Lie decomposition, the linear algebra differential, is
-proved and axiom clean. What we lack is the deep working fluency with
-Mathlib's `ContDiff` / `ContMDiff` / `isManifold_of_contDiffOn` /
-`ModelWithCorners` machinery to close out the smoothness composition
-proof reliably. Each of our attempts either introduced `sorry`s
-(rejected by Mathlib's warnings as errors build policy) or got tangled
-in idiomatic typeclass juggling.
-
-We believe the cleanest next step, substantially more useful than
-finishing inside this one file, is an upstream Mathlib contribution
-adding $O(n)$ (or more generally the orthogonal or unitary group of a
-finite dimensional real or complex inner product space) as a smooth Lie
-subgroup of $GL_n$ via the Cayley transform atlas, paralleling the
-existing `Mathlib.Geometry.Manifold.Instances.Sphere`. The Cayley side
-groundwork in this file (`cayley`, `cayleyInv`, `one_add_skew_isUnit`,
-`cayley_isOrthogonal`, `cayley_self_inverse`, `cayleyInv_isSkew`,
-`cayleyEquiv`, `cayleyHomeomorph`, `cayleyDiffeomorph` on the
-identity centered chart, and `cayleyEquivAt` plus `cayleyOpenChartAt`
-for the translated charts) is structured to be liftable to such a
-Mathlib PR with relatively little adaptation.
+`IwasawaBridge.lean` is intentionally not part of the axiom-clean core
+yet. It records the intended future Haar/change-of-variables endpoint
+and currently contains one explicit axiom.
 
 ## References
 
