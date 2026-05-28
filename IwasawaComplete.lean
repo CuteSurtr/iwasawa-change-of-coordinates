@@ -1485,6 +1485,24 @@ theorem detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero (v : Fin n → �
 #print axioms prod_nnIndex_mul_pair_eq_prod_pow
 #print axioms sandwichOnSkCLM_diagonal_skBasis
 #print axioms detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero
+#print axioms det_cayley_skew
+#print axioms hasFDerivAt_diagExp
+#print axioms cayley_mul_oneAddInv_transpose
+#print axioms fderiv_iwasawaCharted_general_eq_factored
+#print axioms detInIwasawaBases_iwasawaChartedFDerivFactored
+#print axioms detInIwasawaBases_fderiv_iwasawaCharted_general
+#print axioms absDetInIwasawaBases_fderiv_iwasawaCharted_general
+
+/-- **Consistency catch.** The general-point signed Jacobian, specialized to
+`X = 0` and `Z = 0`, reduces exactly to the independently-proven chart-center
+value `detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero` (the Cayley
+correction `((1 + 0).det)⁻¹ ^ (n-1)` collapses to `1`). -/
+example (v : Fin n → ℝ) :
+    detInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) ((0 : Sk n), v, (0 : NN n))) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap := by
+  rw [detInIwasawaBases_fderiv_iwasawaCharted_general]
+  simp
 
 /-- **Sanity check (scalar `c • 1` at `n = 3`).** The Sylvester-Franke value is
 `det (sandwichOnSkCLM (c • 1)) = (det (c • 1))^{n-1} = (c^3)^2 = c^6 = c^{n(n-1)}`. -/
