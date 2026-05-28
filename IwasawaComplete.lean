@@ -489,19 +489,18 @@ theorem absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional
         a.1.det ^ n * LinearMap.det (adNN a).toLinearMap :=
   absDetIwasawaMatrixLeibnizCLM_at_factored k a u (abs_det_skOrthConjCLM_eq_one k)
 
-/-! ## 9. Haar bridge (proved, no longer axiomatic)
+/-! ## 9. Haar bridge (proved, no axiom)
 
-The file `IwasawaBridge.lean` declares
+`IwasawaBridge.lean` previously declared
 `iwasawa_haar_pushforward_bridge` as a future facing axiom asserting
-existence of a positive scalar `c_n` with
-`c_n * |det (adNN a)| > 0` for all `a`. As written, this statement
-is in fact provable: take `c_n = 1` and use positivity of every
-factor `a_i / a_j`. We give the real proof here, so that this file
-exhibits the Haar bridge claim without any user declared axiom.
+existence of a positive scalar `c_n` with `c_n * |det (adNN a)| > 0`
+for all `a`. That statement is in fact provable (take `c_n = 1` and use
+positivity of every factor `a_i / a_j`), so the axiom was redundant and
+has been removed; both files now prove the existential directly.
 
 The genuinely measure theoretic identity `map iwasawaMap haar_KAN
-= c · haar_G` remains future work; what is proved here is exactly
-the existential statement that was previously declared as an axiom. -/
+= c · haar_G` remains future work; what is proved here is only that weak
+existential, not that identity. -/
 
 /-- **Haar pushforward bridge (proved).** The statement previously
 declared as an axiom in `IwasawaBridge.lean` is in fact provable
