@@ -849,7 +849,7 @@ toolchain configuration.
 
 ## Build instructions
 
-From `/Users/jiho/Desktop/math 157`:
+From the workspace root (the directory containing `lakefile.toml`):
 
 ```sh
 lake build

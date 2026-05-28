@@ -2,7 +2,7 @@
 
 The block below is meant to be copy-pasted into a fresh Lean-implementation
 session for the `IwasawaCoC` project. It assumes the agent has access to
-`/Users/jiho/Desktop/math 157/iwasawa_change_of_coords/`, that `lake
+`iwasawa_change_of_coords/`, that `lake
 build` succeeds, and that the research files in
 `.research/iwasawa_jacobian_sources/` are readable.
 
