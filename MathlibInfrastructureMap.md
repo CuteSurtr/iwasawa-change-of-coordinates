@@ -513,18 +513,18 @@ This is a `Finset.prod_image` or `Matrix.det_diagonal` computation.
 ## File location appendix
 
 Local Mathlib paths:
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Geometry/Manifold/Algebra/{LieGroup, LeftInvariantDerivation, Monoid, SmoothFunctions}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Geometry/Manifold/MFDeriv/{Basic, Atlas, SpecificFunctions}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Geometry/Manifold/Diffeomorph.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Geometry/Manifold/Instances/{UnitsOfNormedAlgebra, Sphere}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Algebra/Lie/{Basic, Killing, Engel, CartanSubalgebra, Matrix, Classical, OfAssociative, SkewAdjoint}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Algebra/Lie/Semisimple/Basic.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Algebra/Lie/Weights/{Basic, Killing}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Algebra/Lie/AdjointAction/{Basic, Derivation}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/Algebra/Lie/Derivation/Killing.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Haar/{Basic, OfBasis, Unique, MulEquivHaarChar, DistribChar}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/MeasureTheory/Group/{ModularCharacter, Measure}.lean`
-- `/Users/jiho/Desktop/math 157/.lake/packages/mathlib/Mathlib/MeasureTheory/Function/Jacobian.lean`
+- `.lake/packages/mathlib/Mathlib/Geometry/Manifold/Algebra/{LieGroup, LeftInvariantDerivation, Monoid, SmoothFunctions}.lean`
+- `.lake/packages/mathlib/Mathlib/Geometry/Manifold/MFDeriv/{Basic, Atlas, SpecificFunctions}.lean`
+- `.lake/packages/mathlib/Mathlib/Geometry/Manifold/Diffeomorph.lean`
+- `.lake/packages/mathlib/Mathlib/Geometry/Manifold/Instances/{UnitsOfNormedAlgebra, Sphere}.lean`
+- `.lake/packages/mathlib/Mathlib/Algebra/Lie/{Basic, Killing, Engel, CartanSubalgebra, Matrix, Classical, OfAssociative, SkewAdjoint}.lean`
+- `.lake/packages/mathlib/Mathlib/Algebra/Lie/Semisimple/Basic.lean`
+- `.lake/packages/mathlib/Mathlib/Algebra/Lie/Weights/{Basic, Killing}.lean`
+- `.lake/packages/mathlib/Mathlib/Algebra/Lie/AdjointAction/{Basic, Derivation}.lean`
+- `.lake/packages/mathlib/Mathlib/Algebra/Lie/Derivation/Killing.lean`
+- `.lake/packages/mathlib/Mathlib/MeasureTheory/Measure/Haar/{Basic, OfBasis, Unique, MulEquivHaarChar, DistribChar}.lean`
+- `.lake/packages/mathlib/Mathlib/MeasureTheory/Group/{ModularCharacter, Measure}.lean`
+- `.lake/packages/mathlib/Mathlib/MeasureTheory/Function/Jacobian.lean`
 
 More detailed notes on two of the topics are in
 `.research/1a_manifold.md` and `.research/1f_github_prs.md`; the rest is
