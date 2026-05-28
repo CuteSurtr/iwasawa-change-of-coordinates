@@ -15,8 +15,10 @@ Per MathlibInfrastructureMap.md §1c "Change of variables": Mathlib's
 `integral_image_eq_integral_abs_det_fderiv_smul` is the change-of-
 variables formula. The specific identification of the scalar `c` in
 `map iwasawaMap (haar_KAN) = c · haar_G` should eventually be proved
-from the existing diffeomorphism theorem plus a still-missing
-determinant theorem for `iwasawaMatrixLeibnizCLM`.
+from the existing diffeomorphism theorem and the now-proved Jacobian
+determinant theorem for `iwasawaMatrixLeibnizCLM`
+(`absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional` in
+`IwasawaComplete.lean`).
 -/
 
 import iwasawa_change_of_coords.IwasawaJacobianExplicit
@@ -65,10 +67,12 @@ statement only records existence of a positive scalar multiplying the
 positive determinant `|det(adNN a)|`; it does not yet state a real
 `Measure.map` or integral identity.
 
-The diffeomorphism and derivative layers are proved. What is still
-missing is the determinant theorem for the actual derivative
-`iwasawaMatrixLeibnizCLM k a u`, plus the measure-theoretic
-change-of-variables bridge to Haar measures.
+The diffeomorphism, derivative, and Jacobian-determinant layers are
+all proved: the determinant theorem for the actual derivative
+`iwasawaMatrixLeibnizCLM k a u` is
+`absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional`
+(`IwasawaComplete.lean`). What is still missing is only the
+measure-theoretic change-of-variables bridge to Haar measures.
 
 **Mathlib gap.** Per MathlibInfrastructureMap.md §1c "Change of
 variables": Mathlib provides `integral_image_eq_integral_abs_det_fderiv_smul`,

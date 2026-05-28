@@ -717,9 +717,12 @@ gives the explicit formulas above.
 
 ## Milestones
 
-All entries below are proved with no `sorry`. The diagnostic files print
-the axiom dependencies, which are `[propext, Classical.choice, Quot.sound]`
-throughout.
+All entries below except the final Haar row (milestone 7) are proved with
+no `sorry`, and the diagnostic files print their axiom dependencies as
+`[propext, Classical.choice, Quot.sound]`. Milestone 7, the Haar measure
+pushforward, is the single exception: it is currently a quarantined
+future-facing axiom in `IwasawaBridge.lean` (see
+[Remaining Work](#remaining-work)).
 
 | # | Goal | Status | Jorgenson and Lang reference |
 |---|------|--------|---------------|
