@@ -1338,7 +1338,41 @@ factored CLM (triple-product rule, then the Cayley congruence identity). -/
 private lemma fderiv_iwasawaCharted_general_eq_factored
     (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
     fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z) = iwasawaChartedFDerivFactored X v Z := by
-  sorry
+  -- component Fréchet derivatives of the three chart factors at `(X, v, Z)`
+  have hprojK := ((Sk n).subtypeL.comp
+    (ContinuousLinearMap.fst ℝ (Sk n) ((Fin n → ℝ) × NN n))).hasFDerivAt (x := (X, v, Z))
+  have hprojA := ((ContinuousLinearMap.fst ℝ (Fin n → ℝ) (NN n)).comp
+    (ContinuousLinearMap.snd ℝ (Sk n) ((Fin n → ℝ) × NN n))).hasFDerivAt (x := (X, v, Z))
+  have hprojN := ((NN n).subtypeL.comp ((ContinuousLinearMap.snd ℝ (Fin n → ℝ) (NN n)).comp
+    (ContinuousLinearMap.snd ℝ (Sk n) ((Fin n → ℝ) × NN n)))).hasFDerivAt (x := (X, v, Z))
+  have hK := (hasFDerivAt_cayley_matrix X.1 (one_add_skew_isUnit X)).comp (X, v, Z) hprojK
+  have hA := (hasFDerivAt_diagExp v).comp (X, v, Z) hprojA
+  have hN := hprojN.add_const (1 : Matrix (Fin n) (Fin n) ℝ)
+  have hΨ := hK.prodMk (hA.prodMk hN)
+  have hHas := (hasFDerivAt_tripleMul (cayley X.1) (Matrix.diagonal (Real.exp ∘ v))
+      ((Z.1 : Matrix (Fin n) (Fin n) ℝ) + 1)).comp (X, v, Z) hΨ
+  refine (hHas.fderiv).trans ?_
+  -- operator identity
+  apply ContinuousLinearMap.ext
+  rintro ⟨δX, δv, δZ⟩
+  have hcong := cayley_mul_oneAddInv_transpose X
+  have hcong' : ∀ M : Matrix (Fin n) (Fin n) ℝ,
+      cayley X.1 * ((1 + X.1)⁻¹ᵀ * M) = (1 + X.1)⁻¹ * M :=
+    fun M => by rw [← Matrix.mul_assoc, hcong]
+  simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.prod_apply,
+    matrixTripleMulDerivCLM_apply, ContinuousLinearMap.coe_fst', ContinuousLinearMap.coe_snd',
+    Submodule.subtypeL_apply, cayleyFDerivCLM_apply, AChartDerivCLM_apply,
+    iwasawaChartedFDerivFactored, matrixLeftRightCLM_apply,
+    iwasawaChartedSourceTransportCLM_apply, iwasawaMatrixLeibnizCLM_apply,
+    sandwichOnSkCLM_apply_val, nnRightInvCLM_apply_val, uuOfNN_val, expDiagA_val,
+    one_mul, mul_one]
+  -- atomize `U = Z + 1` so the outer `* U` does not split over `Z + 1`
+  set U : Matrix (Fin n) (Fin n) ℝ := Z.1 + 1 with hU
+  have hUinv : U⁻¹ * U = 1 := by
+    refine Matrix.nonsing_inv_mul _ ?_
+    have h := (uuOfNN Z).2.det; rw [uuOfNN_val] at h; rw [hU, h]; exact isUnit_one
+  simp only [Matrix.mul_add, Matrix.add_mul, Matrix.smul_mul, Matrix.mul_smul, Matrix.mul_assoc,
+    hcong', hUinv, Matrix.mul_one]
 
 /-- **(C).** Determinant of the factored CLM in the Iwasawa bases:
 `det(target transport) = 1` (orthogonal `cayley X`, unipotent `Z+1`),
