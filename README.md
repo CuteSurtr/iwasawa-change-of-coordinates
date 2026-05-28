@@ -1190,14 +1190,15 @@ The single remaining mathematical layer is the Haar measure pushforward:
    change-of-variables theorem to obtain the pushforward of the product
    Haar measure under the Iwasawa map.
 3. Identify the resulting density with the Iwasawa character $`\delta(a)^{-1}`$
-   and the global constant, recovering the integration formula
-
-   ```math
-\int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.
-```
-
+   and the global constant, recovering the integration formula below.
 4. Replace the quarantined axiom in `IwasawaBridge.lean` with this
    measure-theoretic statement.
+
+The target integration formula is
+
+```math
+\int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.
+```
 
 `IwasawaBridge.lean` is intentionally not part of the axiom-clean core yet.
 It records the intended future Haar / change-of-variables endpoint and
