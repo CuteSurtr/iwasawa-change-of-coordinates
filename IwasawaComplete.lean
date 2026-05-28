@@ -1214,20 +1214,100 @@ theorem det_sandwichOnSkCLM (B : Matrix (Fin n) (Fin n) ℝ) :
 noncomputable def expDiagA (v : Fin n → ℝ) : A n :=
   (A.toFinNRHomeomorph (n := n)).symm v
 
-/-- **A3.** The flat fderiv of `iwasawaCharted` at a general point
-factors through the chart-center matrix-Leibniz CLM, the Cayley
-congruence on the K-direction, and the unipotent right-inverse on the
-U-direction. Mirrors `iwasawaMatrixLeibnizCLM_factored_eq_comp_one_a_one`. -/
+/-- `(expDiagA v).1` is the diagonal matrix `diag(exp ∘ v)`. -/
+private lemma expDiagA_val (v : Fin n → ℝ) :
+    (expDiagA v).1 = Matrix.diagonal (Real.exp ∘ v) := rfl
+
+/-! ### The general-point fderiv bridge
+
+The flat fderiv of `iwasawaCharted` at a general `(X, v, Z)` is computed by the
+matrix triple-product rule, with the Cayley sandwich `cayleyFDerivCLM X` on the
+K-factor (NOT the `X = 0` form). After left-translation by `cayley(X)⁻¹` and
+right-translation by `(Z+1)⁻¹`, it factors as the chart-center Leibniz CLM
+precomposed with a source transport whose K-direction is the congruence
+`sandwichOnSkCLM ((1+X)⁻¹)`. The determinant then picks up `det_sandwichOnSkCLM`. -/
+
+/-- For skew `X`, the Cayley transform has determinant `1` (not merely `±1`):
+`1 - X = (1 + X)ᵀ`, so `det (cayley X) · det (1+X) = det (1-X) = det (1+X)`. -/
+private lemma det_cayley_skew (X : Sk n) : (cayley X.1).det = 1 := by
+  sorry
+
+/-- The Fréchet derivative of `v ↦ diag (exp ∘ v)` is `AChartDerivCLM (expDiagA v)`,
+i.e. `δ ↦ diag(exp ∘ v) * diag δ`. -/
+private lemma hasFDerivAt_diagExp (v : Fin n → ℝ) :
+    HasFDerivAt (fun w : Fin n → ℝ => Matrix.diagonal (Real.exp ∘ w))
+      (AChartDerivCLM (expDiagA v)) v := by
+  sorry
+
+/-- `Z + 1` packaged as a unipotent `UU n` element (the inverse UU chart
+coordinate `UU.toNNHomeomorph.symm`). -/
+noncomputable def uuOfNN (Z : NN n) : UU n := UU.toNNHomeomorph.symm Z
+
+@[simp] lemma uuOfNN_val (Z : NN n) : (uuOfNN Z).1 = Z.1 + 1 := rfl
+
+/-- Source-transport for the flat chart fderiv: the Cayley congruence
+`sandwichOnSkCLM ((1+X)⁻¹)` on the K-direction, identity on A, and the
+unipotent right-inverse `nnRightInvCLM (Z+1)` on the N-direction. Mirrors
+`iwasawaSourceTransportCLM` with `skOrthConjCLM` replaced by the congruence. -/
+noncomputable def iwasawaChartedSourceTransportCLM (X : Sk n) (Z : NN n) :
+    (Sk n) × ((Fin n → ℝ) × NN n) →L[ℝ] (Sk n) × ((Fin n → ℝ) × NN n) :=
+  ((sandwichOnSkCLM ((1 + X.1)⁻¹)).comp
+      (ContinuousLinearMap.fst ℝ (Sk n) ((Fin n → ℝ) × NN n))).prod
+    (((ContinuousLinearMap.fst ℝ (Fin n → ℝ) (NN n)).comp
+        (ContinuousLinearMap.snd ℝ (Sk n) ((Fin n → ℝ) × NN n))).prod
+      ((nnRightInvCLM (uuOfNN Z)).comp
+        ((ContinuousLinearMap.snd ℝ (Fin n → ℝ) (NN n)).comp
+          (ContinuousLinearMap.snd ℝ (Sk n) ((Fin n → ℝ) × NN n)))))
+
+@[simp] lemma iwasawaChartedSourceTransportCLM_apply (X : Sk n) (Z : NN n)
+    (δX : Sk n) (δv : Fin n → ℝ) (δZ : NN n) :
+    iwasawaChartedSourceTransportCLM X Z (δX, δv, δZ) =
+      (sandwichOnSkCLM ((1 + X.1)⁻¹) δX, δv, nnRightInvCLM (uuOfNN Z) δZ) := rfl
+
+/-- The factored flat fderiv CLM: `(M ↦ cayley(X) · M · (Z+1)) ∘ (chart-center
+Leibniz at `expDiagA v`) ∘ source-transport`. -/
+noncomputable def iwasawaChartedFDerivFactored (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    (Sk n) × ((Fin n → ℝ) × NN n) →L[ℝ] Matrix (Fin n) (Fin n) ℝ :=
+  (matrixLeftRightCLM (cayley X.1) (Z.1 + 1)).comp
+    ((iwasawaMatrixLeibnizCLM (⟨1, IsOrthogonal.one⟩ : K n) (expDiagA v)
+        (⟨1, IsUpperUnipotent.one⟩ : UU n)).comp
+      (iwasawaChartedSourceTransportCLM X Z))
+
+/-- **(A)+(B).** The flat fderiv of `iwasawaCharted` at `(X, v, Z)` equals the
+factored CLM (triple-product rule, then the Cayley congruence identity). -/
+private lemma fderiv_iwasawaCharted_general_eq_factored
+    (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z) = iwasawaChartedFDerivFactored X v Z := by
+  sorry
+
+/-- **(C).** Determinant of the factored CLM in the Iwasawa bases:
+`det(target transport) = 1` (orthogonal `cayley X`, unipotent `Z+1`),
+the middle is the chart-center value, and the source transport contributes
+`det (sandwichOnSkCLM ((1+X)⁻¹)) = ((1+X).det)⁻¹ ^ (n-1)`. -/
+private lemma detInIwasawaBases_iwasawaChartedFDerivFactored
+    (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    detInIwasawaBases (iwasawaChartedFDerivFactored X v Z) =
+      ((2 : ℝ) ^ Fintype.card (nnIndex n) *
+          (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap) *
+        ((1 + X.1).det)⁻¹ ^ (n - 1) := by
+  sorry
+
+/-- **A3.** The flat fderiv of `iwasawaCharted` at a general point. The general
+formula equals the chart-center value times the Cayley correction
+`((1+X).det)⁻¹ ^ (n-1)`, which is `1` at `X = 0` (consistent with
+`detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero`). -/
 theorem detInIwasawaBases_fderiv_iwasawaCharted_general
     (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
     detInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z)) =
       ((2 : ℝ) ^ Fintype.card (nnIndex n) *
           (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap) *
         ((1 + X.1).det)⁻¹ ^ (n - 1) := by
-  sorry
+  rw [fderiv_iwasawaCharted_general_eq_factored,
+      detInIwasawaBases_iwasawaChartedFDerivFactored]
 
-/-- **A3.** Closed-form absolute Jacobian at a general point. Reduces to the
-chart-center theorem at `X = 0`, where `((1+0).det)⁻¹ ^ (n-1) = 1`. -/
+/-- **A3.** Closed-form absolute Jacobian at a general point. The signed
+formula's absolute value, via `abs_mul`/`abs_pow`/`abs_inv` (no positivity
+needed). Reduces to the chart-center theorem at `X = 0`. -/
 theorem absDetInIwasawaBases_fderiv_iwasawaCharted_general
     (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
     absDetInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z)) =
