@@ -24,6 +24,23 @@ content of that theorem, building on top of the parent project's
 set theoretic existence and uniqueness of the Iwasawa factorization
 following Lang's *Linear Algebra*.
 
+The product map and its three factors (the differential isomorphism this
+project formalizes):
+
+```mermaid
+flowchart LR
+    K["K = O(n)<br/>orthogonal<br/>dim n(n-1)/2"]
+    A["A<br/>positive diagonal<br/>dim n"]
+    U["U<br/>upper unipotent<br/>dim n(n-1)/2"]
+    P["K × A × U"]
+    G["GL_n(R)<br/>dim n^2"]
+    K --> P
+    A --> P
+    U --> P
+    P -->|"(k, a, u) maps to k · a · u"| G
+    G -.->|"unique factorization g = k a u"| P
+```
+
 ## Status at a glance
 
 | Quantity | Value |
@@ -55,6 +72,28 @@ not be described as axiom-free without qualification: `IwasawaBridge.lean`
 still contains one explicit future-facing axiom for the Haar measure
 pushforward, which is the only step not yet reduced to the standard three
 axioms.
+
+Layered status (green is proved with the standard three axioms; yellow is
+the single quarantined axiom):
+
+```mermaid
+flowchart TD
+    subgraph CLEAN["Proved, axioms: propext, Classical.choice, Quot.sound"]
+        S1["Algebraic: bijection, convention swap, Lie decompositions"]
+        S2["Topological: homeomorphism (Gram Schmidt continuity)"]
+        S3["Smooth: manifold structures, full diffeomorphism"]
+        S4["Differential: mfderiv at identity and general point"]
+        S5["Jacobian: closed form determinant and absolute value, delta(a) = prod a_i/a_j"]
+    end
+    subgraph AX["Quarantined future axiom (the only one)"]
+        H["Haar pushforward / change of variables<br/>iwasawa_haar_pushforward_bridge"]
+    end
+    S1 --> S2 --> S3 --> S4 --> S5 --> H
+    classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
+    classDef ax fill:#fff8c5,stroke:#bf8700,color:#111;
+    class S1,S2,S3,S4,S5 ok;
+    class H ax;
+```
 
 ## Current scope boundary
 
@@ -724,6 +763,46 @@ pushforward, is the single exception: it is currently a quarantined
 future-facing axiom in `IwasawaBridge.lean` (see
 [Remaining Work](#remaining-work)).
 
+How the milestones build up to the diffeomorphism, the derivative, and the
+Jacobian, ending at the single remaining Haar axiom (green is proved axiom
+clean, yellow is the quarantined axiom):
+
+```mermaid
+flowchart TD
+    M1["M1. Iwasawa bijection (iwasawaEquiv)"]
+    M1b["M1b. Convention swap and Cartan involution"]
+    M2["M2. Topology: continuity both ways, iwasawaHomeomorph"]
+    M3g["M3. Smooth structures on G, A, U"]
+    M3k["M3. Cayley atlas on K = O(n) (instIsManifoldK)"]
+    DIFF["Full diffeomorphism (iwasawaDiffeomorph)"]
+    M4["M4. Cartan Lie decomposition (Sym + Sk)"]
+    M5["M5. Iwasawa Lie decomposition, iwasawaLieEquiv, mfderiv at identity"]
+    M6d["M6. mfderiv at general point (mfderiv_iwasawaMap_at_factored)"]
+    M6p["M6. Positive root product (adNN_det_eq_pair_product)"]
+    M6j["M6. Jacobian determinant, signed and absolute"]
+    M7["M7. Haar pushforward (quarantined axiom)"]
+
+    M1 --> M2
+    M1b --> M2
+    M1b --> M4
+    M2 --> DIFF
+    M3g --> DIFF
+    M3k --> DIFF
+    DIFF --> M5
+    M4 --> M5
+    M5 --> M6d
+    DIFF --> M6d
+    M6d --> M6j
+    M6p --> M6j
+    DIFF --> M7
+    M6j --> M7
+
+    classDef proved fill:#e6ffed,stroke:#2da44e,color:#111;
+    classDef axiom fill:#fff8c5,stroke:#bf8700,color:#111;
+    class M1,M1b,M2,M3g,M3k,DIFF,M4,M5,M6d,M6p,M6j proved;
+    class M7 axiom;
+```
+
 | # | Goal | Status | Jorgenson and Lang reference |
 |---|------|--------|---------------|
 | 1   | `iwasawaEquiv : K × A × U ≃ GL_n(ℝ)` (set-theoretic bijection)                   | Proved   | Thm I.1.1, set-theoretic |
@@ -921,6 +1000,35 @@ iwasawa_change_of_coords/
 │                                Sylvester-Franke identity, general-point Jacobian
 ├── IwasawaBridge.lean           quarantined future Haar / change-of-variables bridge
 └── AxiomCheck*.lean             diagnostic files for axiom dependencies
+```
+
+Internal module dependencies (an arrow from A to B means B imports A):
+
+```mermaid
+flowchart TD
+    COC["IwasawaCoC<br/>core defs, algebra, topology"]
+    MCD["MatrixContDiff<br/>matrix smoothness lemmas"]
+    SK["IwasawaSmoothK<br/>manifold structure on K"]
+    DIFF["IwasawaDiffeomorph<br/>homeomorphism and diffeomorphism"]
+    LIE["IwasawaLieDecomposition<br/>Cartan and Iwasawa Lie decomp"]
+    D1["IwasawaMFDerivAtOne<br/>differential at identity"]
+    DG["IwasawaMFDeriv<br/>differential at general point"]
+    JE["IwasawaJacobianExplicit<br/>adNN determinant, transport CLMs"]
+    JA["IwasawaJacobianAbstract<br/>Jacobian scaffolding"]
+    CMP["IwasawaComplete<br/>consolidated axiom clean restatement"]
+    BR["IwasawaBridge<br/>quarantined Haar axiom"]
+
+    COC --> SK
+    COC --> LIE
+    SK --> DIFF
+    MCD --> DIFF
+    SK --> D1
+    DIFF --> D1
+    D1 --> DG
+    DG --> JE
+    DG --> JA
+    JE --> CMP
+    JE --> BR
 ```
 
 The project shares the parent's Lake build (single `lakefile.toml`,
