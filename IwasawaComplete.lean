@@ -1054,6 +1054,75 @@ theorem detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero (v : Fin n → �
 
 end GeneralPointJacobian
 
+/-! ## 12. Track B: topological group instances on K, A, UU, G
+
+Mirror the Mathlib subtype-group derivation (`SpecialLinearGroup`,
+`unitaryGroup`, `GeneralLinearGroup`) onto the existing project
+subtypes, using the closure lemmas already proved in
+`project.Iwasawa` and `IwasawaCoC`. No redefinition of the types.
+
+These use the canonical (pi/product) topology on `Matrix`, not the
+`linftyOp` normed structure, so this section deliberately omits the
+norm `attribute [local instance]` lines. -/
+
+section TrackBInstances
+
+variable {n : ℕ}
+
+/-! ### B1. `K n = { Q // IsOrthogonal Q }` (orthogonal group) -/
+
+/-- `IsOrthogonal` is closed under natural-number powers. -/
+private lemma isOrthogonal_pow {Q : Matrix (Fin n) (Fin n) ℝ}
+    (hQ : IsOrthogonal Q) : ∀ m : ℕ, IsOrthogonal (Q ^ m)
+  | 0 => by simpa using IsOrthogonal.one
+  | (m + 1) => by rw [pow_succ]; exact IsOrthogonal.mul (isOrthogonal_pow hQ m) hQ
+
+noncomputable instance : Mul (K n) :=
+  ⟨fun Q R => ⟨Q.1 * R.1, IsOrthogonal.mul Q.2 R.2⟩⟩
+instance : One (K n) := ⟨⟨1, IsOrthogonal.one⟩⟩
+noncomputable instance : Inv (K n) :=
+  ⟨fun Q => ⟨Q.1.transpose, IsOrthogonal.transpose Q.2⟩⟩
+noncomputable instance : Pow (K n) ℕ :=
+  ⟨fun Q m => ⟨Q.1 ^ m, isOrthogonal_pow Q.2 m⟩⟩
+
+@[simp] lemma K_coe_mul (Q R : K n) :
+    ((Q * R : K n) : Matrix (Fin n) (Fin n) ℝ) = Q.1 * R.1 := rfl
+@[simp] lemma K_coe_one :
+    ((1 : K n) : Matrix (Fin n) (Fin n) ℝ) = 1 := rfl
+@[simp] lemma K_coe_inv (Q : K n) :
+    ((Q⁻¹ : K n) : Matrix (Fin n) (Fin n) ℝ) = Q.1.transpose := rfl
+@[simp] lemma K_coe_pow (Q : K n) (m : ℕ) :
+    ((Q ^ m : K n) : Matrix (Fin n) (Fin n) ℝ) = Q.1 ^ m := rfl
+
+noncomputable instance instMonoidK : Monoid (K n) :=
+  Function.Injective.monoid (Subtype.val) Subtype.coe_injective K_coe_one K_coe_mul K_coe_pow
+
+/-- **B1.** `K n = O(n)` is a group, with inverse given by transpose.
+Mirrors the `unitaryGroup`/`SpecialLinearGroup` subtype-group pattern. -/
+noncomputable instance instGroupK : Group (K n) :=
+  { instMonoidK with
+    inv := Inv.inv
+    inv_mul_cancel := fun Q => by
+      apply Subtype.ext
+      show Q.1.transpose * Q.1 = 1
+      exact mul_eq_one_comm.mp Q.2 }
+
+/-- **B1.** `K n` is a topological group under the subtype topology
+inherited from `Matrix`. Mirrors `SpecialLinearGroup.topologicalGroup`. -/
+instance instIsTopologicalGroupK : IsTopologicalGroup (K n) where
+  continuous_mul := by
+    refine continuous_induced_rng.mpr ?_
+    exact (continuous_induced_dom.comp continuous_fst).matrix_mul
+      (continuous_induced_dom.comp continuous_snd)
+  continuous_inv := by
+    refine continuous_induced_rng.mpr ?_
+    exact continuous_induced_dom.matrix_transpose
+
+/-- **B1.** `K n` is Hausdorff (subtype of the Hausdorff `Matrix`). -/
+instance instT2SpaceK : T2Space (K n) := inferInstance
+
+end TrackBInstances
+
 end Complete
 
 end IwasawaCoC
