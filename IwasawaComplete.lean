@@ -1121,6 +1121,54 @@ instance instIsTopologicalGroupK : IsTopologicalGroup (K n) where
 /-- **B1.** `K n` is Hausdorff (subtype of the Hausdorff `Matrix`). -/
 instance instT2SpaceK : T2Space (K n) := inferInstance
 
+/-- The orthogonal set is closed: it is the preimage of `{1}` under the
+continuous map `Q ↦ Q * Qᵀ`. -/
+private lemma isClosed_isOrthogonal :
+    IsClosed {Q : Matrix (Fin n) (Fin n) ℝ | IsOrthogonal Q} := by
+  have hcont : Continuous (fun Q : Matrix (Fin n) (Fin n) ℝ => Q * Qᵀ) :=
+    continuous_id.matrix_mul continuous_id.matrix_transpose
+  have hpre : {Q : Matrix (Fin n) (Fin n) ℝ | IsOrthogonal Q}
+      = (fun Q : Matrix (Fin n) (Fin n) ℝ => Q * Qᵀ) ⁻¹' {1} := by
+    ext Q; simp only [Set.mem_setOf_eq, Set.mem_preimage, Set.mem_singleton_iff]
+    rfl
+  rw [hpre]
+  exact isClosed_singleton.preimage hcont
+
+/-- Each entry of an orthogonal matrix lies in `[-1, 1]`: the diagonal of
+`Q * Qᵀ` is `1`, so `∑ⱼ Qᵢⱼ² = 1`, forcing `Qᵢⱼ² ≤ 1`. -/
+private lemma isOrthogonal_entry_mem_Icc {Q : Matrix (Fin n) (Fin n) ℝ}
+    (hQ : IsOrthogonal Q) (i j : Fin n) : Q i j ∈ Set.Icc (-1 : ℝ) 1 := by
+  have hsum : ∑ k, Q i k ^ 2 = 1 := by
+    have h := congrFun (congrFun hQ i) i
+    rw [Matrix.mul_apply] at h
+    simp only [Matrix.transpose_apply, Matrix.one_apply_eq] at h
+    rw [← h]; exact Finset.sum_congr rfl (fun k _ => by ring)
+  have hle : Q i j ^ 2 ≤ 1 := by
+    rw [← hsum]
+    exact Finset.single_le_sum (f := fun k => Q i k ^ 2)
+      (fun k _ => sq_nonneg _) (Finset.mem_univ j)
+  rw [Set.mem_Icc]
+  constructor
+  · nlinarith [hle, sq_nonneg (Q i j + 1)]
+  · nlinarith [hle, sq_nonneg (Q i j - 1)]
+
+/-- **B1 (the compactness risk).** `K n = O(n)` is compact. Built from
+scratch (no `unitaryGroup`/`orthogonalGroup` compactness exists in
+Mathlib): the orthogonal set is closed and contained in the compact
+box `[-1,1]^{n×n}`, so it is compact, hence the subtype is a
+`CompactSpace`. -/
+instance instCompactSpaceK : CompactSpace (K n) := by
+  have hbox : IsCompact
+      (Set.univ.pi (fun _ : Fin n => Set.univ.pi (fun _ : Fin n => Set.Icc (-1 : ℝ) 1))) :=
+    isCompact_univ_pi (fun _ => isCompact_univ_pi (fun _ => isCompact_Icc))
+  have hsub : {Q : Matrix (Fin n) (Fin n) ℝ | IsOrthogonal Q} ⊆
+      Set.univ.pi (fun _ : Fin n => Set.univ.pi (fun _ : Fin n => Set.Icc (-1 : ℝ) 1)) := by
+    intro Q hQ i _ j _
+    exact isOrthogonal_entry_mem_Icc hQ i j
+  have hcompact : IsCompact {Q : Matrix (Fin n) (Fin n) ℝ | IsOrthogonal Q} :=
+    hbox.of_isClosed_subset isClosed_isOrthogonal hsub
+  exact isCompact_iff_compactSpace.mp hcompact
+
 end TrackBInstances
 
 end Complete
