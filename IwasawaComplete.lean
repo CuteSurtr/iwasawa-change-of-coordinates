@@ -25,6 +25,7 @@ quarantined axiom never enters scope.
 -/
 
 import iwasawa_change_of_coords.IwasawaJacobianExplicit
+import Mathlib.MeasureTheory.Measure.Haar.Basic
 
 namespace IwasawaCoC
 
@@ -1398,6 +1399,54 @@ private lemma isClosed_isUpperUnipotent :
 locally compact `Matrix` space. -/
 instance instLocallyCompactSpaceUU : LocallyCompactSpace (UU n) :=
   isClosed_isUpperUnipotent.locallyCompactSpace
+
+/-! ### B5. Haar measures on K, A, UU, G
+
+Measurability: the ambient `Matrix` is a Borel space (defeq to the
+second-countable finite product `Fin n → Fin n → ℝ`); the subtypes
+get `MeasurableSpace` (subtype) and `BorelSpace` (`Subtype.borelSpace`)
+automatically. With the group/topology/local-compactness instances from
+B1–B4, `MeasureTheory.Measure.haar` applies to each, and
+`IsHaarMeasure` is automatic. -/
+
+open MeasureTheory
+
+/-- `Matrix (Fin n) (Fin n) ℝ` is a measurable space (defeq to the finite
+product `Fin n → Fin n → ℝ`). -/
+instance instMeasurableSpaceMatrix :
+    MeasurableSpace (Matrix (Fin n) (Fin n) ℝ) :=
+  inferInstanceAs (MeasurableSpace (Fin n → Fin n → ℝ))
+
+/-- `Matrix (Fin n) (Fin n) ℝ` is a Borel space (defeq to the
+second-countable finite product `Fin n → Fin n → ℝ`). -/
+instance instBorelSpaceMatrix :
+    BorelSpace (Matrix (Fin n) (Fin n) ℝ) :=
+  inferInstanceAs (BorelSpace (Fin n → Fin n → ℝ))
+
+instance instNonemptyK : Nonempty (K n) := ⟨1⟩
+instance instNonemptyA : Nonempty (A n) := ⟨1⟩
+instance instNonemptyUU : Nonempty (UU n) := ⟨1⟩
+
+/-- **B5.** Haar measure on `K n = O(n)` (a compact group). -/
+noncomputable def haarK : Measure (K n) := Measure.haar
+
+/-- **B5.** Haar measure on `A n` (positive diagonal group). -/
+noncomputable def haarA : Measure (A n) := Measure.haar
+
+/-- **B5.** Haar measure on `UU n` (upper unipotent group). -/
+noncomputable def haarN : Measure (UU n) := Measure.haar
+
+/-- **B5.** Haar measure on `G n = GL_n(ℝ)`. -/
+noncomputable def haarG : Measure (G n) := Measure.haar
+
+instance : (haarK (n := n)).IsHaarMeasure := by
+  unfold haarK; infer_instance
+instance : (haarA (n := n)).IsHaarMeasure := by
+  unfold haarA; infer_instance
+instance : (haarN (n := n)).IsHaarMeasure := by
+  unfold haarN; infer_instance
+instance : (haarG (n := n)).IsHaarMeasure := by
+  unfold haarG; infer_instance
 
 end TrackBInstances
 
