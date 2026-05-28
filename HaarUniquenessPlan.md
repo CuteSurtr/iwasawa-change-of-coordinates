@@ -1,0 +1,123 @@
+# Haar Uniqueness Plan for the Iwasawa integration formula
+
+Plan note. Records the strategy, the verified feasibility findings, the exact
+target, the weight power, the crux route, and the dependency order. Proves
+nothing here. Mathlib facts were read from the pinned copy under
+`.lake/packages/mathlib` on 2026-05-28; project facts from the current source.
+
+## Target theorem
+
+With `iwasawaDiffeomorph : K n × A n × UU n ≃ G n` and the real Haar measures
+`haarK`, `haarA`, `haarN`, `haarG` (all `Measure.haar`, `IsHaarMeasure`), and
+the product Haar `haarKAU = haarK.prod (haarA.prod haarN)`:
+
+```
+Measure.map iwasawaDiffeomorph.symm haarG
+  = c • (haarKAU.withDensity (fun p => w p.2.1))
+```
+
+for a constant `c > 0` and a weight `w : A n → ℝ≥0∞` that is a power of the
+positive root product `δ(a) = det (adNN a) = ∏_{i<j} a_i / a_j`
+(`adNN_det_eq_pair_product`). Equivalently the integral form
+`∫ f dμ_G = c ∫∫∫ f(iwasawaMap (k,a,u)) · w(a) dμ_K dμ_A dμ_N`.
+
+## Feasibility findings (verified)
+
+1. **Mathlib has the character framework but no determinant lemma.**
+   `MeasureTheory.mulEquivHaarChar (φ : G ≃ₜ* G) : ℝ≥0` exists with
+   `mulEquivHaarChar φ • map φ μ = μ` (`mulEquivHaarChar_smul_map`, for `μ`
+   regular Haar), plus `_eq`, `_trans`, `_symm`, `_refl`,
+   `_eq_one_of_compactSpace`. `distribHaarChar (A) : G →* ℝ≥0` exists for a
+   `DistribMulAction G A` on an additive group with `addHaar`. But a global
+   search shows NO lemma relating either character to `LinearMap.det` /
+   `ContinuousLinearEquiv` / a determinant. So crux route (a) has no ready
+   made `char = |det|` lemma; the value must be computed via an explicit Haar.
+
+2. **The linear algebra of the crux is already done.**
+   `adNN a : NN n →L[ℝ] NN n`, `adNN a X = a.1 * X.1 * a.1⁻¹`
+   (`adNN_apply_val`), entrywise `(adNN a X) i j = (a_i / a_j) * X i j`
+   (`adNN_entry`), diagonal in `nnBasis` (`adNN_toMatrix_diagonal`), and
+   `LinearMap.det (adNN a) = ∏_{i<j} a_i / a_j = δ(a)`
+   (`adNN_det_eq_pair_product`).
+
+3. **The conjugation and its chart form.** The strategy's right A move uses
+   `c_{a₀} : u ↦ a₀⁻¹ u a₀`. In the chart `UU.toNNHomeomorph : UU n ≃ₜ NN n`
+   (`u ↦ u - 1`), since `a₀⁻¹ (1 + X) a₀ = 1 + a₀⁻¹ X a₀`, the chart form of
+   `c_{a₀}` is the linear map `X ↦ a₀⁻¹ X a₀ = adNN (a₀⁻¹)` on `NN n`, with
+   `LinearMap.det (adNN (a₀⁻¹)) = δ(a₀)⁻¹` (since `δ(a₀⁻¹) = δ(a₀)⁻¹`).
+
+4. **Weight power (pinned).** Using `map_linearMap_addHaar_eq_smul_addHaar`
+   (`map L μ = |det L|⁻¹ • μ`) and the chart, an explicit U Haar `ν` satisfies
+   `map c_{a₀} ν = |δ(a₀)⁻¹|⁻¹ • ν = δ(a₀) • ν`. So `mulEquivHaarChar c_{a₀}
+   = δ(a₀)⁻¹`, equivalently the right A conjugation scales U Haar by `δ(a₀)`.
+   The weight `w` that makes the pullback right A invariant is therefore a
+   fixed power of `δ`; the exact exponent (and `c`) are fixed in PHASE 3.
+
+5. **GL_n unimodularity.** `G n` is locally compact; bi invariance of `haarG`
+   follows from `IsHaarMeasure` plus unimodularity. To confirm in Mathlib:
+   `IsHaarMeasure` is left invariant by definition; right invariance needs
+   `IsMulRightInvariant haar`, available for unimodular groups. Check
+   `Mathlib/MeasureTheory/.../Unimodular` for the GL_n route, or derive right
+   invariance of the relevant transport directly.
+
+## The crux and its real obstruction
+
+The crux is the measure equation `map c_{a₀} (U Haar) = δ(a₀) • (U Haar)`.
+By finding 2 to 4, the only missing ingredient is an explicit regular Haar
+measure on `U` that can be computed in coordinates, because the abstract
+`haarN = Measure.haar` is opaque and `mulEquivHaarChar c_{a₀}` can only be
+evaluated against a Haar measure whose pushforward we can compute.
+
+The explicit U Haar `ν` is the pushforward of Lebesgue under a chart
+`U ≃ (coordinate space)`. To be a Haar measure it must be left invariant.
+Left translation by `u₀ = 1 + Y` in chart coordinates is the affine map
+`X ↦ (1 + Y)(1 + X) - 1 = X + Y + Y X`, whose linear part is `1 + M_Y` with
+`M_Y(X) = Y X` (restricted to strict upper). `M_Y` is nilpotent (it strictly
+raises the lower index gap), so `det (1 + M_Y) = 1` and left translation
+preserves Lebesgue: this is "Haar on a unipotent group is Lebesgue in
+exponential coordinates."
+
+**Obstruction (the real gate).** Building `ν` needs `addHaar`/Lebesgue on the
+Lie algebra coordinate space and the `|det|` scaling lemmas, which require a
+`NormedAddCommGroup` + `NormedSpace ℝ` on that space whose topology matches
+the chart's topology. `NN n` is a `Submodule` and the project activates the
+`Matrix` norm only locally, so giving `NN n` a global normed instance risks a
+topology diamond with the existing subtype topology used by
+`UU.toNNHomeomorph`. The clean sidestep is a direct homeomorphism
+`UU n ≃ₜ (nnIndex n → ℝ)` to the clean normed Pi space (volume is the
+standard `addHaar`), in which the conjugation is the diagonal scaling
+`(i,j) ↦ (a_j / a_i)` and the left translation Jacobian is `det (1 + M_Y) = 1`.
+
+## Dependency ordered plan
+
+- C0 (have): `adNN`, `adNN_entry`, `adNN_det_eq_pair_product`,
+  `UU.toNNHomeomorph`, `nnBasis`, `haarN`, `mulEquivHaarChar` framework.
+- C1 `[medium]`: the conjugation as a continuous group automorphism
+  `conjAut a₀ : UU n ≃ₜ* UU n`, `u ↦ a₀⁻¹ u a₀` (well defined into `UU n`,
+  group hom, continuous both ways).
+- C2 `[medium]`: a direct chart `nnChart : UU n ≃ₜ (nnIndex n → ℝ)` (strict
+  upper entries), avoiding the `NN n` normed diamond.
+- C3 `[medium]`: `nnChart ∘ conjAut a₀ ∘ nnChart.symm` is the diagonal linear
+  map `D_{a₀} : (i,j) ↦ (a_j / a_i) • coordinate`, and
+  `LinearMap.det D_{a₀} = δ(a₀)⁻¹` (direct product over `nnIndex`, or via
+  `adNN_det_eq_pair_product` transported through `nnBasis`).
+- C4 `[HARD, the gate]`: `νU := map nnChart.symm volume` is left invariant,
+  hence a regular Haar measure on `UU n`. Needs the affine decomposition of
+  left translation and `det (1 + M_Y) = 1` for the nilpotent `M_Y`. Mathlib:
+  `map_linearMap_addHaar_eq_smul_addHaar`, plus a nilpotent `det (1 + N) = 1`
+  (matrix version exists; LinearMap version may need transport via a basis).
+- C5 `[medium, given C2 to C4]`: `map (conjAut a₀) νU = δ(a₀) • νU` via
+  `map_map` and C3 and `map_linearMap_addHaar`.
+- C6 `[medium]`: `mulEquivHaarChar (conjAut a₀) = δ(a₀)⁻¹` via
+  `mulEquivHaarChar_eq νU` and C5; equivalently `map (conjAut a₀) haarN =
+  δ(a₀) • haarN` after relating `haarN` and `νU` by Haar uniqueness
+  (`measure_isHaarMeasure_eq_smul_of_isOpen`).
+- P3 (PHASE 3): the three invariances of the pullback (left K from `haarK`
+  uniqueness, right U from U unimodularity, right A from C6 pinning `w`), then
+  per factor uniqueness to assemble the target.
+- P4 (PHASE 4): the integral form with `c > 0` and weight `w`.
+
+C4 is the gate. If C4 cannot be closed without a sorry or an axiom (for
+example if the nilpotent `det (1 + M_Y) = 1` as a `LinearMap` on
+`nnIndex n → ℝ` proves intractable, or the chart construction snags), STOP:
+that determines reachability of the whole theorem this session.
