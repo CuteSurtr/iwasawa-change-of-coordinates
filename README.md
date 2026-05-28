@@ -28,38 +28,55 @@ following Lang's *Linear Algebra*.
 |---|---|
 | Build status | `lake build` succeeds |
 | Active Lean `sorry` declarations in `iwasawa_change_of_coords/` | 0 |
-| Core diffeomorphism / derivative axioms | `propext`, `Classical.choice`, `Quot.sound` only |
-| Quarantined future axiom | 1 explicit Haar/change-of-variables bridge axiom in `IwasawaBridge.lean` |
+| Core algebraic, topological, smooth, and Jacobian axioms | `propext`, `Classical.choice`, `Quot.sound` only |
+| Quarantined future axiom | 1 explicit Haar / change-of-variables bridge axiom in `IwasawaBridge.lean` |
 
-The diffeomorphism layer is now closed: `contMDiff_iwasawaSymm` and
-`iwasawaDiffeomorph` are proved without `sorryAx`. The general derivative
-theorem `mfderiv_iwasawaMap_at_factored` is also proved without `sorryAx`.
-All three currently print only the standard Lean/Mathlib axioms
-`[propext, Classical.choice, Quot.sound]`.
+The following layers are closed, with no `sorry`, and each prints only the
+standard Lean and Mathlib axioms `[propext, Classical.choice, Quot.sound]`:
 
-The whole repository should therefore not be described as having zero
-user-declared axioms without qualification: `IwasawaBridge.lean` still
-contains one explicit future-facing axiom for the Haar/change-of-variables
-layer.
+- the set-theoretic Iwasawa equivalence and the homeomorphism;
+- the full smooth structure on $K = O(n)$ (`instIsManifoldK`) via the
+  translated multi-chart Cayley atlas, and the full diffeomorphism
+  `iwasawaDiffeomorph`;
+- the manifold differential of the product map at the identity
+  (`iwasawaMfderivAtIdentity`) and at a general point
+  (`iwasawaMfderivAtFactored`);
+- the closed-form Jacobian determinant of the charted Iwasawa map in the
+  Iwasawa bases, at a general point of the chart domain
+  (`detInIwasawaBases_fderiv_iwasawaCharted_general` and its absolute-value
+  form), resting on the Sylvester-Franke identity
+  $\det\bigl(\Lambda^2 B\bigr) = (\det B)^{\,n-1}$ (`det_sandwichOnSkCLM`).
 
-## Current Scope Boundary
+A single consolidated file, `IwasawaComplete.lean`, restates every main result
+with a clean signature and prints its axiom dependencies. The repository should
+not be described as axiom-free without qualification: `IwasawaBridge.lean`
+still contains one explicit future-facing axiom for the Haar measure
+pushforward, which is the only step not yet reduced to the standard three
+axioms.
 
-The proved core includes the Iwasawa equivalence, homeomorphism,
-diffeomorphism, smooth forward and inverse maps, and the manifold derivative
-of the product map. The derivative theorem uses the actual chart convention:
-`iwasawaMatrixLeibnizCLM` is the derivative of `iwasawaMap` in the current
-Cayley/log/affine charts.
+## Current scope boundary
 
-The Jacobian/Haar layer is not yet a theorem of measure theory. The map
-`lieTwistCLM` is retained as an auxiliary twist map because its `NN` block
-is `adNN a`, and `adNN_det_eq_pair_product` computes the positive-root
-product
+The proved core now includes the Iwasawa equivalence, the homeomorphism, the
+full diffeomorphism, the smooth forward and inverse maps, the manifold
+differential of the product map, and the explicit Jacobian determinant of the
+charted map in the Iwasawa source basis and the standard matrix target basis.
+The derivative uses the project's chart convention: `iwasawaMatrixLeibnizCLM`
+is the differential of `iwasawaMap` in the Cayley, logarithm, and affine
+charts, and `iwasawaCharted` is the corresponding single-chart flat map
 
-$$\prod_{i<j} \frac{a_i}{a_j}.$$
+$$(X, v, Z) \mapsto \mathrm{cayley}(X)\, \mathrm{diag}(e^{v})\, (Z + 1).$$
 
-That determinant is the expected root-density ingredient for the future
-Haar formula, but it is not by itself the full Jacobian of the charted
-Iwasawa map.
+The one remaining layer is the Haar measure pushforward itself: turning the
+pointwise Jacobian determinant into a measure-theoretic change-of-variables
+identity for product Haar measures. This is recorded as a single quarantined
+axiom in `IwasawaBridge.lean` and is the subject of [Remaining Work](#remaining-work).
+The positive-root product
+
+$$\delta(a) = \prod_{i<j} \frac{a_i}{a_j}$$
+
+is computed by `adNN_det_eq_pair_product` as the determinant of $\mathrm{Ad}(a)$
+on the strictly-upper subalgebra, and now appears inside the proved Jacobian
+determinant rather than only as an isolated ingredient.
 
 ## Provenance and convention
 
@@ -159,6 +176,14 @@ The eigenvalues of $\mathrm{Ad}(a)$ on the basis $E_{ij}$ (for $i \lt j$) of $\m
 are exactly the characters $\chi_{ij}(a) = a_i / a_j$, and $\delta(a)$ is
 the product of these.
 
+This $\mathrm{Ad}(a)$ determinant is `adNN_det_eq_pair_product` in the project,
+and it is now a *factor* of the fully formalized pointwise Jacobian
+determinant of the charted Iwasawa map
+(`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). What is not yet
+formalized is the last step, integrating this density against Haar measure to
+obtain the displayed integration formula; that step is the single quarantined
+axiom in `IwasawaBridge.lean`.
+
 ### Why a *differential* isomorphism (not just a bijection)
 
 A bijection just renames points: it lets you say "every $g$ has a
@@ -220,15 +245,15 @@ upper triangular subalgebra (§I.3, p. 14 of Jorgenson and Lang).
 
 In this project we prove both the Iwasawa Lie decomposition
 (`iwasawaLieDecomp` and `iwasawaLieEquiv`) and the Cartan Lie
-decomposition (`cartanLieDecomp`). The geometric statement
-"$d\Phi_{(1,1,1)}$ equals the linear sum map" is the content of the
-deferred `iwasawaMap_mfderiv_at_one`; what we prove
-algebraically is exactly the statement that *the candidate linear
-map* $(X, Y, Z) \mapsto X + Y + Z$ is a `LinearEquiv`. Once the smooth
-manifold structure on the full $K = O(n)$ is in place, the
-geometric statement follows from a direct Jacobian computation of
-the Cayley chart at $0 \in \mathrm{Sk}$ (whose first order Taylor expansion
-is $\mathrm{cayley}(X) = 1 + 2X + O(X^2)$).
+decomposition (`cartanLieDecomp`). The geometric statement that
+$d\Phi_{(1,1,1)}$ is the linear sum map is the content of
+`iwasawaMfderivAtIdentity`, which is now proved. The algebraic
+input is that *the candidate linear map* $(X, Y, Z) \mapsto X + Y + Z$
+is a `LinearEquiv`; the geometric statement follows from the smooth
+manifold structure on the full $K = O(n)$ together with the first-order
+Taylor expansion of the Cayley chart at $0 \in \mathrm{Sk}$, namely
+$\mathrm{cayley}(X) = 1 - 2X + O(X^2)$ (so the Cayley chart contributes a
+factor of $-2$ on the $K$-direction).
 
 ## The mathematics formalized in this project
 
@@ -497,8 +522,8 @@ chart at $Q$ is `cayleyOpenChartAt Q`. Atlas: take all
 This is `instChartedSpaceK`. The resulting `ChartedSpace (Sk n) (K n)`
 gives $K = O(n)$ a topological manifold structure modeled on the
 skew symmetric matrices. The `IsManifold` instance,
-i.e., the smoothness of all chart transition maps, is the
-deferred `instIsManifoldK`. The transition is
+i.e., the smoothness of all chart transition maps, is `instIsManifoldK`,
+which is now proved. The transition is
 
 $$\mathrm{chart}_{Q_1} \circ (\mathrm{chart}_{Q_0})^{-1} : X \in \mathrm{Sk} \mapsto \mathrm{cayleyInv}(\mathrm{cayley}(X) \cdot Q_0 \cdot Q_1^T),$$
 
@@ -601,10 +626,11 @@ and prove:
 * `iwasawaLieEquiv` bundles these as `LinearEquiv.ofBijective`.
 
 This is the **algebraic differential at the identity** of the
-Iwasawa map. The deferred geometric statement `iwasawaMap_mfderiv_at_one`
-would identify `mfderiv (iwasawaMap) (1, 1, 1)` with `iwasawaLieEquiv`
-(modulo Cayley's first order Taylor expansion contributing a factor
-of $2$).
+Iwasawa map. The geometric statement `iwasawaMfderivAtIdentity`
+identifies `mfderiv (iwasawaMap) (1, 1, 1)` with the corresponding
+linear isomorphism, with the Cayley chart's first-order Taylor
+expansion contributing a factor of $-2$ on the $K$-direction; it is
+now proved.
 
 This linear isomorphism is the "infinitesimal change of coordinates"
 between the ambient Lie algebra $\mathfrak{gl}_n(\mathbb{R})$ and the Iwasawa Lie
@@ -614,41 +640,46 @@ gives the explicit formulas above.
 
 ## Milestones
 
+All entries below are proved with no `sorry`. The diagnostic files print
+the axiom dependencies, which are `[propext, Classical.choice, Quot.sound]`
+throughout.
+
 | # | Goal | Status | Jorgenson and Lang reference |
 |---|------|--------|---------------|
-| 1   | `iwasawaEquiv : K × A × U ≃ GL_n(ℝ)` (set theoretic bijection)                   | ✅ proved   | Thm I.1.1, set theoretic |
-| 1b  | `inv_iwasawa_jl`: $(kau)^{-1} = u^{-1} a^{-1} k^T$ (Lang vs Jorgenson and Lang convention swap)            | ✅ proved   | §I.1, p. 2              |
-| 1b  | `cartanInvolution`, `cartanInvolution_involutive`                                | ✅ proved   | §I.1, p. 2              |
-| 2   | `continuous_iwasawaMap` (forward direction)                                      | ✅ proved   | Thm I.1.1, topology     |
-| 2   | `continuous_iwasawaSymm` (inverse direction; Gram, Schmidt continuity from scratch) | ✅ proved | Thm I.1.1, topology     |
-| 2   | `iwasawaHomeomorph : K × A × U ≃ₜ GL_n(ℝ)`                                       | ✅ proved   | Thm I.1.1, topology     |
-| 3   | `isOpen_G`, `G_isOpenEmbedding`, smooth structure on `G n`                       | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | `UU.toNNHomeomorph`, smooth structure on `UU n` (modeled on `NN n`)              | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | `A.toFinNRHomeomorph`, smooth structure on `A n` (modeled on `Fin n → ℝ`)        | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | Cayley transform setup (`cayley`, `cayleyInv`, `one_add_skew_isUnit`, `cayley_isOrthogonal`) | ✅ proved   | Cayley 1846             |
-| 3   | Cayley two sided inverse (`cayley_self_inverse`, `cayleyInv_cayley`, `cayley_cayleyInv`) | ✅ proved   | Cayley 1846             |
-| 3   | `cayleyInv_isSkew` (image of orthogonal under Cayley is skew)                    | ✅ proved   | Cayley 1846             |
-| 3   | `cayleyEquiv : Sk n ≃ K_open n` (set level Cayley bijection)                     | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | Cayley continuity (`continuous_cayley_on_skew`, `continuous_cayleyInv_on_KOpen`) | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | `cayleyHomeomorph : Sk n ≃ₜ K_open n` (topological)                              | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | Smooth manifold structure on `K_open n` modeled on `Sk n` via Cayley chart       | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | `cayleyDiffeomorph : Sk n ≃ₘ K_open n` ($C^\infty$ diffeomorphism)                     | ✅ proved   | Thm I.1.1, smoothness   |
-| 3   | `IsOrthogonal.mul`, `K_open_at`, `cayleyEquivAt Q₀ : Sk n ≃ K_open_at Q₀`        | ✅ proved   | Thm I.1.1, multi chart  |
-| 3   | `self_mem_K_open_at` (cover $\bigcup K_{\mathrm{open\\,at}} Q = K\,n$)                                | ✅ proved   | Thm I.1.1, multi chart  |
-| 3   | `cayleyOpenChartAt Q₀ : OpenPartialHomeomorph (K n) (Sk n)` plus `instChartedSpaceK` | ✅ proved   | Sphere pattern atlas    |
-| 3   | `instIsManifoldK` (chart transition `ContDiffOn` plus IsManifold compatibility)     | ⚠️ deferred | Thm I.1.1, full         |
-| 3   | `iwasawaDiffeomorph : K × A × U ≃ₘ GL_n(ℝ)` (full diffeomorphism)                | ⚠️ deferred | Thm I.1.1, full         |
-| 4   | `cartanLieDecomp : IsCompl (Sym n) (Sk n)` (Cartan Lie decomp $\mathfrak{gl}_n = \mathrm{Sym} \oplus \mathrm{Sk}$) | ✅ proved   | §I.3, p. 12             |
-| 5   | `disjoint_AA_NN`, `disjoint_KK_AA`, `disjoint_KK_NN` (pairwise disjoint)         | ✅ proved   | §I.3                    |
-| 5   | `iwasawa_codisjoint`: $\mathfrak{k} \sqcup \mathfrak{a} \sqcup \mathfrak{n} = \top$ (sum is everything)                         | ✅ proved   | §I.3                    |
-| 5   | `iwasawaLieDecomp`: full Iwasawa Lie decomposition $\mathfrak{gl}_n = \mathfrak{k} \oplus \mathfrak{a} \oplus \mathfrak{n}$            | ✅ proved   | §I.3                    |
-| 5   | `iwasawaLieEquiv`: linear iso $\mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \simeq_{\mathbb{R}} \mathfrak{gl}_n(\mathbb{R})$ (algebraic differential at 1) | ✅ proved | §I.3                    |
-| 5   | `iwasawaMap_mfderiv_at_one` (full geometric `mfderiv` at identity)               | ⚠️ deferred | §I.3                    |
-
-The legend `⚠️ deferred` means: the mathematical statement is documented
-in the file with a precise outline of the proof, but the proof itself
-was not closed during this session due to the Mathlib fluency obstacles
-described in the [honest disclaimer](#honest-disclaimer) above.
+| 1   | `iwasawaEquiv : K × A × U ≃ GL_n(ℝ)` (set-theoretic bijection)                   | Proved   | Thm I.1.1, set-theoretic |
+| 1b  | `inv_iwasawa_jl`: $(kau)^{-1} = u^{-1} a^{-1} k^T$ (Lang vs Jorgenson and Lang convention swap)            | Proved   | §I.1, p. 2              |
+| 1b  | `cartanInvolution`, `cartanInvolution_involutive`                                | Proved   | §I.1, p. 2              |
+| 2   | `continuous_iwasawaMap` (forward direction)                                      | Proved   | Thm I.1.1, topology     |
+| 2   | `continuous_iwasawaSymm` (inverse direction; Gram-Schmidt continuity from scratch) | Proved | Thm I.1.1, topology     |
+| 2   | `iwasawaHomeomorph : K × A × U ≃ₜ GL_n(ℝ)`                                       | Proved   | Thm I.1.1, topology     |
+| 3   | `isOpen_G`, `G_isOpenEmbedding`, smooth structure on `G n`                       | Proved   | Thm I.1.1, smoothness   |
+| 3   | `UU.toNNHomeomorph`, smooth structure on `UU n` (modeled on `NN n`)              | Proved   | Thm I.1.1, smoothness   |
+| 3   | `A.toFinNRHomeomorph`, smooth structure on `A n` (modeled on `Fin n → ℝ`)        | Proved   | Thm I.1.1, smoothness   |
+| 3   | Cayley transform setup (`cayley`, `cayleyInv`, `one_add_skew_isUnit`, `cayley_isOrthogonal`) | Proved   | Cayley 1846             |
+| 3   | Cayley two-sided inverse (`cayley_self_inverse`, `cayleyInv_cayley`, `cayley_cayleyInv`) | Proved   | Cayley 1846             |
+| 3   | `cayleyInv_isSkew` (image of orthogonal under Cayley is skew)                    | Proved   | Cayley 1846             |
+| 3   | `cayleyEquiv : Sk n ≃ K_open n` (set-level Cayley bijection)                     | Proved   | Thm I.1.1, smoothness   |
+| 3   | Cayley continuity (`continuous_cayley_on_skew`, `continuous_cayleyInv_on_KOpen`) | Proved   | Thm I.1.1, smoothness   |
+| 3   | `cayleyHomeomorph : Sk n ≃ₜ K_open n` (topological)                              | Proved   | Thm I.1.1, smoothness   |
+| 3   | Smooth manifold structure on `K_open n` modeled on `Sk n` via Cayley chart       | Proved   | Thm I.1.1, smoothness   |
+| 3   | `cayleyDiffeomorph : Sk n ≃ₘ K_open n` ($C^\infty$ diffeomorphism)                     | Proved   | Thm I.1.1, smoothness   |
+| 3   | `IsOrthogonal.mul`, `K_open_at`, `cayleyEquivAt Q₀ : Sk n ≃ K_open_at Q₀`        | Proved   | Thm I.1.1, multi-chart  |
+| 3   | `self_mem_K_open_at` (cover $\bigcup K_{\mathrm{open\\,at}} Q = K\,n$)                                | Proved   | Thm I.1.1, multi-chart  |
+| 3   | `cayleyOpenChartAt Q₀ : OpenPartialHomeomorph (K n) (Sk n)` plus `instChartedSpaceK` | Proved   | Sphere-pattern atlas    |
+| 3   | `instIsManifoldK` (chart transitions `ContDiffOn`, full `IsManifold` on $K = O(n)$) | Proved   | Thm I.1.1, full         |
+| 3   | `iwasawaDiffeomorph : K × A × U ≃ₘ GL_n(ℝ)` (full diffeomorphism)                | Proved   | Thm I.1.1, full         |
+| 4   | `cartanLieDecomp : IsCompl (Sym n) (Sk n)` (Cartan Lie decomp $\mathfrak{gl}_n = \mathrm{Sym} \oplus \mathrm{Sk}$) | Proved   | §I.3, p. 12             |
+| 5   | `disjoint_AA_NN`, `disjoint_KK_AA`, `disjoint_KK_NN` (pairwise disjoint)         | Proved   | §I.3                    |
+| 5   | `iwasawa_codisjoint`: $\mathfrak{k} \sqcup \mathfrak{a} \sqcup \mathfrak{n} = \top$ (sum is everything)                         | Proved   | §I.3                    |
+| 5   | `iwasawaLieDecomp`: full Iwasawa Lie decomposition $\mathfrak{gl}_n = \mathfrak{k} \oplus \mathfrak{a} \oplus \mathfrak{n}$            | Proved   | §I.3                    |
+| 5   | `iwasawaLieEquiv`: linear iso $\mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \simeq_{\mathbb{R}} \mathfrak{gl}_n(\mathbb{R})$ (algebraic differential at 1) | Proved | §I.3                    |
+| 5   | `iwasawaMfderivAtIdentity` (geometric `mfderiv` at the identity)                 | Proved   | §I.3                    |
+| 6   | `iwasawaMfderivAtFactored` (geometric `mfderiv` at a general $(k, a, u)$)        | Proved   | §I.2-I.3                |
+| 6   | `det_sandwichOnSkCLM`: Sylvester-Franke $\det(\Lambda^2 B) = (\det B)^{n-1}$ on $\mathrm{Sk}\,n$ | Proved   | Jacobian density        |
+| 6   | `adNN_det_eq_pair_product`: $\det \mathrm{Ad}(a)|_{\mathfrak{n}} = \prod_{i<j} a_i/a_j$ | Proved   | §I.2, Eq. (3)           |
+| 6   | `detInIwasawaBases_fderiv_iwasawaCharted_general` (signed Jacobian determinant)  | Proved   | §I.2 Jacobian           |
+| 6   | `absDetInIwasawaBases_fderiv_iwasawaCharted_general` (absolute Jacobian determinant) | Proved | §I.2 Jacobian           |
+| 7   | Haar measure pushforward / change-of-variables identity                          | Quarantined axiom | §I.2, Prop. 2.1-2.4 |
 
 ## Theorem statements
 
@@ -746,22 +777,70 @@ theorem iwasawaLieMap_injective  : Function.Injective  (iwasawaLieMap (n := n))
 noncomputable def iwasawaLieEquiv :
     (KK n × AA n × NN n) ≃ₗ[ℝ] Matrix (Fin n) (Fin n) ℝ
 
+/-- Milestone 5 and 6: geometric differential of the product map at the
+identity and at a general point, in the project's charts. The `-2` on the
+`K`-direction is the Cayley chart's first-order coefficient. -/
+theorem iwasawaMfderivAtIdentity :
+    ∀ (X : Sk n) (v : Fin n → ℝ) (Z : NN n),
+      (mfderiv … (iwasawaMap : K n × A n × UU n → G n)
+        (⟨1, _⟩, ⟨1, _⟩, ⟨1, _⟩)) (X, v, Z)
+        = (-2 : ℝ) • X.1 + Matrix.diagonal v + Z.1
+theorem iwasawaMfderivAtFactored (k : K n) (a : A n) (u : UU n) :
+    mfderiv … (iwasawaMap : K n × A n × UU n → G n) (k, a, u)
+      = iwasawaMatrixLeibnizCLM k a u
+
+/-- Milestone 6: the Sylvester-Franke identity at k = 2. The congruence
+`δ ↦ Bᵀ δ B` on the skew-symmetric matrices `Sk n ≃ Λ²(ℝⁿ)` has determinant
+`(det B)^(n-1)`. -/
+theorem det_sandwichOnSkCLM (B : Matrix (Fin n) (Fin n) ℝ) :
+    LinearMap.det (sandwichOnSkCLM B).toLinearMap = B.det ^ (n - 1)
+
+/-- Milestone 6: the closed-form Jacobian determinant of the charted Iwasawa
+map at a general point `(X, v, Z)` of the chart domain, in the Iwasawa source
+basis and the standard matrix target basis. Here `a = expDiagA v = diag(eᵛ)`,
+`adNN a` is the conjugation action of `a` on the strictly-upper subalgebra, and
+the final factor is the Cayley correction from the `K`-direction. -/
+theorem detInIwasawaBases_fderiv_iwasawaCharted_general
+    (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    detInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z)) =
+      ((2 : ℝ) ^ Fintype.card (nnIndex n) *
+          (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap) *
+        ((1 + X.1).det)⁻¹ ^ (n - 1)
+
+theorem absDetInIwasawaBases_fderiv_iwasawaCharted_general
+    (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    absDetInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z)) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        |(expDiagA v).1.det| ^ n * |LinearMap.det (adNN (expDiagA v)).toLinearMap| *
+        (|(1 + X.1).det|⁻¹) ^ (n - 1)
+
 end IwasawaCoC
 ```
+
+Here `Fintype.card (nnIndex n) = n(n-1)/2` is the number of strictly-upper
+index pairs, so the leading factor is $2^{\,n(n-1)/2}$. At $X = 0$ the Cayley
+correction $((1 + 0).\det)^{-1\,(n-1)}$ is $1$, and the formula reduces to the
+chart-center value $2^{\,n(n-1)/2}\,(\det a)^{n}\,\det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr)$;
+this consistency is checked in `IwasawaComplete.lean`.
 
 ## Repository layout
 
 ```
 iwasawa_change_of_coords/
-├── README.md           this file
-├── IwasawaCoC.lean     core definitions and algebraic/topological layer
-├── IwasawaDiffeomorph.lean
-├── IwasawaMFDerivAtOne.lean
-├── IwasawaMFDeriv.lean
-├── IwasawaJacobianAbstract.lean
-├── IwasawaJacobianExplicit.lean
-├── IwasawaBridge.lean  quarantined future Haar/change-of-variables bridge
-└── AxiomCheck*.lean    diagnostic files for axiom dependencies
+├── README.md                    this file
+├── IwasawaCoC.lean              core definitions, algebraic and topological layer
+├── MatrixContDiff.lean          smoothness lemmas for matrix operations
+├── IwasawaSmoothK.lean          full smooth manifold structure on K = O(n)
+├── IwasawaDiffeomorph.lean      homeomorphism and full diffeomorphism
+├── IwasawaLieDecomposition.lean Cartan and Iwasawa Lie decompositions
+├── IwasawaMFDerivAtOne.lean     manifold differential at the identity
+├── IwasawaMFDeriv.lean          manifold differential at a general point
+├── IwasawaJacobianAbstract.lean abstract Jacobian / determinant scaffolding
+├── IwasawaJacobianExplicit.lean explicit Jacobian: adNN determinant, transport CLMs
+├── IwasawaComplete.lean         consolidated axiom-clean restatement,
+│                                Sylvester-Franke identity, general-point Jacobian
+├── IwasawaBridge.lean           quarantined future Haar / change-of-variables bridge
+└── AxiomCheck*.lean             diagnostic files for axiom dependencies
 ```
 
 The project shares the parent's Lake build (single `lakefile.toml`,
@@ -783,17 +862,25 @@ as a dependency.
 
 ## Verifying the result
 
-After a successful build, the diagnostic files print axiom dependencies.
-The current checks for
+After a successful build, the diagnostic files and the `#print axioms`
+blocks at the end of `IwasawaComplete.lean` print axiom dependencies. The
+consolidated file checks, among others,
 
 ```lean
-IwasawaCoC.contMDiff_iwasawaSymm
-IwasawaCoC.iwasawaDiffeomorph
-IwasawaCoC.mfderiv_iwasawaMap_at_factored
+IwasawaCoC.Complete.iwasawaDiffeo
+IwasawaCoC.Complete.iwasawaMfderivAtIdentity
+IwasawaCoC.Complete.iwasawaMfderivAtFactored
+IwasawaCoC.Complete.det_sandwichOnSkCLM
+IwasawaCoC.Complete.detInIwasawaBases_fderiv_iwasawaCharted_general
+IwasawaCoC.Complete.absDetInIwasawaBases_fderiv_iwasawaCharted_general
 ```
 
-report only `[propext, Classical.choice, Quot.sound]`. The namespace is
-`IwasawaCoC`.
+each of which reports only `[propext, Classical.choice, Quot.sound]`. The
+core namespace is `IwasawaCoC`, and the consolidated restatements live in
+`IwasawaCoC.Complete`. `IwasawaComplete.lean` also contains compile-time
+sanity checks: the scalar value $\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}$
+at $n = 3$, the edge cases $n = 0$ and $n = 1$, and the consistency of the
+general Jacobian at $X = 0$ with the chart-center value.
 
 ## Proof outlines
 
@@ -997,24 +1084,34 @@ at the identity is invertible," realized as a `LinearEquiv`.
 
 ## Remaining Work
 
-The next mathematical layer is the Jacobian/Haar story, not another
-Gram-Schmidt smoothness route.
+The Jacobian-determinant layer is now complete: the determinant of the
+charted Iwasawa map in the Iwasawa bases is proved in closed form at a
+general point (`detInIwasawaBases_fderiv_iwasawaCharted_general` and its
+absolute-value form), with the canonical derivative object
+`iwasawaMatrixLeibnizCLM k a u`, the constant Cayley factor, the chart
+conventions for `A` and `UU`, and the positive-root product
+`adNN_det_eq_pair_product` all accounted for inside that formula.
 
-1. Make the determinant target for the actual derivative precise. The
-   canonical derivative object is `iwasawaMatrixLeibnizCLM k a u`, not
-   the older `lieTwistCLM` factorization.
-2. Prove a basis-level determinant theorem for that derivative, keeping
-   track of the constant Cayley factor and the chart conventions for
-   `A` and `UU`.
-3. Connect the explicit positive-root product
-   `adNN_det_eq_pair_product` to the derivative determinant theorem.
-4. Only after that, replace the quarantined axiom in `IwasawaBridge.lean`
-   with a real measure-theoretic statement involving product measures,
-   Haar measures, and a change-of-variables theorem.
+The single remaining mathematical layer is the Haar measure pushforward:
 
-`IwasawaBridge.lean` is intentionally not part of the axiom-clean core
-yet. It records the intended future Haar/change-of-variables endpoint
-and currently contains one explicit axiom.
+1. Equip $K$, $A$, $U$, and $G = GL_n(\mathbb{R})$ with Haar measures and form the
+   product measure on $K \times A \times U$.
+2. Combine the pointwise absolute Jacobian determinant
+   (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with a Mathlib
+   change-of-variables theorem to obtain the pushforward of the product
+   Haar measure under the Iwasawa map.
+3. Identify the resulting density with the Iwasawa character $\delta(a)^{-1}$
+   and the global constant, recovering the integration formula
+
+   $$\int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.$$
+
+4. Replace the quarantined axiom in `IwasawaBridge.lean` with this
+   measure-theoretic statement.
+
+`IwasawaBridge.lean` is intentionally not part of the axiom-clean core yet.
+It records the intended future Haar / change-of-variables endpoint and
+currently contains one explicit axiom; every other result in the project is
+reduced to `[propext, Classical.choice, Quot.sound]`.
 
 ## References
 
