@@ -1001,6 +1001,7 @@ iwasawa_change_of_coords/
 ├── IwasawaComplete.lean         consolidated axiom-clean restatement,
 │                                Sylvester-Franke identity, general-point Jacobian
 ├── IwasawaBridge.lean           Haar bridge: positive root product, future work notes (no axiom)
+├── IwasawaHaar.lean             measure layer: product Haar on K, A, U and explicit Haar on A
 └── AxiomCheck*.lean             diagnostic files for axiom dependencies
 ```
 
@@ -1295,18 +1296,25 @@ absolute-value form), with the canonical derivative object
 conventions for `A` and `UU`, and the positive-root product
 `adNN_det_eq_pair_product` all accounted for inside that formula.
 
-The single remaining mathematical layer is the Haar measure pushforward:
+The single remaining mathematical layer is the Haar measure pushforward. A
+measure layer has been started in `IwasawaHaar.lean`:
 
-1. Equip $`K`$, $`A`$, $`U`$, and $`G = GL_n(\mathbb{R})`$ with Haar measures and form the
-   product measure on $`K \times A \times U`$.
+1. Haar measures on $`K`$, $`A`$, $`U`$, and $`G = GL_n(\mathbb{R})`$ exist
+   abstractly (`haarK`, `haarA`, `haarN`, `haarG` in `IwasawaComplete.lean`,
+   each `Measure.haar` with an `IsHaarMeasure` instance). The product Haar
+   measure `haarKAU` on $`K \times A \times U`$ is built in `IwasawaHaar.lean`,
+   and an explicit left invariant Haar on $`A`$ (`haarAExplicit`, the
+   pushforward of Lebesgue through the log chart) is proved there. Still open:
+   the explicit chart densities for $`U`$ and for $`G`$ (the latter the
+   $`|\det g|^{-n}`$ form, which is absent from Mathlib).
 2. Combine the pointwise absolute Jacobian determinant
    (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with a Mathlib
-   change-of-variables theorem to obtain the pushforward of the product
-   Haar measure under the Iwasawa map.
+   change of variables theorem to obtain the pushforward of the product Haar
+   measure under the Iwasawa map. This step is not started; it is the crux.
 3. Identify the resulting density with the Iwasawa character $`\delta(a)^{-1}`$
    and the global constant, recovering the integration formula below.
-4. State and prove this measure-theoretic identity in `IwasawaBridge.lean`;
-   there is no longer any placeholder axiom to replace.
+4. State and prove this measure theoretic identity. There is no placeholder
+   axiom to replace.
 
 The target integration formula is
 

@@ -5,14 +5,42 @@ the verified state of the project, surveys the Mathlib measure theory API by
 name and current signature, isolates the genuine remaining gap, and gives a
 dependency ordered lemma list. No Haar proof is started here.
 
-**Status update (2026-05-28).** The placeholder axiom
+**Status update (2026-05-28a).** The placeholder axiom
 `iwasawa_haar_pushforward_bridge` was found to be logically redundant: its
 statement was only the weak existential in Section 2, which is already proved
 without any axiom (`c_n = 1`). It has therefore been removed, and the whole
 `iwasawa_change_of_coords/` subtree is now genuinely axiom clean, confirmed by
 a fresh `#print axioms`. The genuine measure theoretic identity in Section 2
-is still NOT formalized; the lemma list L0 to L9 below remains future work,
-with none of L1 to L9 implemented.
+is still NOT formalized.
+
+**Status update (2026-05-28b): measure layer started in `IwasawaHaar.lean`.**
+Progress, all axiom clean:
+- The factor Haar measures `haarK`, `haarA`, `haarN` and the `G` Haar measure
+  `haarG` already exist abstractly in `IwasawaComplete.lean` (Track B), as
+  `Measure.haar` with `IsHaarMeasure` instances, so their existence and left
+  invariance (part of `IsHaarMeasure`) is done. This covers the existence
+  half of L1 for K, A, U and the existence of Haar on G.
+- Added `SecondCountableTopology` instances for the `Matrix` space, `NN n`,
+  `A n`, `UU n` (the factor Haar measures need these to be sigma finite).
+- Added the **product Haar measure** `haarKAU` on `K n × A n × UU n` with an
+  `IsHaarMeasure` instance (closes the product part of L1).
+- Proved the log chart `A.toFinNRHomeomorph` is a group homomorphism
+  (`toFinNRHomeomorph_mul`) and built an **explicit left invariant Haar on
+  `A n`** (`haarAExplicit`, the pushforward of Lebesgue through the inverse
+  log chart) with an `IsMulLeftInvariant` instance. This is the explicit
+  chart density for A that L-stage work needs.
+
+Still open (genuine blockers, see Section 4 and the lemma list):
+- Explicit chart Haar on `U` (Lebesgue in the strict upper coordinates). In
+  this project `U` is modelled on the submodule `NN n`, and the project
+  activates the `Matrix` norm only locally, so `NN n` has no global normed
+  structure; `Basis.addHaar`/`volume` on `NN n` is not directly available,
+  and a continuous linear equivalence `NN n ≃L (nnIndex n → ℝ)` would need
+  that normed structure. This is the obstacle to copying the A construction.
+- Explicit density for Haar on `G` (the `|det g|^{-n}` Lebesgue form); not in
+  Mathlib.
+- The change of variables bridge (L2 to L8) and the integration formula (L9):
+  unstarted; this is the hard crux.
 
 All declaration names below were verified against the current source, and
 their axiom footprints were checked with `#print axioms` (fresh elaboration,
