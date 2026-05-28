@@ -1317,6 +1317,88 @@ log/exp homeomorphism `A.toFinNRHomeomorph : A n ≃ₜ (Fin n → ℝ)`. -/
 instance instLocallyCompactSpaceA : LocallyCompactSpace (A n) :=
   (A.toFinNRHomeomorph (n := n)).locallyCompactSpace_iff.mpr inferInstance
 
+/-! ### B4. `UU n = { u // IsUpperUnipotent u }` (upper unipotent group) -/
+
+/-- `IsUpperUnipotent` is closed under natural-number powers. -/
+private lemma isUpperUnipotent_pow {u : Matrix (Fin n) (Fin n) ℝ}
+    (hu : IsUpperUnipotent u) : ∀ m : ℕ, IsUpperUnipotent (u ^ m)
+  | 0 => by simpa using IsUpperUnipotent.one
+  | (m + 1) => by rw [pow_succ]; exact IsUpperUnipotent.mul (isUpperUnipotent_pow hu m) hu
+
+noncomputable instance : Mul (UU n) :=
+  ⟨fun u v => ⟨u.1 * v.1, IsUpperUnipotent.mul u.2 v.2⟩⟩
+instance : One (UU n) := ⟨⟨1, IsUpperUnipotent.one⟩⟩
+noncomputable instance : Inv (UU n) := ⟨fun u => ⟨u.1⁻¹, u.2.inv⟩⟩
+noncomputable instance : Pow (UU n) ℕ :=
+  ⟨fun u m => ⟨u.1 ^ m, isUpperUnipotent_pow u.2 m⟩⟩
+
+@[simp] lemma UU_coe_mul (u v : UU n) :
+    ((u * v : UU n) : Matrix (Fin n) (Fin n) ℝ) = u.1 * v.1 := rfl
+@[simp] lemma UU_coe_one :
+    ((1 : UU n) : Matrix (Fin n) (Fin n) ℝ) = 1 := rfl
+@[simp] lemma UU_coe_inv (u : UU n) :
+    ((u⁻¹ : UU n) : Matrix (Fin n) (Fin n) ℝ) = u.1⁻¹ := rfl
+@[simp] lemma UU_coe_pow (u : UU n) (m : ℕ) :
+    ((u ^ m : UU n) : Matrix (Fin n) (Fin n) ℝ) = u.1 ^ m := rfl
+
+noncomputable instance instMonoidUU : Monoid (UU n) :=
+  Function.Injective.monoid (Subtype.val) Subtype.coe_injective UU_coe_one UU_coe_mul UU_coe_pow
+
+/-- **B4.** `UU n` is a group (upper unipotent matrices). -/
+noncomputable instance instGroupUU : Group (UU n) :=
+  { instMonoidUU with
+    inv := Inv.inv
+    inv_mul_cancel := fun u => by
+      apply Subtype.ext
+      show u.1⁻¹ * u.1 = 1
+      exact Matrix.nonsing_inv_mul u.1 (Ne.isUnit u.2.det_ne_zero) }
+
+/-- **B4.** `UU n` is a topological group. -/
+instance instIsTopologicalGroupUU : IsTopologicalGroup (UU n) where
+  continuous_mul := by
+    refine continuous_induced_rng.mpr ?_
+    exact (continuous_induced_dom.comp continuous_fst).matrix_mul
+      (continuous_induced_dom.comp continuous_snd)
+  continuous_inv := by
+    refine continuous_induced_rng.mpr ?_
+    rw [continuous_iff_continuousAt]
+    intro u
+    have hUnit : IsUnit (u.1.det) := Ne.isUnit u.2.det_ne_zero
+    have hRingInv : ContinuousAt Ring.inverse (u.1.det) :=
+      NormedRing.inverse_continuousAt hUnit.unit
+    have hMatInv : ContinuousAt Inv.inv u.1 := continuousAt_matrix_inv u.1 hRingInv
+    exact hMatInv.comp continuous_induced_dom.continuousAt
+
+/-- **B4.** `UU n` is Hausdorff. -/
+instance instT2SpaceUU : T2Space (UU n) := inferInstance
+
+/-- The upper-unipotent set is closed: it is the intersection of the
+(closed) below-diagonal-vanishing conditions and the (closed)
+unit-diagonal conditions. -/
+private lemma isClosed_isUpperUnipotent :
+    IsClosed {u : Matrix (Fin n) (Fin n) ℝ | IsUpperUnipotent u} := by
+  have heq : {u : Matrix (Fin n) (Fin n) ℝ | IsUpperUnipotent u} =
+      (⋂ (i : Fin n) (j : Fin n) (_ : j < i), {u : Matrix (Fin n) (Fin n) ℝ | u i j = 0}) ∩
+        (⋂ (i : Fin n), {u : Matrix (Fin n) (Fin n) ℝ | u i i = 1}) := by
+    ext u
+    simp only [Set.mem_setOf_eq, Set.mem_inter_iff, Set.mem_iInter]
+    constructor
+    · rintro ⟨hupper, hdiag⟩
+      exact ⟨fun i j hji => hupper hji, fun i => hdiag i⟩
+    · rintro ⟨hupper, hdiag⟩
+      exact ⟨fun i j hji => hupper i j hji, fun i => hdiag i⟩
+  rw [heq]
+  refine IsClosed.inter ?_ ?_
+  · refine isClosed_iInter fun i => isClosed_iInter fun j => isClosed_iInter fun _ => ?_
+    exact isClosed_eq (by fun_prop) continuous_const
+  · refine isClosed_iInter fun i => ?_
+    exact isClosed_eq (by fun_prop) continuous_const
+
+/-- **B4.** `UU n` is locally compact: it is a closed subset of the
+locally compact `Matrix` space. -/
+instance instLocallyCompactSpaceUU : LocallyCompactSpace (UU n) :=
+  isClosed_isUpperUnipotent.locallyCompactSpace
+
 end TrackBInstances
 
 end Complete
