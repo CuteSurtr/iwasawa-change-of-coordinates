@@ -1007,13 +1007,82 @@ lemma sandwichOnSkCLM_mul (B₁ B₂ : Matrix (Fin n) (Fin n) ℝ) :
       Matrix.transpose_mul]
   simp [Matrix.mul_assoc]
 
-/-- **A2 (FLAGGED RISK).** Determinant of the congruence `δ ↦ Bᵀ δ B` on
-`Sk n` is `(det B)^{n-1}`. This is `det (Λ² B) = (det B)^{n-1}`, the second
-exterior power determinant. Proved by mirroring `skOrthConjCLM_toMatrix_apply`
-(the Plücker minor matrix in `skBasis`). -/
+/-! ### Sub-lemma decomposition of `det_sandwichOnSkCLM`
+
+We prove the Sylvester-Franke identity at `k = 2`,
+`det (sandwichOnSkCLM B) = (det B)^{n-1}`, by the multiplicative
+generation of `Matrix` by diagonal matrices and transvections
+(`Matrix.diagonal_transvection_induction`):
+
+* `det_one_add_of_isNilpotent` — a unipotent endomorphism has determinant `1`.
+* `prod_nnIndex_mul_pair_eq_prod_pow` — the combinatorial identity
+  `∏_{p<q} D_p D_q = (∏_i D_i)^{n-1}`.
+* `sandwichOnSkCLM_diagonal_skBasis` — diagonal congruence is diagonal on
+  `skBasis` with eigenvalue `D_{ij.1} · D_{ij.2}`.
+* `det_sandwichOnSkCLM_diagonal` — diagonal case.
+* `det_sandwichOnSkCLM_transvection` — transvection case (unipotent, det `1`).
+
+The multiplicative case uses the already-proven `sandwichOnSkCLM_mul`. -/
+
+/-- Determinant of `1 + Q` for a nilpotent endomorphism `Q` is `1`: the only
+eigenvalue of a unipotent map is `1`. Proof: `charpoly Q = X ^ d`
+(`IsNilpotent.charpoly_eq_X_pow_finrank`); the translation
+`charpoly_sub_smul` gives `X ^ d = charpoly (1 + Q) ∘ (X + C 1)`, so
+evaluating at `-1` yields `charpoly (1 + Q)).coeff 0 = (-1) ^ d`; with the
+sign in `det_eq_sign_charpoly_coeff` this is `(-1)^d · (-1)^d = 1`. -/
+private lemma det_one_add_of_isNilpotent {R M : Type*} [Field R] [AddCommGroup M]
+    [Module R M] [Module.Finite R M] {Q : Module.End R M} (hQ : IsNilpotent Q) :
+    LinearMap.det ((1 : Module.End R M) + Q) = 1 := by
+  sorry
+
+/-- Combinatorial product identity `∏_{p<q} D_p D_q = (∏_i D_i)^{n-1}`.
+Holds for every `D : Fin n → ℝ`, including ones with zero entries. -/
+private lemma prod_nnIndex_mul_pair_eq_prod_pow (D : Fin n → ℝ) :
+    (∏ ij : nnIndex n, D ij.1.1 * D ij.1.2) = (∏ i : Fin n, D i) ^ (n - 1) := by
+  sorry
+
+/-- The congruence by a diagonal matrix acts diagonally on `skBasis`, scaling
+the `ij`-th basis vector by `D_{ij.1} · D_{ij.2}`. -/
+private lemma sandwichOnSkCLM_diagonal_skBasis (D : Fin n → ℝ) (ij : nnIndex n) :
+    sandwichOnSkCLM (Matrix.diagonal D) (skBasis ij)
+      = (D ij.1.1 * D ij.1.2) • skBasis ij := by
+  sorry
+
+/-- Diagonal case of `det_sandwichOnSkCLM`: the operator is diagonal in
+`skBasis`, so its determinant is the product of eigenvalues, which equals
+`(det (diagonal D))^{n-1}` by `prod_nnIndex_mul_pair_eq_prod_pow`. -/
+private lemma det_sandwichOnSkCLM_diagonal (D : Fin n → ℝ) :
+    LinearMap.det (sandwichOnSkCLM (Matrix.diagonal D)).toLinearMap
+      = (Matrix.diagonal D).det ^ (n - 1) := by
+  sorry
+
+/-- Transvection case of `det_sandwichOnSkCLM`: the congruence by a
+transvection `1 + c·E_{ij}` (with `i ≠ j`) is unipotent on `Sk n` (the
+perturbation `Q` satisfies `Q ^ 3 = 0`), so its determinant is `1`. -/
+private lemma det_sandwichOnSkCLM_transvection (t : Matrix.TransvectionStruct (Fin n) ℝ) :
+    LinearMap.det (sandwichOnSkCLM t.toMatrix).toLinearMap = 1 := by
+  sorry
+
+/-- **A2.** Determinant of the congruence `δ ↦ Bᵀ δ B` on `Sk n` is
+`(det B)^{n-1}` (the Sylvester-Franke identity at `k = 2`, i.e.
+`det (Λ² B) = (det B)^{n-1}`). Proved by `diagonal_transvection_induction`:
+the diagonal case via diagonalization in `skBasis`, the transvection case via
+unipotence, and the multiplicative case via `sandwichOnSkCLM_mul`. -/
 theorem det_sandwichOnSkCLM (B : Matrix (Fin n) (Fin n) ℝ) :
     LinearMap.det (sandwichOnSkCLM B).toLinearMap = B.det ^ (n - 1) := by
-  sorry
+  induction B using Matrix.diagonal_transvection_induction with
+  | hdiag D _ => exact det_sandwichOnSkCLM_diagonal D
+  | htransvec t => rw [det_sandwichOnSkCLM_transvection t, t.det, one_pow]
+  | hmul B₁ B₂ hB₁ hB₂ =>
+      have hcomp : LinearMap.det (sandwichOnSkCLM (B₁ * B₂)).toLinearMap
+          = LinearMap.det (sandwichOnSkCLM B₁).toLinearMap
+              * LinearMap.det (sandwichOnSkCLM B₂).toLinearMap := by
+        rw [sandwichOnSkCLM_mul,
+          show ((sandwichOnSkCLM B₂).comp (sandwichOnSkCLM B₁)).toLinearMap
+              = (sandwichOnSkCLM B₂).toLinearMap ∘ₗ (sandwichOnSkCLM B₁).toLinearMap from rfl,
+          LinearMap.det_comp]
+        ring
+      rw [hcomp, hB₁, hB₂, Matrix.det_mul, mul_pow]
 
 /-! ### A3 target: the general-point closed-form Jacobian -/
 
