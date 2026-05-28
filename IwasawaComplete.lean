@@ -825,6 +825,128 @@ end EveryPointFDeriv
 #print axioms fderiv_iwasawaCharted_at_chart_center
 #print axioms absDetInIwasawaBases_fderiv_iwasawaCharted_at_chart_center
 
+/-! ## 11. General-point Jacobian (Track A)
+
+The chart-center theorem gives the Jacobian at `(0, log_diag a, U-1)`.
+This section targets the general point `(X, v, Z)`.
+
+Correction to the original plan: the raw Cayley derivative is the
+sandwich `δ ↦ -2 (1+X)⁻¹ δ (1+X)⁻¹` (from `cayley X = 2(1+X)⁻¹ - 1`),
+which is a `B δ B` sandwich and does NOT preserve `Sk n`. After
+left-translating by `cayley(X)⁻¹` (bringing the tangent vector at
+`cayley X ∈ K` back to `T₁K = Sk`), it becomes
+`δ ↦ -2 (1-X)⁻¹ δ (1+X)⁻¹ = -2 ((1+X)⁻¹)ᵀ δ (1+X)⁻¹`, a `Bᵀ δ B`
+sandwich with `B = (1+X)⁻¹`, which DOES preserve `Sk n`. Its
+determinant is `(det B)^{n-1}` (the `det Λ²B` formula).
+
+Post-composing the flat fderiv with `T = (M ↦ cayley(X)⁻¹ M u⁻¹)`
+(which has `|det| = 1`, `cayley X` orthogonal and `u` unipotent)
+factors it as
+
+  `T ∘ dF = iwasawaMatrixLeibnizCLM 1 a 1
+              ∘ (sandwichOnSk((1+X)⁻¹) × id × nnRightInvCLM u)`,
+
+giving the closed form
+
+  `|det dF(X,v,Z)| = 2^{n(n-1)/2} · |det a|^n · |det adNN a|
+                       · |det(1+X)|^{-(n-1)}`,
+
+with `a = diag(exp v)`, reducing to the chart center at `X = 0`. -/
+
+section GeneralPointJacobian
+
+attribute [local instance] Matrix.linftyOpSeminormedAddCommGroup
+attribute [local instance] Matrix.linftyOpNormedAddCommGroup
+attribute [local instance] Matrix.linftyOpNormedSpace
+attribute [local instance] Matrix.linftyOpNonUnitalSemiNormedRing
+attribute [local instance] Matrix.linftyOpSemiNormedRing
+attribute [local instance] Matrix.linftyOpNonUnitalNormedRing
+attribute [local instance] Matrix.linftyOpNormedRing
+attribute [local instance] Matrix.linftyOpNormedAlgebra
+
+variable {n : ℕ}
+
+/-! ### A1 target: the Cayley Fréchet derivative -/
+
+/-- **A1.** The Fréchet derivative CLM of `cayley` at a matrix `M` with
+`1 + M` invertible: `δ ↦ -2 • ((1+M)⁻¹ * δ * (1+M)⁻¹)`. -/
+noncomputable def cayleyFDerivCLM (M : Matrix (Fin n) (Fin n) ℝ) :
+    Matrix (Fin n) (Fin n) ℝ →L[ℝ] Matrix (Fin n) (Fin n) ℝ :=
+  (-2 : ℝ) • matrixLeftRightCLM (n := n) (1 + M)⁻¹ (1 + M)⁻¹
+
+@[simp] lemma cayleyFDerivCLM_apply (M δ : Matrix (Fin n) (Fin n) ℝ) :
+    cayleyFDerivCLM M δ = (-2 : ℝ) • ((1 + M)⁻¹ * δ * (1 + M)⁻¹) := by
+  sorry
+
+/-- **A1.** `cayley` has Fréchet derivative `cayleyFDerivCLM M` at any `M`
+with `1 + M` invertible. Sanity: at `M = 0` the CLM is `δ ↦ -2 δ`. -/
+theorem hasFDerivAt_cayley_matrix (M : Matrix (Fin n) (Fin n) ℝ)
+    (hM : IsUnit (1 + M).det) :
+    HasFDerivAt (cayley : Matrix (Fin n) (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ)
+      (cayleyFDerivCLM M) M := by
+  sorry
+
+/-! ### A2 target: the congruence sandwich on `Sk n` and its determinant -/
+
+/-- **A2.** The congruence map `δ ↦ Bᵀ δ B` on `Sk n`. Skew-preserving for
+any `B` (since `(Bᵀ δ B)ᵀ = Bᵀ δᵀ B = -Bᵀ δ B`). -/
+noncomputable def sandwichOnSkCLM (B : Matrix (Fin n) (Fin n) ℝ) :
+    Sk n →L[ℝ] Sk n :=
+  sorry
+
+@[simp] lemma sandwichOnSkCLM_apply_val (B : Matrix (Fin n) (Fin n) ℝ) (δ : Sk n) :
+    ((sandwichOnSkCLM B δ : Sk n) : Matrix (Fin n) (Fin n) ℝ) =
+      B.transpose * δ.1 * B := by
+  sorry
+
+/-- **A2 (FLAGGED RISK).** Determinant of the congruence `δ ↦ Bᵀ δ B` on
+`Sk n` is `(det B)^{n-1}`. This is `det (Λ² B) = (det B)^{n-1}`, the second
+exterior power determinant. Proved by mirroring `skOrthConjCLM_toMatrix_apply`
+(the Plücker minor matrix in `skBasis`). -/
+theorem det_sandwichOnSkCLM (B : Matrix (Fin n) (Fin n) ℝ) :
+    LinearMap.det (sandwichOnSkCLM B).toLinearMap = B.det ^ (n - 1) := by
+  sorry
+
+/-! ### A3 target: the general-point closed-form Jacobian -/
+
+/-- `expDiagA v` packages `diag (exp ∘ v)` as a positive-diagonal `A n`. -/
+noncomputable def expDiagA (v : Fin n → ℝ) : A n :=
+  (A.toFinNRHomeomorph (n := n)).symm v
+
+/-- **A3.** The flat fderiv of `iwasawaCharted` at a general point
+factors through the chart-center matrix-Leibniz CLM, the Cayley
+congruence on the K-direction, and the unipotent right-inverse on the
+U-direction. Mirrors `iwasawaMatrixLeibnizCLM_factored_eq_comp_one_a_one`. -/
+theorem detInIwasawaBases_fderiv_iwasawaCharted_general
+    (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    detInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z)) =
+      ((2 : ℝ) ^ Fintype.card (nnIndex n) *
+          (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap) *
+        ((1 + X.1).det)⁻¹ ^ (n - 1) := by
+  sorry
+
+/-- **A3.** Closed-form absolute Jacobian at a general point. Reduces to the
+chart-center theorem at `X = 0`, where `((1+0).det)⁻¹ ^ (n-1) = 1`. -/
+theorem absDetInIwasawaBases_fderiv_iwasawaCharted_general
+    (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
+    absDetInIwasawaBases (fderiv ℝ (iwasawaCharted (n := n)) (X, v, Z)) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        |(expDiagA v).1.det| ^ n * |LinearMap.det (adNN (expDiagA v)).toLinearMap| *
+        (|(1 + X.1).det|⁻¹) ^ (n - 1) := by
+  sorry
+
+/-- **A3 consistency check.** At `X = 0`, the general formula reduces to the
+chart-center Jacobian `2^{n(n-1)/2} · det a^n · det adNN a`. -/
+theorem detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero (v : Fin n → ℝ) :
+    detInIwasawaBases
+        (fderiv ℝ (iwasawaCharted (n := n))
+          ((0 : Sk n), v, (0 : NN n))) =
+      (2 : ℝ) ^ Fintype.card (nnIndex n) *
+        (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap := by
+  sorry
+
+end GeneralPointJacobian
+
 end Complete
 
 end IwasawaCoC
