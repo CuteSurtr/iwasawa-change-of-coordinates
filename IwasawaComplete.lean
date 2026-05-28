@@ -1244,7 +1244,20 @@ theorem detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero (v : Fin n → �
           ((0 : Sk n), v, (0 : NN n))) =
       (2 : ℝ) ^ Fintype.card (nnIndex n) *
         (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap := by
-  sorry
+  -- The point `(0, v, 0)` is the chart center for `a = expDiagA v`:
+  -- `v = log_diag (expDiagA v)` and `0 = UU.toNNHomeomorph 1`.
+  have hv : (fun i => Real.log ((expDiagA v).1 i i)) = v := by
+    show (A.toFinNRHomeomorph (n := n)) (expDiagA v) = v
+    exact (A.toFinNRHomeomorph (n := n)).apply_symm_apply v
+  have hU : (UU.toNNHomeomorph (⟨1, IsUpperUnipotent.one⟩ : UU n)) = (0 : NN n) := by
+    apply Subtype.ext
+    show (1 : Matrix (Fin n) (Fin n) ℝ) - 1 = ((0 : NN n) : Matrix (Fin n) (Fin n) ℝ)
+    rw [Submodule.coe_zero, sub_self]
+  rw [show ((0 : Sk n), v, (0 : NN n))
+      = ((0 : Sk n), (fun i => Real.log ((expDiagA v).1 i i)),
+          UU.toNNHomeomorph (⟨1, IsUpperUnipotent.one⟩ : UU n)) from by rw [hv, hU]]
+  rw [fderiv_iwasawaCharted_at_chart_center (expDiagA v)]
+  exact detInIwasawaBases_one_a_one_eq_scaled_det_pow_mul_det_adNN (expDiagA v)
 
 end GeneralPointJacobian
 
