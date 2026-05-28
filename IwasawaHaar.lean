@@ -117,11 +117,45 @@ instance instIsMulLeftInvariantHaarAExplicit :
     exact toFinNRHomeomorph_symm_mul D₀ v
   rw [hfun, ← Measure.map_map hSymm hT, map_add_left_eq_self]
 
+/-! ### Toward the U conjugation crux
+
+The Haar uniqueness route to the Iwasawa integration formula funnels through
+the fact that conjugation `u ↦ a⁻¹ u a` on `UU n` scales the U Haar measure by
+a power of `δ(a)`. In exponential (Lie algebra) coordinates the left
+translation that pins the U Haar has linear part `1 + N` with `N` nilpotent,
+and conjugation is the diagonal map `adNN`. The determinant fact below is the
+linear algebra core of that gate: a unipotent endomorphism has determinant one.
+See `HaarUniquenessPlan.md` (lemma C4) for the full dependency chain. -/
+
+/-- A unipotent endomorphism (identity plus a nilpotent) has determinant `1`.
+This is the determinant input to the left translation Jacobian for the U Haar
+measure in the Haar uniqueness route. -/
+lemma det_one_add_of_isNilpotent {R M : Type*} [Field R] [AddCommGroup M]
+    [Module R M] [Module.Finite R M] {Q : Module.End R M} (hQ : IsNilpotent Q) :
+    LinearMap.det ((1 : Module.End R M) + Q) = 1 := by
+  have hQpoly : Q.charpoly = (Polynomial.X : Polynomial R) ^ Module.finrank R M :=
+    hQ.charpoly_eq_X_pow_finrank
+  have hkey : (Polynomial.X : Polynomial R) ^ Module.finrank R M
+      = (1 + Q).charpoly.comp (Polynomial.X + Polynomial.C 1) := by
+    have h := LinearMap.charpoly_sub_smul (1 + Q) (1 : R)
+    rw [one_smul, add_sub_cancel_left, hQpoly] at h
+    exact h
+  have heval : (1 + Q).charpoly.coeff 0 = (-1 : R) ^ Module.finrank R M := by
+    rw [Polynomial.coeff_zero_eq_eval_zero]
+    have h2 := congrArg (Polynomial.eval (-1 : R)) hkey
+    simp only [Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_comp,
+               Polynomial.eval_add, Polynomial.eval_C] at h2
+    rw [neg_add_cancel] at h2
+    exact h2.symm
+  rw [LinearMap.det_eq_sign_charpoly_coeff, heval, ← mul_pow]
+  norm_num
+
 #print axioms haarKAU
 #print axioms instIsHaarMeasureHaarKAU
 #print axioms toFinNRHomeomorph_mul
 #print axioms haarAExplicit
 #print axioms instIsMulLeftInvariantHaarAExplicit
+#print axioms det_one_add_of_isNilpotent
 
 end Complete
 end IwasawaCoC
