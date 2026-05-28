@@ -1274,8 +1274,9 @@ theorem detInIwasawaBases_fderiv_iwasawaCharted_general_at_zero (v : Fin n → �
 `det (sandwichOnSkCLM (c • 1)) = (det (c • 1))^{n-1} = (c^3)^2 = c^6 = c^{n(n-1)}`. -/
 example (c : ℝ) :
     LinearMap.det (sandwichOnSkCLM ((c • 1 : Matrix (Fin 3) (Fin 3) ℝ))).toLinearMap = c ^ 6 := by
-  rw [det_sandwichOnSkCLM, Matrix.det_smul, Matrix.det_one, mul_one, Fintype.card_fin]
-  norm_num
+  rw [det_sandwichOnSkCLM, Matrix.det_smul, Matrix.det_one, mul_one, Fintype.card_fin,
+      show (3 : ℕ) - 1 = 2 from rfl]
+  ring
 
 /-- **Sanity check (edge `n = 0`).** `Sk 0` is the zero space, so both sides are `1`
 (`B.det ^ (0 - 1) = B.det ^ 0 = 1`). -/
