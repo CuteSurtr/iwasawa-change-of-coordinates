@@ -954,16 +954,57 @@ theorem hasFDerivAt_cayley_matrix (M : Matrix (Fin n) (Fin n) ℝ)
 
 /-! ### A2 target: the congruence sandwich on `Sk n` and its determinant -/
 
-/-- **A2.** The congruence map `δ ↦ Bᵀ δ B` on `Sk n`. Skew-preserving for
-any `B` (since `(Bᵀ δ B)ᵀ = Bᵀ δᵀ B = -Bᵀ δ B`). -/
+/-- **A2.** The congruence map `δ ↦ Bᵀ δ B` on `Sk n`, as a linear map.
+Skew-preserving for any `B` since `(Bᵀ δ B)ᵀ = Bᵀ δᵀ B = -Bᵀ δ B`. -/
+noncomputable def sandwichOnSkLinearMap (B : Matrix (Fin n) (Fin n) ℝ) :
+    Sk n →ₗ[ℝ] Sk n where
+  toFun δ := ⟨B.transpose * δ.1 * B, by
+    change (B.transpose * δ.1 * B).transpose = -(B.transpose * δ.1 * B)
+    calc
+      (B.transpose * δ.1 * B).transpose
+          = B.transpose * δ.1.transpose * B := by
+            rw [Matrix.transpose_mul, Matrix.transpose_mul, Matrix.transpose_transpose]
+            simp [Matrix.mul_assoc]
+      _ = B.transpose * (-δ.1) * B := by rw [δ.2]
+      _ = -(B.transpose * δ.1 * B) := by simp [Matrix.mul_assoc]⟩
+  map_add' δ ε := by
+    apply Subtype.ext
+    simp [Matrix.mul_add, Matrix.add_mul, Matrix.mul_assoc]
+  map_smul' c δ := by
+    apply Subtype.ext
+    simp [Matrix.mul_assoc]
+
+/-- **A2.** The congruence `δ ↦ Bᵀ δ B` on `Sk n` as a continuous linear map. -/
 noncomputable def sandwichOnSkCLM (B : Matrix (Fin n) (Fin n) ℝ) :
     Sk n →L[ℝ] Sk n :=
-  sorry
+  LinearMap.toContinuousLinearMap (sandwichOnSkLinearMap (n := n) B)
 
 @[simp] lemma sandwichOnSkCLM_apply_val (B : Matrix (Fin n) (Fin n) ℝ) (δ : Sk n) :
     ((sandwichOnSkCLM B δ : Sk n) : Matrix (Fin n) (Fin n) ℝ) =
-      B.transpose * δ.1 * B := by
-  sorry
+      B.transpose * δ.1 * B := rfl
+
+/-- Congruence by `1` is the identity. -/
+@[simp] lemma sandwichOnSkCLM_one :
+    sandwichOnSkCLM (1 : Matrix (Fin n) (Fin n) ℝ) = ContinuousLinearMap.id ℝ (Sk n) := by
+  apply ContinuousLinearMap.ext
+  intro δ
+  apply Subtype.ext
+  rw [sandwichOnSkCLM_apply_val]
+  simp
+
+/-- **Multiplicativity (order-reversed).** Congruence by a product factors
+as the composition of congruences:
+`sandwichOnSkCLM (B₁ * B₂) = sandwichOnSkCLM B₂ ∘ sandwichOnSkCLM B₁`. -/
+lemma sandwichOnSkCLM_mul (B₁ B₂ : Matrix (Fin n) (Fin n) ℝ) :
+    sandwichOnSkCLM (B₁ * B₂) =
+      (sandwichOnSkCLM B₂).comp (sandwichOnSkCLM B₁) := by
+  apply ContinuousLinearMap.ext
+  intro δ
+  apply Subtype.ext
+  rw [sandwichOnSkCLM_apply_val, ContinuousLinearMap.comp_apply,
+      sandwichOnSkCLM_apply_val, sandwichOnSkCLM_apply_val,
+      Matrix.transpose_mul]
+  simp [Matrix.mul_assoc]
 
 /-- **A2 (FLAGGED RISK).** Determinant of the congruence `δ ↦ Bᵀ δ B` on
 `Sk n` is `(det B)^{n-1}`. This is `det (Λ² B) = (det B)^{n-1}`, the second
