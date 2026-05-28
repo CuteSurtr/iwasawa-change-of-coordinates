@@ -26,6 +26,9 @@ quarantined axiom never enters scope.
 
 import iwasawa_change_of_coords.IwasawaJacobianExplicit
 import Mathlib.MeasureTheory.Measure.Haar.Basic
+import Mathlib.LinearAlgebra.Charpoly.Basic
+import Mathlib.LinearAlgebra.Charpoly.BaseChange
+import Mathlib.LinearAlgebra.Eigenspace.Zero
 
 namespace IwasawaCoC
 
@@ -1032,7 +1035,24 @@ sign in `det_eq_sign_charpoly_coeff` this is `(-1)^d · (-1)^d = 1`. -/
 private lemma det_one_add_of_isNilpotent {R M : Type*} [Field R] [AddCommGroup M]
     [Module R M] [Module.Finite R M] {Q : Module.End R M} (hQ : IsNilpotent Q) :
     LinearMap.det ((1 : Module.End R M) + Q) = 1 := by
-  sorry
+  have hQpoly : Q.charpoly = (Polynomial.X : Polynomial R) ^ Module.finrank R M :=
+    hQ.charpoly_eq_X_pow_finrank
+  -- `charpoly_sub_smul` with `f = 1 + Q`, `μ = 1`: `(1+Q-1).charpoly = (1+Q).charpoly ∘ (X+1)`.
+  have hkey : (Polynomial.X : Polynomial R) ^ Module.finrank R M
+      = (1 + Q).charpoly.comp (Polynomial.X + Polynomial.C 1) := by
+    have h := LinearMap.charpoly_sub_smul (1 + Q) (1 : R)
+    rw [one_smul, add_sub_cancel_left, hQpoly] at h
+    exact h
+  -- Evaluate at `-1`: `coeff 0` of `charpoly (1+Q)` equals `(-1)^d`.
+  have heval : (1 + Q).charpoly.coeff 0 = (-1 : R) ^ Module.finrank R M := by
+    rw [Polynomial.coeff_zero_eq_eval_zero]
+    have h2 := congrArg (Polynomial.eval (-1 : R)) hkey
+    simp only [Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_comp,
+               Polynomial.eval_add, Polynomial.eval_C] at h2
+    rw [neg_add_cancel] at h2
+    exact h2.symm
+  rw [LinearMap.det_eq_sign_charpoly_coeff, heval, ← mul_pow]
+  norm_num
 
 /-- Combinatorial product identity `∏_{p<q} D_p D_q = (∏_i D_i)^{n-1}`.
 Holds for every `D : Fin n → ℝ`, including ones with zero entries. -/
@@ -1060,7 +1080,46 @@ transvection `1 + c·E_{ij}` (with `i ≠ j`) is unipotent on `Sk n` (the
 perturbation `Q` satisfies `Q ^ 3 = 0`), so its determinant is `1`. -/
 private lemma det_sandwichOnSkCLM_transvection (t : Matrix.TransvectionStruct (Fin n) ℝ) :
     LinearMap.det (sandwichOnSkCLM t.toMatrix).toLinearMap = 1 := by
-  sorry
+  obtain ⟨i, j, hij, c⟩ := t
+  simp only [Matrix.TransvectionStruct.toMatrix_mk, Matrix.transvection]
+  -- goal: det (sandwichOnSkCLM (1 + single i j c)).toLinearMap = 1
+  set N : Matrix (Fin n) (Fin n) ℝ := Matrix.single i j c with hNdef
+  have hN : N * N = 0 := by
+    rw [hNdef]; exact Matrix.single_mul_single_of_ne c i j i hij.symm c
+  have hNT : Nᵀ * Nᵀ = 0 := by rw [← Matrix.transpose_mul, hN, Matrix.transpose_zero]
+  have z1 : ∀ X : Matrix (Fin n) (Fin n) ℝ, Nᵀ * (Nᵀ * X) = 0 := fun X => by
+    rw [← Matrix.mul_assoc, hNT, Matrix.zero_mul]
+  have z2 : ∀ X : Matrix (Fin n) (Fin n) ℝ, N * (N * X) = 0 := fun X => by
+    rw [← Matrix.mul_assoc, hN, Matrix.zero_mul]
+  set Q : Module.End ℝ (Sk n) := (sandwichOnSkCLM (1 + N)).toLinearMap - 1 with hQdef
+  -- value of `Q` on the underlying matrix is `Nᵀ δ + δ N + Nᵀ δ N`
+  have hQ_apply : ∀ δ : Sk n,
+      ((Q δ : Sk n) : Matrix (Fin n) (Fin n) ℝ)
+        = Nᵀ * δ.1 + δ.1 * N + Nᵀ * δ.1 * N := by
+    intro δ
+    have hval : (Q δ : Sk n) = sandwichOnSkCLM (1 + N) δ - δ := by
+      rw [hQdef]
+      simp only [LinearMap.sub_apply, Module.End.one_apply, ContinuousLinearMap.coe_coe]
+    rw [hval, Submodule.coe_sub, sandwichOnSkCLM_apply_val, Matrix.transpose_add,
+        Matrix.transpose_one]
+    noncomm_ring
+  -- `Q` is nilpotent: `Q ^ 3 = 0`
+  have hQ3 : Q ^ 3 = 0 := by
+    apply LinearMap.ext
+    intro δ
+    have e3 : (Q ^ 3) δ = Q (Q (Q δ)) := by
+      simp only [pow_succ, pow_zero, one_mul, Module.End.mul_apply]
+    rw [e3, LinearMap.zero_apply]
+    apply Subtype.ext
+    show ((Q (Q (Q δ)) : Sk n) : Matrix (Fin n) (Fin n) ℝ)
+        = ((0 : Sk n) : Matrix (Fin n) (Fin n) ℝ)
+    rw [hQ_apply, hQ_apply, hQ_apply, Submodule.coe_zero]
+    simp only [Matrix.mul_add, Matrix.add_mul, Matrix.mul_assoc, hN, hNT, z1, z2,
+               Matrix.mul_zero, Matrix.zero_mul, add_zero, zero_add]
+  have hnil : IsNilpotent Q := ⟨3, hQ3⟩
+  have hrw : (sandwichOnSkCLM (1 + N)).toLinearMap = 1 + Q := by rw [hQdef]; abel
+  rw [hrw]
+  exact det_one_add_of_isNilpotent hnil
 
 /-- **A2.** Determinant of the congruence `δ ↦ Bᵀ δ B` on `Sk n` is
 `(det B)^{n-1}` (the Sylvester-Franke identity at `k = 2`, i.e.
