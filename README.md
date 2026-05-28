@@ -48,7 +48,7 @@ flowchart LR
 | Build status | `lake build` succeeds |
 | Active Lean `sorry` declarations in `iwasawa_change_of_coords/` | 0 |
 | Core algebraic, topological, smooth, and Jacobian axioms | `propext`, `Classical.choice`, `Quot.sound` only |
-| Quarantined future axiom | 1 explicit Haar / change-of-variables bridge axiom in `IwasawaBridge.lean` |
+| User axioms beyond the standard three | 0 (the former Haar placeholder axiom was redundant and has been removed) |
 
 The following layers are closed, with no `sorry`, and each prints only the
 standard Lean and Mathlib axioms `[propext, Classical.choice, Quot.sound]`:
@@ -67,14 +67,16 @@ standard Lean and Mathlib axioms `[propext, Classical.choice, Quot.sound]`:
   $`\det\bigl(\Lambda^2 B\bigr) = (\det B)^{\,n-1}`$ (`det_sandwichOnSkCLM`).
 
 A single consolidated file, `IwasawaComplete.lean`, restates every main result
-with a clean signature and prints its axiom dependencies. The repository should
-not be described as axiom-free without qualification: `IwasawaBridge.lean`
-still contains one explicit future-facing axiom for the Haar measure
-pushforward, which is the only step not yet reduced to the standard three
-axioms.
+with a clean signature and prints its axiom dependencies. Every result in
+`iwasawa_change_of_coords/`, including `IwasawaBridge.lean`, reduces to the
+standard three axioms; there is no user declared axiom anywhere in the
+subtree. The genuine Haar measure pushforward identity, a downstream
+consequence used for the integration formula, is the one piece that is not
+yet formalized; it remains future work and is not backed by any placeholder
+axiom (see [Remaining Work](#remaining-work)).
 
 Layered status (green is proved with the standard three axioms; yellow is
-the single quarantined axiom):
+the one layer that is future work, not yet formalized):
 
 ```mermaid
 flowchart TD
@@ -85,8 +87,8 @@ flowchart TD
         S4["Differential: mfderiv at identity and general point"]
         S5["Jacobian: closed form determinant and absolute value, delta(a) = prod a_i/a_j"]
     end
-    subgraph AX["Quarantined future axiom (the only one)"]
-        H["Haar pushforward / change of variables<br/>iwasawa_haar_pushforward_bridge"]
+    subgraph AX["Future work (not formalized, no axiom)"]
+        H["Haar pushforward / change of variables<br/>integration formula, future work"]
     end
     S1 --> S2 --> S3 --> S4 --> S5 --> H
     classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
@@ -111,8 +113,9 @@ charts, and `iwasawaCharted` is the corresponding single-chart flat map
 
 The one remaining layer is the Haar measure pushforward itself: turning the
 pointwise Jacobian determinant into a measure-theoretic change-of-variables
-identity for product Haar measures. This is recorded as a single quarantined
-axiom in `IwasawaBridge.lean` and is the subject of [Remaining Work](#remaining-work).
+identity for product Haar measures. This is future work, described in
+[Remaining Work](#remaining-work); it is not formalized and is not backed by
+any axiom.
 The positive-root product
 
 ```math
@@ -242,8 +245,8 @@ and it is now a *factor* of the fully formalized pointwise Jacobian
 determinant of the charted Iwasawa map
 (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). What is not yet
 formalized is the last step, integrating this density against Haar measure to
-obtain the displayed integration formula; that step is the single quarantined
-axiom in `IwasawaBridge.lean`.
+obtain the displayed integration formula; that step is future work and is
+not formalized (and is not backed by any axiom).
 
 ### Why a *differential* isomorphism (not just a bijection)
 
@@ -759,13 +762,12 @@ gives the explicit formulas above.
 All entries below except the final Haar row (milestone 7) are proved with
 no `sorry`, and the diagnostic files print their axiom dependencies as
 `[propext, Classical.choice, Quot.sound]`. Milestone 7, the Haar measure
-pushforward, is the single exception: it is currently a quarantined
-future-facing axiom in `IwasawaBridge.lean` (see
-[Remaining Work](#remaining-work)).
+pushforward, is the single exception: it is future work, not yet formalized,
+and is no longer backed by any axiom (see [Remaining Work](#remaining-work)).
 
 How the milestones build up to the diffeomorphism, the derivative, and the
-Jacobian, ending at the single remaining Haar axiom (green is proved axiom
-clean, yellow is the quarantined axiom):
+Jacobian, ending at the single remaining Haar layer (green is proved axiom
+clean, yellow is future work, not yet formalized):
 
 ```mermaid
 flowchart TD
@@ -780,7 +782,7 @@ flowchart TD
     M6d["M6. mfderiv at general point (mfderiv_iwasawaMap_at_factored)"]
     M6p["M6. Positive root product (adNN_det_eq_pair_product)"]
     M6j["M6. Jacobian determinant, signed and absolute"]
-    M7["M7. Haar pushforward (quarantined axiom)"]
+    M7["M7. Haar pushforward (future work, not formalized)"]
 
     M1 --> M2
     M1b --> M2
@@ -798,9 +800,9 @@ flowchart TD
     M6j --> M7
 
     classDef proved fill:#e6ffed,stroke:#2da44e,color:#111;
-    classDef axiom fill:#fff8c5,stroke:#bf8700,color:#111;
+    classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
     class M1,M1b,M2,M3g,M3k,DIFF,M4,M5,M6d,M6p,M6j proved;
-    class M7 axiom;
+    class M7 future;
 ```
 
 | # | Goal | Status | Jorgenson and Lang reference |
@@ -838,7 +840,7 @@ flowchart TD
 | 6   | `adNN_det_eq_pair_product`: $`\det(\mathrm{ad}_{\mathfrak{n}}\, a) = \prod_{i \lt j} a_i / a_j`$ | Proved   | §I.2, Eq. (3)           |
 | 6   | `detInIwasawaBases_fderiv_iwasawaCharted_general` (signed Jacobian determinant)  | Proved   | §I.2 Jacobian           |
 | 6   | `absDetInIwasawaBases_fderiv_iwasawaCharted_general` (absolute Jacobian determinant) | Proved | §I.2 Jacobian           |
-| 7   | Haar measure pushforward / change-of-variables identity                          | Quarantined axiom | §I.2, Prop. 2.1-2.4 |
+| 7   | Haar measure pushforward / change-of-variables identity                          | Future work (not formalized, no axiom) | §I.2, Prop. 2.1-2.4 |
 
 ## Theorem statements
 
@@ -998,7 +1000,7 @@ iwasawa_change_of_coords/
 ├── IwasawaJacobianExplicit.lean explicit Jacobian: adNN determinant, transport CLMs
 ├── IwasawaComplete.lean         consolidated axiom-clean restatement,
 │                                Sylvester-Franke identity, general-point Jacobian
-├── IwasawaBridge.lean           quarantined future Haar / change-of-variables bridge
+├── IwasawaBridge.lean           Haar bridge: positive root product, future work notes (no axiom)
 └── AxiomCheck*.lean             diagnostic files for axiom dependencies
 ```
 
@@ -1016,7 +1018,7 @@ flowchart TD
     JE["IwasawaJacobianExplicit<br/>adNN determinant, transport CLMs"]
     JA["IwasawaJacobianAbstract<br/>Jacobian scaffolding"]
     CMP["IwasawaComplete<br/>consolidated axiom clean restatement"]
-    BR["IwasawaBridge<br/>quarantined Haar axiom"]
+    BR["IwasawaBridge<br/>Haar bridge notes (no axiom)"]
 
     COC --> SK
     COC --> LIE
@@ -1065,7 +1067,8 @@ IwasawaCoC.Complete.absDetInIwasawaBases_fderiv_iwasawaCharted_general
 
 each of which reports only `[propext, Classical.choice, Quot.sound]`. The
 core namespace is `IwasawaCoC`, and the consolidated restatements live in
-`IwasawaCoC.Complete`. `IwasawaComplete.lean` also contains compile-time
+`IwasawaCoC.Complete`. `IwasawaBridge.lean` likewise ends with a `#print
+axioms` block confirming that it too is now axiom free. `IwasawaComplete.lean` also contains compile-time
 sanity checks: the scalar value $`\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}`$
 at $`n = 3`$, the edge cases $`n = 0`$ and $`n = 1`$, and the consistency of the
 general Jacobian at $`X = 0`$ with the chart-center value.
@@ -1302,8 +1305,8 @@ The single remaining mathematical layer is the Haar measure pushforward:
    Haar measure under the Iwasawa map.
 3. Identify the resulting density with the Iwasawa character $`\delta(a)^{-1}`$
    and the global constant, recovering the integration formula below.
-4. Replace the quarantined axiom in `IwasawaBridge.lean` with this
-   measure-theoretic statement.
+4. State and prove this measure-theoretic identity in `IwasawaBridge.lean`;
+   there is no longer any placeholder axiom to replace.
 
 The target integration formula is
 
@@ -1311,10 +1314,11 @@ The target integration formula is
 \int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.
 ```
 
-`IwasawaBridge.lean` is intentionally not part of the axiom-clean core yet.
-It records the intended future Haar / change-of-variables endpoint and
-currently contains one explicit axiom; every other result in the project is
-reduced to `[propext, Classical.choice, Quot.sound]`.
+`IwasawaBridge.lean` records the intended future Haar / change-of-variables
+endpoint. The whole project, including this file, is now reduced to
+`[propext, Classical.choice, Quot.sound]`: the former placeholder axiom was
+redundant and has been removed. The genuine measure-theoretic identity above
+is not yet formalized; it remains future work.
 
 ## References
 

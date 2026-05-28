@@ -5,6 +5,15 @@ the verified state of the project, surveys the Mathlib measure theory API by
 name and current signature, isolates the genuine remaining gap, and gives a
 dependency ordered lemma list. No Haar proof is started here.
 
+**Status update (2026-05-28).** The placeholder axiom
+`iwasawa_haar_pushforward_bridge` was found to be logically redundant: its
+statement was only the weak existential in Section 2, which is already proved
+without any axiom (`c_n = 1`). It has therefore been removed, and the whole
+`iwasawa_change_of_coords/` subtree is now genuinely axiom clean, confirmed by
+a fresh `#print axioms`. The genuine measure theoretic identity in Section 2
+is still NOT formalized; the lemma list L0 to L9 below remains future work,
+with none of L1 to L9 implemented.
+
 All declaration names below were verified against the current source, and
 their axiom footprints were checked with `#print axioms` (fresh elaboration,
 not a cache replay) on 2026-05-28. Mathlib signatures were read from the
@@ -44,9 +53,9 @@ So the geometric and algebraic Jacobian content is complete. The factor
 `|det a|^n`, the character `δ(a)`, and the Cayley correction
 `(|det(1+X)|^{-1})^{n-1}` are all explicit.
 
-## 2. The current axiom and the real target
+## 2. The former axiom and the real target
 
-`IwasawaBridge.lean:82` declares
+`IwasawaBridge.lean` previously declared
 
 ```
 axiom iwasawa_haar_pushforward_bridge :
@@ -54,14 +63,15 @@ axiom iwasawa_haar_pushforward_bridge :
       ∀ (a : A n), c_n * |LinearMap.det (adNN a).toLinearMap| > 0
 ```
 
-This weak existential is the only user axiom in the project. It is consumed
-only by `iwasawa_pushforward_weighted_haar_exists` (`IwasawaBridge.lean:138`).
-Note that the existential as written is trivially true (`c_n = 1`, every
-factor `a_i/a_j` is positive); `IwasawaComplete.lean:509,520`
-(`iwasawaHaarBridge`, `iwasawaPushforwardWeightedHaarExists`) already reprove
-it with no axiom. So the axiom carries no real mathematical content as
-stated; the point of this plan is to replace it with the genuine measure
-theoretic identity it stands in for, namely
+This weak existential was the only user axiom in the project, consumed only by
+`iwasawa_pushforward_weighted_haar_exists`. The existential is trivially true
+(`c_n = 1`, every factor `a_i/a_j` is positive), and the identical statement
+was already proved without any axiom in `IwasawaComplete.lean`
+(`iwasawaHaarBridge`, `iwasawaPushforwardWeightedHaarExists`). The axiom
+therefore carried no mathematical content beyond positivity, so it has been
+removed and the consumer is now proved directly. The real goal that this plan
+still targets is the genuine measure theoretic identity it once stood in for,
+namely
 
 ```math
 \int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk
