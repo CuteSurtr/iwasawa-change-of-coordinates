@@ -1169,6 +1169,77 @@ instance instCompactSpaceK : CompactSpace (K n) := by
     hbox.of_isClosed_subset isClosed_isOrthogonal hsub
   exact isCompact_iff_compactSpace.mp hcompact
 
+/-! ### B2. `G n = { g // g.det ≠ 0 }` (general linear group) -/
+
+/-- `det ≠ 0` is closed under natural-number powers. -/
+private lemma det_ne_zero_pow {g : Matrix (Fin n) (Fin n) ℝ} (hg : g.det ≠ 0) :
+    ∀ m : ℕ, (g ^ m).det ≠ 0
+  | 0 => by simp
+  | (m + 1) => by rw [pow_succ, Matrix.det_mul]; exact mul_ne_zero (det_ne_zero_pow hg m) hg
+
+noncomputable instance : Mul (G n) :=
+  ⟨fun g h => ⟨g.1 * h.1, by rw [Matrix.det_mul]; exact mul_ne_zero g.2 h.2⟩⟩
+instance : One (G n) := ⟨⟨1, by simp⟩⟩
+noncomputable instance : Inv (G n) :=
+  ⟨fun g => ⟨g.1⁻¹, by
+    have h := Matrix.det_nonsing_inv_mul_det (A := g.1) (isUnit_iff_ne_zero.mpr g.2)
+    exact left_ne_zero_of_mul_eq_one h⟩⟩
+noncomputable instance : Pow (G n) ℕ :=
+  ⟨fun g m => ⟨g.1 ^ m, det_ne_zero_pow g.2 m⟩⟩
+
+@[simp] lemma G_coe_mul (g h : G n) :
+    ((g * h : G n) : Matrix (Fin n) (Fin n) ℝ) = g.1 * h.1 := rfl
+@[simp] lemma G_coe_one :
+    ((1 : G n) : Matrix (Fin n) (Fin n) ℝ) = 1 := rfl
+@[simp] lemma G_coe_inv (g : G n) :
+    ((g⁻¹ : G n) : Matrix (Fin n) (Fin n) ℝ) = g.1⁻¹ := rfl
+@[simp] lemma G_coe_pow (g : G n) (m : ℕ) :
+    ((g ^ m : G n) : Matrix (Fin n) (Fin n) ℝ) = g.1 ^ m := rfl
+
+noncomputable instance instMonoidG : Monoid (G n) :=
+  Function.Injective.monoid (Subtype.val) Subtype.coe_injective G_coe_one G_coe_mul G_coe_pow
+
+/-- **B2.** `G n = GL_n(ℝ)` is a group. Inverse is the nonsingular inverse. -/
+noncomputable instance instGroupG : Group (G n) :=
+  { instMonoidG with
+    inv := Inv.inv
+    inv_mul_cancel := fun g => by
+      apply Subtype.ext
+      show g.1⁻¹ * g.1 = 1
+      exact Matrix.nonsing_inv_mul g.1 (isUnit_iff_ne_zero.mpr g.2) }
+
+/-- **B2.** `G n` is a topological group: matrix multiplication is
+continuous, and inversion is continuous on the nonsingular locus
+(`continuousAt_matrix_inv` + `NormedRing.inverse_continuousAt`). -/
+instance instIsTopologicalGroupG : IsTopologicalGroup (G n) where
+  continuous_mul := by
+    refine continuous_induced_rng.mpr ?_
+    exact (continuous_induced_dom.comp continuous_fst).matrix_mul
+      (continuous_induced_dom.comp continuous_snd)
+  continuous_inv := by
+    refine continuous_induced_rng.mpr ?_
+    rw [continuous_iff_continuousAt]
+    intro g
+    have hUnit : IsUnit (g.1.det) := isUnit_iff_ne_zero.mpr g.2
+    have hRingInv : ContinuousAt Ring.inverse (g.1.det) :=
+      NormedRing.inverse_continuousAt hUnit.unit
+    have hMatInv : ContinuousAt Inv.inv g.1 := continuousAt_matrix_inv g.1 hRingInv
+    exact hMatInv.comp continuous_induced_dom.continuousAt
+
+/-- **B2.** `G n` is Hausdorff. -/
+instance instT2SpaceG : T2Space (G n) := inferInstance
+
+/-- `Matrix (Fin n) (Fin n) ℝ` is locally compact: it is defeq to the
+finite product `Fin n → Fin n → ℝ` of copies of the locally compact `ℝ`. -/
+instance instLocallyCompactSpaceMatrix :
+    LocallyCompactSpace (Matrix (Fin n) (Fin n) ℝ) :=
+  inferInstanceAs (LocallyCompactSpace (Fin n → Fin n → ℝ))
+
+/-- **B2.** `G n` is locally compact: it is open in the finite-dimensional
+(hence locally compact) `Matrix` space, via `G_isOpenEmbedding`. -/
+instance instLocallyCompactSpaceG : LocallyCompactSpace (G n) :=
+  G_isOpenEmbedding.locallyCompactSpace
+
 end TrackBInstances
 
 end Complete
