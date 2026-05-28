@@ -1241,6 +1241,29 @@ private lemma det_cayley_skew (X : Sk n) : (cayley X.1).det = 1 := by
     exact hdet_eq
   exact mul_right_cancel₀ hUnit.ne_zero (by rw [key, one_mul])
 
+/-- The Cayley congruence identity: `cayley X · ((1+X)⁻¹)ᵀ = (1+X)⁻¹`.
+Since `1 - X` and `1 + X` commute (both equal `1 - X²`), their inverses commute,
+turning the raw left-translation into the `Bᵀ δ B` congruence on `Sk`. -/
+private lemma cayley_mul_oneAddInv_transpose (X : Sk n) :
+    cayley X.1 * ((1 + X.1)⁻¹)ᵀ = (1 + X.1)⁻¹ := by
+  have hUnit : IsUnit (1 + X.1).det := one_add_skew_isUnit X
+  have hsub : (1 - X.1 : Matrix (Fin n) (Fin n) ℝ) = (1 + X.1)ᵀ := by
+    rw [Matrix.transpose_add, Matrix.transpose_one, X.2]; abel
+  have hUnit2 : IsUnit (1 - X.1).det := by rw [hsub, Matrix.det_transpose]; exact hUnit
+  have htrans : ((1 + X.1)⁻¹)ᵀ = (1 - X.1)⁻¹ := by
+    rw [Matrix.transpose_nonsing_inv, ← hsub]
+  have hcomm : (1 - X.1) * (1 + X.1)⁻¹ = (1 + X.1)⁻¹ * (1 - X.1) := by
+    have e1 : (1 + X.1) * (1 - X.1) = (1 - X.1) * (1 + X.1) := by noncomm_ring
+    have h2 : (1 + X.1) * (1 - X.1) * (1 + X.1)⁻¹ = (1 - X.1) := by
+      rw [e1, Matrix.mul_assoc, Matrix.mul_nonsing_inv _ hUnit, Matrix.mul_one]
+    calc (1 - X.1) * (1 + X.1)⁻¹
+        = (1 + X.1)⁻¹ * ((1 + X.1) * (1 - X.1) * (1 + X.1)⁻¹) := by
+          rw [← Matrix.mul_assoc, ← Matrix.mul_assoc, Matrix.nonsing_inv_mul _ hUnit,
+              Matrix.one_mul]
+      _ = (1 + X.1)⁻¹ * (1 - X.1) := by rw [h2]
+  rw [htrans, show cayley X.1 = (1 - X.1) * (1 + X.1)⁻¹ from rfl, hcomm, Matrix.mul_assoc,
+      Matrix.mul_nonsing_inv _ hUnit2, Matrix.mul_one]
+
 /-- The Fréchet derivative of `v ↦ diag (exp ∘ v)` is `AChartDerivCLM (expDiagA v)`,
 i.e. `δ ↦ diag(exp ∘ v) * diag δ`. -/
 private lemma hasFDerivAt_diagExp (v : Fin n → ℝ) :
