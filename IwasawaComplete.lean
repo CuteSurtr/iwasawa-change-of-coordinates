@@ -875,15 +875,81 @@ noncomputable def cayleyFDerivCLM (M : Matrix (Fin n) (Fin n) ℝ) :
 
 @[simp] lemma cayleyFDerivCLM_apply (M δ : Matrix (Fin n) (Fin n) ℝ) :
     cayleyFDerivCLM M δ = (-2 : ℝ) • ((1 + M)⁻¹ * δ * (1 + M)⁻¹) := by
-  sorry
+  simp only [cayleyFDerivCLM, ContinuousLinearMap.smul_apply, matrixLeftRightCLM_apply]
+
+/-- `cayley X = 2 • (1+X)⁻¹ - 1` on the units (i.e. when `1 + X` is
+invertible). Off the units both `Matrix.inv` and `Ring.inverse` send to
+`0`, so the identity fails there; hence this is stated with the unit
+hypothesis and used only on the open neighborhood of such `M`. -/
+private lemma cayley_eq_two_smul_inv_sub_one
+    {X : Matrix (Fin n) (Fin n) ℝ} (hX : IsUnit (1 + X).det) :
+    cayley X = (2 : ℝ) • (1 + X)⁻¹ - 1 := by
+  have hmul : (1 + X) * (1 + X)⁻¹ = 1 := Matrix.mul_nonsing_inv _ hX
+  show (1 - X) * (1 + X)⁻¹ = (2 : ℝ) • (1 + X)⁻¹ - 1
+  have h1mX : (1 - X : Matrix (Fin n) (Fin n) ℝ) = (2 : ℝ) • (1 : Matrix _ _ ℝ) - (1 + X) := by
+    rw [two_smul]; abel
+  rw [h1mX, Matrix.sub_mul, Matrix.smul_mul, Matrix.one_mul, hmul]
 
 /-- **A1.** `cayley` has Fréchet derivative `cayleyFDerivCLM M` at any `M`
-with `1 + M` invertible. Sanity: at `M = 0` the CLM is `δ ↦ -2 δ`. -/
+with `1 + M` invertible. Sanity: at `M = 0` the CLM is `δ ↦ -2 δ`.
+
+Route: `cayley = 2 • Ring.inverse (1 + ·) - 1` near `M` (on the open
+unit set), and `Ring.inverse` differentiates to the sandwich
+`-mulLeftRight (1+M)⁻¹ (1+M)⁻¹` by `hasFDerivAt_ringInverse`. The
+`Ring.inverse`/`Matrix.inv` bridge is `nonsing_inv_eq_ringInverse`
+together with `Ring.inverse_unit`. -/
 theorem hasFDerivAt_cayley_matrix (M : Matrix (Fin n) (Fin n) ℝ)
     (hM : IsUnit (1 + M).det) :
     HasFDerivAt (cayley : Matrix (Fin n) (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ)
       (cayleyFDerivCLM M) M := by
-  sorry
+  have hM' : IsUnit (1 + M : Matrix (Fin n) (Fin n) ℝ) :=
+    (Matrix.isUnit_iff_isUnit_det _).mpr hM
+  -- Bridge: the unit inverse coincides with `Matrix.inv`.
+  have h_unit : (hM'.unit : Matrix (Fin n) (Fin n) ℝ) = 1 + M := hM'.unit_spec
+  have h_uinv : ((hM'.unit⁻¹ : (Matrix (Fin n) (Fin n) ℝ)ˣ) :
+      Matrix (Fin n) (Fin n) ℝ) = (1 + M)⁻¹ := by
+    rw [← Ring.inverse_unit hM'.unit, h_unit, ← Matrix.nonsing_inv_eq_ringInverse]
+  -- Derivative of `X ↦ 1 + X`.
+  have h_add : HasFDerivAt (fun X : Matrix (Fin n) (Fin n) ℝ => 1 + X)
+      (ContinuousLinearMap.id ℝ (Matrix (Fin n) (Fin n) ℝ)) M :=
+    (hasFDerivAt_id M).const_add 1
+  -- Derivative of `Ring.inverse` at the unit, base point rewritten to `1 + M`.
+  have h_rinv_at : HasFDerivAt
+      (Ring.inverse : Matrix (Fin n) (Fin n) ℝ → Matrix (Fin n) (Fin n) ℝ)
+      (-(ContinuousLinearMap.mulLeftRight ℝ (Matrix (Fin n) (Fin n) ℝ))
+          (hM'.unit⁻¹ : (Matrix (Fin n) (Fin n) ℝ)ˣ)
+          (hM'.unit⁻¹ : (Matrix (Fin n) (Fin n) ℝ)ˣ)) (1 + M) := by
+    have h := hasFDerivAt_ringInverse (𝕜 := ℝ) hM'.unit
+    rwa [h_unit] at h
+  -- Compose and rewrite the unit inverse to `Matrix.inv`.
+  have h_inv : HasFDerivAt (fun X : Matrix (Fin n) (Fin n) ℝ => Ring.inverse (1 + X))
+      (-(ContinuousLinearMap.mulLeftRight ℝ (Matrix (Fin n) (Fin n) ℝ)) (1 + M)⁻¹ (1 + M)⁻¹) M := by
+    have hcomp := h_rinv_at.comp M h_add
+    rw [h_uinv] at hcomp
+    simpa [Function.comp_def, ContinuousLinearMap.comp_id] using hcomp
+  -- `2 • Ring.inverse (1 + ·) - 1` has derivative `cayleyFDerivCLM M`.
+  have hCLM : ((2 : ℝ) • (-(ContinuousLinearMap.mulLeftRight ℝ (Matrix (Fin n) (Fin n) ℝ))
+        (1 + M)⁻¹ (1 + M)⁻¹)) = cayleyFDerivCLM M := by
+    ext δ
+    simp only [cayleyFDerivCLM_apply, ContinuousLinearMap.smul_apply,
+      ContinuousLinearMap.neg_apply, ContinuousLinearMap.mulLeftRight_apply, smul_neg,
+      neg_smul]
+  have h_main : HasFDerivAt
+      (fun X : Matrix (Fin n) (Fin n) ℝ => (2 : ℝ) • Ring.inverse (1 + X) - 1)
+      (cayleyFDerivCLM M) M := by
+    rw [← hCLM]
+    exact (h_inv.const_smul (2 : ℝ)).sub_const (1 : Matrix (Fin n) (Fin n) ℝ)
+  -- Transfer to `cayley` via eventual equality on the open unit set.
+  refine h_main.congr_of_eventuallyEq ?_
+  have h_cont : Continuous (fun X : Matrix (Fin n) (Fin n) ℝ => (1 + X).det) := by
+    fun_prop
+  have h_open : IsOpen {X : Matrix (Fin n) (Fin n) ℝ | IsUnit (1 + X).det} := by
+    have h_eq : {X : Matrix (Fin n) (Fin n) ℝ | IsUnit (1 + X).det}
+        = (fun X => (1 + X).det) ⁻¹' {r : ℝ | r ≠ 0} := by
+      ext X; simp [isUnit_iff_ne_zero]
+    rw [h_eq]; exact h_cont.isOpen_preimage _ isOpen_ne
+  filter_upwards [h_open.mem_nhds (show IsUnit (1 + M).det from hM)] with X hX
+  rw [cayley_eq_two_smul_inv_sub_one hX, Matrix.nonsing_inv_eq_ringInverse]
 
 /-! ### A2 target: the congruence sandwich on `Sk n` and its determinant -/
 
