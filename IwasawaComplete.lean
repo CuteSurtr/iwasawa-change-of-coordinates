@@ -1230,14 +1230,50 @@ precomposed with a source transport whose K-direction is the congruence
 /-- For skew `X`, the Cayley transform has determinant `1` (not merely `±1`):
 `1 - X = (1 + X)ᵀ`, so `det (cayley X) · det (1+X) = det (1-X) = det (1+X)`. -/
 private lemma det_cayley_skew (X : Sk n) : (cayley X.1).det = 1 := by
-  sorry
+  have hUnit : IsUnit (1 + X.1).det := one_add_skew_isUnit X
+  have h1mX : (1 - X.1) = (1 + X.1).transpose := by
+    rw [Matrix.transpose_add, Matrix.transpose_one, X.2]; abel
+  have hdet_eq : (1 - X.1).det = (1 + X.1).det := by rw [h1mX, Matrix.det_transpose]
+  have key : (cayley X.1).det * (1 + X.1).det = (1 + X.1).det := by
+    rw [show cayley X.1 = (1 - X.1) * (1 + X.1)⁻¹ from rfl, Matrix.det_mul, mul_assoc,
+        ← Matrix.det_mul, Matrix.nonsing_inv_mul _ hUnit, Matrix.det_one, mul_one]
+    exact hdet_eq
+  exact mul_right_cancel₀ hUnit.ne_zero (by rw [key, one_mul])
 
 /-- The Fréchet derivative of `v ↦ diag (exp ∘ v)` is `AChartDerivCLM (expDiagA v)`,
 i.e. `δ ↦ diag(exp ∘ v) * diag δ`. -/
 private lemma hasFDerivAt_diagExp (v : Fin n → ℝ) :
     HasFDerivAt (fun w : Fin n → ℝ => Matrix.diagonal (Real.exp ∘ w))
       (AChartDerivCLM (expDiagA v)) v := by
-  sorry
+  set expPiCLM : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) :=
+    ContinuousLinearMap.pi (fun i => Real.exp (v i) • ContinuousLinearMap.proj i) with hExpPi
+  -- pointwise exp has derivative `expPiCLM`
+  have hexp : HasFDerivAt (fun w : Fin n → ℝ => (Real.exp ∘ w : Fin n → ℝ)) expPiCLM v := by
+    rw [hasFDerivAt_pi']
+    intro i
+    have hcomp : (ContinuousLinearMap.proj i).comp expPiCLM
+        = Real.exp (v i) • ContinuousLinearMap.proj i := by
+      rw [hExpPi, ContinuousLinearMap.proj_pi]
+    rw [hcomp]
+    have h3 := (hasFDerivAt_apply (𝕜 := ℝ) i v).exp
+    simpa only [Function.comp_apply] using h3
+  -- compose with the (linear) diagonal embedding
+  have hcomp := ((Matrix.diagonalLinearMap (Fin n) ℝ ℝ).toContinuousLinearMap).hasFDerivAt.comp
+    v hexp
+  -- identify the resulting CLM with `AChartDerivCLM (expDiagA v)`
+  have hCLM : ((Matrix.diagonalLinearMap (Fin n) ℝ ℝ).toContinuousLinearMap).comp expPiCLM
+      = AChartDerivCLM (expDiagA v) := by
+    apply ContinuousLinearMap.ext
+    intro δ
+    show Matrix.diagonal (expPiCLM δ) = (expDiagA v).1 * Matrix.diagonal δ
+    have hval : expPiCLM δ = fun i => Real.exp (v i) * δ i := by
+      funext i
+      simp [hExpPi, ContinuousLinearMap.pi_apply, ContinuousLinearMap.proj_apply,
+            ContinuousLinearMap.smul_apply, smul_eq_mul]
+    rw [hval, expDiagA_val, Matrix.diagonal_mul_diagonal]
+    simp only [Function.comp_apply]
+  rw [hCLM] at hcomp
+  exact hcomp
 
 /-- `Z + 1` packaged as a unipotent `UU n` element (the inverse UU chart
 coordinate `UU.toNNHomeomorph.symm`). -/
