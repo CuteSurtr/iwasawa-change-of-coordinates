@@ -45,7 +45,7 @@ standard Lean and Mathlib axioms `[propext, Classical.choice, Quot.sound]`:
   Iwasawa bases, at a general point of the chart domain
   (`detInIwasawaBases_fderiv_iwasawaCharted_general` and its absolute-value
   form), resting on the Sylvester-Franke identity
-  $\det\bigl(\Lambda^2 B\bigr) = (\det B)^{\,n-1}$ (`det_sandwichOnSkCLM`).
+  $\det\bigl(\Lambda^2 B\bigr) = (\det B)^{\\,n-1}$ (`det_sandwichOnSkCLM`).
 
 A single consolidated file, `IwasawaComplete.lean`, restates every main result
 with a clean signature and prints its axiom dependencies. The repository should
@@ -64,7 +64,7 @@ The derivative uses the project's chart convention: `iwasawaMatrixLeibnizCLM`
 is the differential of `iwasawaMap` in the Cayley, logarithm, and affine
 charts, and `iwasawaCharted` is the corresponding single-chart flat map
 
-$$(X, v, Z) \mapsto \mathrm{cayley}(X)\, \mathrm{diag}(e^{v})\, (Z + 1).$$
+$$(X, v, Z) \mapsto \mathrm{cayley}(X)\\, \mathrm{diag}(e^{v})\\, (Z + 1).$$
 
 The one remaining layer is the Haar measure pushforward itself: turning the
 pointwise Jacobian determinant into a measure-theoretic change-of-variables
@@ -72,7 +72,7 @@ identity for product Haar measures. This is recorded as a single quarantined
 axiom in `IwasawaBridge.lean` and is the subject of [Remaining Work](#remaining-work).
 The positive-root product
 
-$$\delta(a) = \prod_{i<j} \frac{a_i}{a_j}$$
+$$\delta(a) = \prod_{i \lt j} \frac{a_i}{a_j}$$
 
 is computed by `adNN_det_eq_pair_product` as the determinant of $\mathrm{Ad}(a)$
 on the strictly-upper subalgebra, and now appears inside the proved Jacobian
@@ -149,7 +149,7 @@ $G = GL_n(\mathbb{R})$, with $du$, $da$, $dk$ Haar measures on $U$, $A$, $K$,
 and the product map $U \times A \times K \to UAK = G$ is the Jorgenson and Lang Iwasawa map,
 then for any $f \in C_c(G)$
 
-$$\int_G f(x)\, dx = c \cdot \int_U \int_A \int_K f(uak) \cdot \delta(a)^{-1}\, du\, da\, dk$$
+$$\int_G f(x)\\, dx = c \cdot \int_U \int_A \int_K f(uak) \cdot \delta(a)^{-1}\\, du\\, da\\, dk$$
 
 for a constant $c$ and a homomorphism $\delta : A \to \mathbb{R}^+$ called the
 **Iwasawa character** (Jorgenson and Lang, Propositions 2.1, 2.3, 2.4). The
@@ -202,7 +202,7 @@ isomorphism we cannot even *state* the Jacobian formula. This is
 why Theorem 1.1 of Jorgenson and Lang asserts a **differential**
 isomorphism, and why our project's central technical content is
 the smooth manifold story (the Cayley transform giving a
-diffeomorphism $\mathrm{Sk}\,n \simeq K_{\mathrm{open}}\,n$, and the Sphere pattern multi chart
+diffeomorphism $\mathrm{Sk}\\,n \simeq K_{\mathrm{open}}\\,n$, and the Sphere pattern multi chart
 atlas covering all of $K = O(n)$).
 
 ### Connection to the Lie algebra: infinitesimal change of coordinates
@@ -362,10 +362,10 @@ on the linearly independent locus, each $u_j$ is rational with
 non vanishing denominator there, hence continuous.
 
 Mathlib does **not** package this continuity result. We prove it
-inline by induction on the index $i : \mathrm{Fin}\,n$ using
+inline by induction on the index $i : \mathrm{Fin}\\,n$ using
 `gramSchmidt_def`, which expresses
 
-$$\mathrm{gramSchmidt}(f)(i) = f(i) - \sum_{j \lt i} (\mathbb{R} \cdot \mathrm{gramSchmidt}(f)(j))\text{.starProjection}\,(f(i)).$$
+$$\mathrm{gramSchmidt}(f)(i) = f(i) - \sum_{j \lt i} (\mathbb{R} \cdot \mathrm{gramSchmidt}(f)(j))\text{.starProjection}\\,(f(i)).$$
 
 Each term in the sum is continuous in $f$ by induction (the
 projection onto a 1 dimensional subspace is the rational expression
@@ -395,31 +395,31 @@ norm `Matrix.normedAddCommGroup` (Mathlib intentionally does not
 register a canonical matrix norm globally because several natural
 choices exist). This is `instChartedSpaceG`, `instIsManifoldG`.
 
-**$UU\,n$ as an affine slice of $\mathrm{Mat}_n(\mathbb{R})$:** an upper unipotent
+**$UU\\,n$ as an affine slice of $\mathrm{Mat}_n(\mathbb{R})$:** an upper unipotent
 matrix is $1 + X$ for $X$ strictly upper triangular (i.e.
-$X \in NN\,n = \mathfrak{n}$), so the natural chart is the *translation*
+$X \in NN\\,n = \mathfrak{n}$), so the natural chart is the *translation*
 
-$$UU\,n \to NN\,n, \qquad U \mapsto U - 1$$
+$$UU\\,n \to NN\\,n, \qquad U \mapsto U - 1$$
 
 with inverse $X \mapsto X + 1$. Both maps are continuous (subtraction
 and addition by a constant matrix), and the bijection is the
 homeomorphism `UU.toNNHomeomorph`. The chart's source is all of
-$UU\,n$, so we can use
+$UU\\,n$, so we can use
 `OpenPartialHomeomorph.singletonChartedSpace` to get
 `ChartedSpace (NN n) (UU n)` and `IsManifold` modeled on the
-normed space $NN\,n$ (a `Submodule` of $\mathrm{Mat}_n(\mathbb{R})$).
+normed space $NN\\,n$ (a `Submodule` of $\mathrm{Mat}_n(\mathbb{R})$).
 
-**$A\,n$ via diagonal logs:** a positive diagonal matrix is
+**$A\\,n$ via diagonal logs:** a positive diagonal matrix is
 characterized by its $n$ strictly positive diagonal entries; the
 homeomorphism
 
-$$A\,n \to \mathbb{R}^n, \qquad D \mapsto (\log D_{11}, \ldots, \log D_{nn})$$
+$$A\\,n \to \mathbb{R}^n, \qquad D \mapsto (\log D_{11}, \ldots, \log D_{nn})$$
 
 with inverse $v \mapsto \mathrm{diag}(\exp v_1, \ldots, \exp v_n)$ provides a single
 chart. The map is well defined because $D_{ii} \gt 0$, so $\log$ is
 continuous, and $\exp v_i \gt 0$ for all real $v_i$, so the inverse
-lands back in $A\,n$. This is `A.toFinNRHomeomorph`. Modeled on
-$\mathrm{Fin}\,n \to \mathbb{R}$ (Pi normed space).
+lands back in $A\\,n$. This is `A.toFinNRHomeomorph`. Modeled on
+$\mathrm{Fin}\\,n \to \mathbb{R}$ (Pi normed space).
 
 ### 5. The Cayley transform: parametrizing $O(n)$ by skew symmetric matrices
 
@@ -453,11 +453,11 @@ Two crucial facts:
 
 $$\begin{aligned} \mathrm{cayley}(X) \cdot \mathrm{cayley}(X)^T &= (1 - X)(1 + X)^{-1} \cdot ((1 + X)^{-1})^T (1 - X)^T \\\\ &= (1 - X)(1 + X)^{-1} \cdot (1 + X^T)^{-1}(1 - X^T) \\\\ &= (1 - X)(1 + X)^{-1} \cdot (1 - X)^{-1}(1 + X) \\\\ &= (1 - X)(1 - X)^{-1} \cdot (1 + X)^{-1}(1 + X) \\\\ &= 1. \end{aligned}$$
 
-In words: as $X$ ranges over skew symmetric matrices $\mathrm{Sk}\,n$, the
+In words: as $X$ ranges over skew symmetric matrices $\mathrm{Sk}\\,n$, the
 formula $\mathrm{cayley}(X) = (1 - X)(1 + X)^{-1}$ ranges over orthogonal
 matrices $Q$ for which $1 + Q$ is invertible (i.e., $-1$ is not an
 eigenvalue of $Q$). This is a dense open subset of $O(n)$, called
-$K_{\mathrm{open}}\,n$ in our file.
+$K_{\mathrm{open}}\\,n$ in our file.
 
 The transform is **its own inverse**: applying $\mathrm{cayley}$ twice
 returns the input (when both $1 + X$ and $1 + \mathrm{cayley}(X)$ are
@@ -476,19 +476,19 @@ $(1 - M)(1 + M)^{-1}$ (one is just the name we give to the function
 when going one direction or the other), `cayley_self_inverse`
 immediately gives both `cayleyInv ∘ cayley = id` on $\mathrm{Sk}$ and
 `cayley ∘ cayleyInv = id` on $K_{\mathrm{open}}$. Bundling these gives
-`cayleyEquiv`, the set theoretic bijection $\mathrm{Sk}\,n \simeq K_{\mathrm{open}}\,n$.
+`cayleyEquiv`, the set theoretic bijection $\mathrm{Sk}\\,n \simeq K_{\mathrm{open}}\\,n$.
 
 For the **continuity** of Cayley, both directions reduce to
 continuity of matrix inversion on units, which Mathlib provides
 via `continuousAt_matrix_inv` (matrix inverse is continuous at
 any non singular matrix) plus `NormedRing.inverse_continuousAt`
 (the abstract `Ring.inverse` is continuous at any unit). Bundling
-gives `cayleyHomeomorph`, the topological bijection $\mathrm{Sk}\,n \simeq_t K_{\mathrm{open}}\,n$.
+gives `cayleyHomeomorph`, the topological bijection $\mathrm{Sk}\\,n \simeq_t K_{\mathrm{open}}\\,n$.
 
 For the **smoothness** (i.e., $C^\infty$ ness), the same matrix inverse
 on units lemmas give `ContDiff` smoothness of the underlying
 matrix valued formulas; lifting to `ContMDiff` between manifolds
-modeled on $\mathrm{Sk}\,n$ (with $K_{\mathrm{open}}\,n$ modeled via the Cayley chart
+modeled on $\mathrm{Sk}\\,n$ (with $K_{\mathrm{open}}\\,n$ modeled via the Cayley chart
 itself) is achieved through `contMDiff_isOpenEmbedding` and
 `contMDiffOn_isOpenEmbedding_symm` plus a function equality
 identification. Bundling all of this gives `cayleyDiffeomorph`, a
@@ -497,7 +497,7 @@ skew symmetric matrices and the dense open subset of $O(n)$.
 
 ### 6. The Sphere pattern multi chart atlas covering all of $K = O(n)$
 
-Cayley centered at the identity covers $K_{\mathrm{open}}\,n$, the open subset
+Cayley centered at the identity covers $K_{\mathrm{open}}\\,n$, the open subset
 where $1 + Q$ is invertible. To cover the rest of $O(n)$ we follow
 Mathlib's `Sphere.lean` pattern (Heather Macbeth, 2021): put a
 Cayley chart **at every point** of $K$.
@@ -506,16 +506,16 @@ The translated Cayley chart at $Q_0 \in K$ is
 
 $$\mathrm{chart}_{Q_0} : K \to \mathrm{Sk}, \qquad \mathrm{chart}_{Q_0}(Q) = \mathrm{cayleyInv}(Q \cdot Q_0^T),$$
 
-defined on the open subset $K_{\mathrm{open\\,at}}\,Q_0 = \\{ Q \in K \mid 1 + Q \cdot Q_0^T \text{ invertible} \\}$. The inverse goes $X \mapsto \mathrm{cayley}(X) \cdot Q_0$. This is a
+defined on the open subset $K_{\mathrm{open\\,at}}\\,Q_0 = \\{ Q \in K \mid 1 + Q \cdot Q_0^T \text{ invertible} \\}$. The inverse goes $X \mapsto \mathrm{cayley}(X) \cdot Q_0$. This is a
 direct generalization of the identity centered chart and reduces to
-it via the substitution $Q' = Q \cdot Q_0^T$ (which sends $K_{\mathrm{open\\,at}}\,Q_0$
+it via the substitution $Q' = Q \cdot Q_0^T$ (which sends $K_{\mathrm{open\\,at}}\\,Q_0$
 to $K_{\mathrm{open}}$ bijectively). The `cayleyEquivAt` in our file packages
-this as $\mathrm{Sk}\,n \simeq K_{\mathrm{open\\,at}}\,Q_0$.
+this as $\mathrm{Sk}\\,n \simeq K_{\mathrm{open\\,at}}\\,Q_0$.
 
 The crucial covering property: **every $Q \in K$ lies in
-$K_{\mathrm{open\\,at}}\,Q$ itself**, because $Q \cdot Q^T = 1$ and $1 + 1 = 2 \cdot 1$
+$K_{\mathrm{open\\,at}}\\,Q$ itself**, because $Q \cdot Q^T = 1$ and $1 + 1 = 2 \cdot 1$
 has determinant $2^n \ne 0$. This is `self_mem_K_open_at`. So the
-family $\\{ K_{\mathrm{open\\,at}}\,Q \mid Q \in K \\}$ is an open cover of $K$, and the
+family $\\{ K_{\mathrm{open\\,at}}\\,Q \mid Q \in K \\}$ is an open cover of $K$, and the
 chart at $Q$ is `cayleyOpenChartAt Q`. Atlas: take all
 `cayleyOpenChartAt Q₀` for $Q_0$ ranging over $K$.
 
@@ -527,7 +527,7 @@ which is now proved. The transition is
 
 $$\mathrm{chart}_{Q_1} \circ (\mathrm{chart}_{Q_0})^{-1} : X \in \mathrm{Sk} \mapsto \mathrm{cayleyInv}(\mathrm{cayley}(X) \cdot Q_0 \cdot Q_1^T),$$
 
-defined on the open subset of $\mathrm{Sk}\,n$ where $1 + \mathrm{cayley}(X) \cdot Q_0 \cdot Q_1^T$
+defined on the open subset of $\mathrm{Sk}\\,n$ where $1 + \mathrm{cayley}(X) \cdot Q_0 \cdot Q_1^T$
 is invertible. This is a composition of three smooth pieces (cayley,
 right multiplication by a fixed orthogonal matrix, cayleyInv), and
 its smoothness reduces to standard `ContDiff` lemmas about matrix
@@ -664,7 +664,7 @@ throughout.
 | 3   | Smooth manifold structure on `K_open n` modeled on `Sk n` via Cayley chart       | Proved   | Thm I.1.1, smoothness   |
 | 3   | `cayleyDiffeomorph : Sk n ≃ₘ K_open n` ($C^\infty$ diffeomorphism)                     | Proved   | Thm I.1.1, smoothness   |
 | 3   | `IsOrthogonal.mul`, `K_open_at`, `cayleyEquivAt Q₀ : Sk n ≃ K_open_at Q₀`        | Proved   | Thm I.1.1, multi-chart  |
-| 3   | `self_mem_K_open_at` (cover $\bigcup K_{\mathrm{open\\,at}} Q = K\,n$)                                | Proved   | Thm I.1.1, multi-chart  |
+| 3   | `self_mem_K_open_at` (cover $\bigcup K_{\mathrm{open\\,at}} Q = K\\,n$)                                | Proved   | Thm I.1.1, multi-chart  |
 | 3   | `cayleyOpenChartAt Q₀ : OpenPartialHomeomorph (K n) (Sk n)` plus `instChartedSpaceK` | Proved   | Sphere-pattern atlas    |
 | 3   | `instIsManifoldK` (chart transitions `ContDiffOn`, full `IsManifold` on $K = O(n)$) | Proved   | Thm I.1.1, full         |
 | 3   | `iwasawaDiffeomorph : K × A × U ≃ₘ GL_n(ℝ)` (full diffeomorphism)                | Proved   | Thm I.1.1, full         |
@@ -675,8 +675,8 @@ throughout.
 | 5   | `iwasawaLieEquiv`: linear iso $\mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \simeq_{\mathbb{R}} \mathfrak{gl}_n(\mathbb{R})$ (algebraic differential at 1) | Proved | §I.3                    |
 | 5   | `iwasawaMfderivAtIdentity` (geometric `mfderiv` at the identity)                 | Proved   | §I.3                    |
 | 6   | `iwasawaMfderivAtFactored` (geometric `mfderiv` at a general $(k, a, u)$)        | Proved   | §I.2-I.3                |
-| 6   | `det_sandwichOnSkCLM`: Sylvester-Franke $\det(\Lambda^2 B) = (\det B)^{n-1}$ on $\mathrm{Sk}\,n$ | Proved   | Jacobian density        |
-| 6   | `adNN_det_eq_pair_product`: $\det \mathrm{Ad}(a)|_{\mathfrak{n}} = \prod_{i<j} a_i/a_j$ | Proved   | §I.2, Eq. (3)           |
+| 6   | `det_sandwichOnSkCLM`: Sylvester-Franke $\det(\Lambda^2 B) = (\det B)^{n-1}$ on $\mathrm{Sk}\\,n$ | Proved   | Jacobian density        |
+| 6   | `adNN_det_eq_pair_product`: $\det(\mathrm{ad}_{\mathfrak{n}}\\, a) = \prod_{i \lt j} a_i / a_j$ | Proved   | §I.2, Eq. (3)           |
 | 6   | `detInIwasawaBases_fderiv_iwasawaCharted_general` (signed Jacobian determinant)  | Proved   | §I.2 Jacobian           |
 | 6   | `absDetInIwasawaBases_fderiv_iwasawaCharted_general` (absolute Jacobian determinant) | Proved | §I.2 Jacobian           |
 | 7   | Haar measure pushforward / change-of-variables identity                          | Quarantined axiom | §I.2, Prop. 2.1-2.4 |
@@ -818,9 +818,9 @@ end IwasawaCoC
 ```
 
 Here `Fintype.card (nnIndex n) = n(n-1)/2` is the number of strictly-upper
-index pairs, so the leading factor is $2^{\,n(n-1)/2}$. At $X = 0$ the Cayley
-correction $((1 + 0).\det)^{-1\,(n-1)}$ is $1$, and the formula reduces to the
-chart-center value $2^{\,n(n-1)/2}\,(\det a)^{n}\,\det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr)$;
+index pairs, so the leading factor is $2^{\\,n(n-1)/2}$. At $X = 0$ the Cayley
+correction $((1 + 0).\det)^{-1\\,(n-1)}$ is $1$, and the formula reduces to the
+chart-center value $2^{\\,n(n-1)/2}\\,(\det a)^{n}\\,\det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr)$;
 this consistency is checked in `IwasawaComplete.lean`.
 
 ## Repository layout
@@ -878,7 +878,7 @@ IwasawaCoC.Complete.absDetInIwasawaBases_fderiv_iwasawaCharted_general
 each of which reports only `[propext, Classical.choice, Quot.sound]`. The
 core namespace is `IwasawaCoC`, and the consolidated restatements live in
 `IwasawaCoC.Complete`. `IwasawaComplete.lean` also contains compile-time
-sanity checks: the scalar value $\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}$
+sanity checks: the scalar value $\det(\mathrm{sandwich}(c \cdot 1)) = c^{\\,n(n-1)}$
 at $n = 3$, the edge cases $n = 0$ and $n = 1$, and the consistency of the
 general Jacobian at $X = 0$ with the chart-center value.
 
@@ -928,7 +928,7 @@ function, on the locus of linearly independent column families.
 Mathlib v4.30 does not package this continuity, so we prove it inline:
 
 * `continuous_gCol_at`: column extraction is continuous.
-* `continuous_gramSchmidt_at`: by well founded induction on $i : \mathrm{Fin}\,n$.
+* `continuous_gramSchmidt_at`: by well founded induction on $i : \mathrm{Fin}\\,n$.
   Inductive step: rewrite via `gramSchmidt_def` to
   `gCol g.1 i − ∑ j ∈ Iio i, (ℝ ∙ gramSchmidt _ j).starProjection (gCol _ i)`.
   The 1D projection becomes the rational expression
@@ -971,7 +971,7 @@ with inverse $v \mapsto \mathrm{diag}(\exp v)$, giving a single chart smooth str
 
 The major mathematical work. The Cayley transform
 
-$$\mathrm{cayley}\,X = (1 - X)(1 + X)^{-1}$$
+$$\mathrm{cayley}\\,X = (1 - X)(1 + X)^{-1}$$
 
 provides a parametrization of $O(n)$ minus a measure zero set by
 skew symmetric matrices. The full chain:
@@ -982,19 +982,19 @@ skew symmetric matrices. The full chain:
   `PosSemidef` via `posSemidef_self_mul_conjTranspose`). Hence
   $(1 + X)(1 - X)$ is a unit, so $1 + X$ is too (via
   `isUnit_of_mul_isUnit_left`).
-* `cayley_isOrthogonal`: $(\mathrm{cayley}\,X)(\mathrm{cayley}\,X)^T = 1$ for $X$ skew, by
+* `cayley_isOrthogonal`: $(\mathrm{cayley}\\,X)(\mathrm{cayley}\\,X)^T = 1$ for $X$ skew, by
   algebraic manipulation using the commutativity of $(1 + X)$ and
   $(1 - X)$ (and their inverses).
 * `cayley_self_inverse`: for any $X$ with $1 + X$ invertible,
-  $\mathrm{cayley}(\mathrm{cayley}\,X) = X$. The proof shows
-  $1 - \mathrm{cayley}\,X = X \cdot (1 + \mathrm{cayley}\,X)$ by post multiplying both sides by
+  $\mathrm{cayley}(\mathrm{cayley}\\,X) = X$. The proof shows
+  $1 - \mathrm{cayley}\\,X = X \cdot (1 + \mathrm{cayley}\\,X)$ by post multiplying both sides by
   $(1 + X)$ and using the algebraic identities
-  $(1 \pm \mathrm{cayley}\,X)(1 + X) = X + X$ and $(1 + \mathrm{cayley}\,X)(1 + X) = 1 + 1$.
+  $(1 \pm \mathrm{cayley}\\,X)(1 + X) = X + X$ and $(1 + \mathrm{cayley}\\,X)(1 + X) = 1 + 1$.
   Specializations give the left and right inverses
   `cayleyInv_cayley` (on `Sk n`) and `cayley_cayleyInv` (on the
   invertibility set).
 * `cayleyInv_isSkew`: for orthogonal $Q$ with $1 + Q$ invertible,
-  $\mathrm{cayleyInv}\,Q$ is skew symmetric. The proof uses
+  $\mathrm{cayleyInv}\\,Q$ is skew symmetric. The proof uses
   $Q^T = Q^{-1}$ (orthogonality) plus the identity
   $(1 + Q^{-1}) = Q^{-1} \cdot (1 + Q)$, the commutativity of polynomials in $Q$,
   and direct computation of the transpose.
@@ -1016,7 +1016,7 @@ skew symmetric matrices. The full chain:
 
 ### Milestone 3: Multi chart atlas (Sphere pattern)
 
-The single Cayley chart at the identity covers $K_{\mathrm{open}}\,n$ (the open
+The single Cayley chart at the identity covers $K_{\mathrm{open}}\\,n$ (the open
 dense subset of $O(n)$ where $-1$ is not an eigenvalue of $Q$). To
 cover the rest of $O(n)$, we follow Mathlib's pattern from
 [`Mathlib.Geometry.Manifold.Instances.Sphere`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/Instances/Sphere.html)
@@ -1029,7 +1029,7 @@ cover the rest of $O(n)$, we follow Mathlib's pattern from
 * `cayleyEquivAt Q₀ : Sk n ≃ K_open_at Q₀`: set level bijection,
   proved by reduction to the identity centered case using
   `cayleyEquiv.symm` and right multiplication by $Q_0$ or $Q_0^T$.
-* `self_mem_K_open_at`: for any $Q \in K\,n$, $Q \in K_{\mathrm{open\\,at}}\,Q$ (since
+* `self_mem_K_open_at`: for any $Q \in K\\,n$, $Q \in K_{\mathrm{open\\,at}}\\,Q$ (since
   $Q \cdot Q^T = 1$ and $1 + 1$ has invertible determinant $2^n$).
 * `cayleyOpenChartAt Q₀`: bundles each translated equivalence as an
   `OpenPartialHomeomorph (K n) (Sk n)`. The construction goes through
@@ -1103,7 +1103,7 @@ The single remaining mathematical layer is the Haar measure pushforward:
 3. Identify the resulting density with the Iwasawa character $\delta(a)^{-1}$
    and the global constant, recovering the integration formula
 
-   $$\int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.$$
+   $$\int_G f\\,dx = c \int_U \int_A \int_K f(uak)\\, \delta(a)^{-1}\\, du\\, da\\, dk.$$
 
 4. Replace the quarantined axiom in `IwasawaBridge.lean` with this
    measure-theoretic statement.
