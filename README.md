@@ -239,9 +239,10 @@ splitting
 $$\mathfrak{gl}_n(\mathbb{R}) = \mathrm{Sym}_n \oplus \mathrm{Sk}_n$$
 
 into symmetric and skew symmetric parts. The Iwasawa decomposition
-*refines* the symmetric component into $\mathfrak{a} \oplus \mathfrak{n}_{\mathrm{sym}}$, where
-$\mathfrak{n}_{\mathrm{sym}} = \frac{1}{2}(\mathfrak{n} + \mathfrak{n}^T)$ is the symmetrization of the strictly
-upper triangular subalgebra (§I.3, p. 14 of Jorgenson and Lang).
+*refines* the symmetric component using the symmetrization of the strictly
+upper triangular subalgebra (§I.3, p. 14 of Jorgenson and Lang):
+
+$$\mathfrak{a} \oplus \mathfrak{n}_{\mathrm{sym}}, \qquad \mathfrak{n}_{\mathrm{sym}} = \tfrac{1}{2}(\mathfrak{n} + \mathfrak{n}^T).$$
 
 In this project we prove both the Iwasawa Lie decomposition
 (`iwasawaLieDecomp` and `iwasawaLieEquiv`) and the Cartan Lie
@@ -326,7 +327,7 @@ fixed point set:
 $$K = \\{ g \in GL_n(\mathbb{R}) \mid \theta(g) = g \\} = \\{ g \mid (g^T)^{-1} = g \\} = \\{ g \mid g \cdot g^T = 1 \\}$$
 
 which is exactly the orthogonality condition. The Cartan involution
-also induces an involution $\theta_*$ on the Lie algebra $\mathfrak{gl}_n(\mathbb{R})$ whose
+also induces an involution on the Lie algebra $\mathfrak{gl}_n(\mathbb{R})$ whose
 fixed point set is $\mathfrak{k} = \mathrm{Sk}_n$ and whose $-1$ eigenspace is $\mathfrak{p} = \mathrm{Sym}_n$,
 giving the **Cartan Lie decomposition** $\mathfrak{gl}_n = \mathfrak{k} \oplus \mathfrak{p}$ of Milestone 4.
 
@@ -551,10 +552,12 @@ In Lean this is `cartanLieDecomp : IsCompl (Sym n) (Sk n)`, where
 (the disjoint condition) and $\mathrm{Sym} \sqcup \mathrm{Sk} = \top$ (the sum is everything
 condition). `Sym` and `Sk` are realized as `Submodule ℝ Mat_n(ℝ)`.
 
-This is exactly the Cartan decomposition in the sense of Lie
-theory: $\mathrm{Sk}_n = \mathrm{Lie}(O(n)) = \mathfrak{k}$ is the maximal compact subalgebra,
-and $\mathrm{Sym}_n = \mathfrak{p}$ is the orthogonal complement under the trace form.
-The corresponding Cartan involution on the Lie algebra is $\theta_*(M) = -M^T$,
+This is exactly the Cartan decomposition in the sense of Lie theory: the
+maximal compact subalgebra and its orthogonal complement under the trace form are
+
+$$\mathrm{Sk}_n = \mathrm{Lie}(O(n)) = \mathfrak{k}, \qquad \mathrm{Sym}_n = \mathfrak{p}.$$
+
+The corresponding Cartan involution on the Lie algebra sends $M$ to $-M^T$,
 with $+1$ eigenspace $\mathfrak{k}$ and $-1$ eigenspace $\mathfrak{p}$.
 
 ### 8. The Iwasawa Lie decomposition $\mathfrak{gl}_n(\mathbb{R}) = \mathfrak{k} \oplus \mathfrak{a} \oplus \mathfrak{n}$
