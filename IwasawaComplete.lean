@@ -1323,6 +1323,23 @@ noncomputable def iwasawaChartedSourceTransportCLM (X : Sk n) (Z : NN n) :
     iwasawaChartedSourceTransportCLM X Z (δX, δv, δZ) =
       (sandwichOnSkCLM ((1 + X.1)⁻¹) δX, δv, nnRightInvCLM (uuOfNN Z) δZ) := rfl
 
+lemma iwasawaChartedSourceTransportCLM_toLinearMap_eq_prodMap (X : Sk n) (Z : NN n) :
+    (iwasawaChartedSourceTransportCLM X Z).toLinearMap =
+      (sandwichOnSkCLM ((1 + X.1)⁻¹)).toLinearMap.prodMap
+        ((LinearMap.id : (Fin n → ℝ) →ₗ[ℝ] (Fin n → ℝ)).prodMap
+          (nnRightInvCLM (uuOfNN Z)).toLinearMap) := by
+  apply LinearMap.ext
+  rintro ⟨A, w, W⟩
+  rfl
+
+lemma det_iwasawaChartedSourceTransportCLM (X : Sk n) (Z : NN n) :
+    LinearMap.det (iwasawaChartedSourceTransportCLM X Z).toLinearMap =
+      LinearMap.det (sandwichOnSkCLM ((1 + X.1)⁻¹)).toLinearMap *
+        LinearMap.det (nnRightInvCLM (uuOfNN Z)).toLinearMap := by
+  rw [iwasawaChartedSourceTransportCLM_toLinearMap_eq_prodMap, LinearMap.det_prodMap,
+      LinearMap.det_prodMap, LinearMap.det_id]
+  ring
+
 /-- The factored flat fderiv CLM: `(M ↦ cayley(X) · M · (Z+1)) ∘ (chart-center
 Leibniz at `expDiagA v`) ∘ source-transport`. -/
 noncomputable def iwasawaChartedFDerivFactored (X : Sk n) (v : Fin n → ℝ) (Z : NN n) :
@@ -1383,7 +1400,31 @@ private lemma detInIwasawaBases_iwasawaChartedFDerivFactored
       ((2 : ℝ) ^ Fintype.card (nnIndex n) *
           (expDiagA v).1.det ^ n * LinearMap.det (adNN (expDiagA v)).toLinearMap) *
         ((1 + X.1).det)⁻¹ ^ (n - 1) := by
-  sorry
+  -- factor `det(T ∘ L ∘ S)` via `toMatrix_comp`
+  have hfac : detInIwasawaBases (iwasawaChartedFDerivFactored X v Z) =
+      LinearMap.det (matrixLeftRightCLM (cayley X.1) (Z.1 + 1)).toLinearMap *
+        detInIwasawaBases (iwasawaMatrixLeibnizCLM (⟨1, IsOrthogonal.one⟩ : K n) (expDiagA v)
+          (⟨1, IsUpperUnipotent.one⟩ : UU n)) *
+        LinearMap.det (iwasawaChartedSourceTransportCLM X Z).toLinearMap := by
+    unfold detInIwasawaBases iwasawaChartedFDerivFactored
+    change (LinearMap.toMatrix (iwasawaSourceBasis (n := n)) (Matrix.stdBasis ℝ (Fin n) (Fin n))
+        ((matrixLeftRightCLM (cayley X.1) (Z.1 + 1)).toLinearMap.comp
+          ((iwasawaMatrixLeibnizCLM (⟨1, IsOrthogonal.one⟩ : K n) (expDiagA v)
+              (⟨1, IsUpperUnipotent.one⟩ : UU n)).toLinearMap.comp
+            (iwasawaChartedSourceTransportCLM X Z).toLinearMap))).det = _
+    rw [LinearMap.toMatrix_comp (iwasawaSourceBasis (n := n)) (Matrix.stdBasis ℝ (Fin n) (Fin n))
+          (Matrix.stdBasis ℝ (Fin n) (Fin n)),
+        LinearMap.toMatrix_comp (iwasawaSourceBasis (n := n)) (iwasawaSourceBasis (n := n))
+          (Matrix.stdBasis ℝ (Fin n) (Fin n)),
+        Matrix.det_mul, Matrix.det_mul, LinearMap.det_toMatrix, LinearMap.det_toMatrix]
+    ring
+  rw [hfac, det_matrixLeftRightCLM, det_cayley_skew,
+      detInIwasawaBases_one_a_one_eq_scaled_det_pow_mul_det_adNN,
+      det_iwasawaChartedSourceTransportCLM, det_sandwichOnSkCLM, det_nnRightInvCLM_eq_one]
+  have hUdet : ((Z.1 : Matrix (Fin n) (Fin n) ℝ) + 1).det = 1 := by
+    have h := (uuOfNN Z).2.det; rwa [uuOfNN_val] at h
+  rw [hUdet, Matrix.det_nonsing_inv, Ring.inverse_eq_inv']
+  ring
 
 /-- **A3.** The flat fderiv of `iwasawaCharted` at a general point. The general
 formula equals the chart-center value times the Cayley correction
@@ -1407,7 +1448,9 @@ theorem absDetInIwasawaBases_fderiv_iwasawaCharted_general
       (2 : ℝ) ^ Fintype.card (nnIndex n) *
         |(expDiagA v).1.det| ^ n * |LinearMap.det (adNN (expDiagA v)).toLinearMap| *
         (|(1 + X.1).det|⁻¹) ^ (n - 1) := by
-  sorry
+  rw [absDetInIwasawaBases_def, detInIwasawaBases_fderiv_iwasawaCharted_general]
+  simp only [abs_mul, abs_pow, abs_inv]
+  rw [abs_of_nonneg (show (0 : ℝ) ≤ 2 by norm_num)]
 
 /-- **A3 consistency check.** At `X = 0`, the general formula reduces to the
 chart-center Jacobian `2^{n(n-1)/2} · det a^n · det adNN a`. -/
