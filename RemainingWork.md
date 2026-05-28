@@ -302,3 +302,126 @@ This document is the spec for the next session(s). Two things to flag:
 (a) I did not literally read Knapp 2002 nor Goldfeld 2006 cover-to-cover in this session. The modular function formula `δ_B(a) = ∏_{i<j} a_i/a_j` is the standard formula for `B = AN` in `GL(n,ℝ)`, agreed by every reference cited (and matches our explicit `adNN_det_eq_pair_product`). Verification at the level of normalization conventions (e.g., left vs right Haar, the `2ρ` exponent) was done from the formula side, not the textbook-quoted-line side. If a specific normalization in a cited source differs from what's reported here, that needs to be checked against the actual book at that step.
 
 (b) Line-count estimates are based on the size and complexity of comparable Mathlib derivations (`unitaryGroup`, `GeneralLinearGroup`). Real numbers could be ±50% off.
+
+---
+
+# SESSION 2 UPDATE (2026-05-27)
+
+This section records what the second working session landed and revises
+the estimates. The body above is the original spec; this section is the
+authoritative current status.
+
+## What landed this session (all axiom-clean: `[propext, Classical.choice, Quot.sound]`)
+
+**Track A (general-point Cayley Jacobian) — partial.**
+- `cayleyFDerivCLM`, `cayleyFDerivCLM_apply`, `hasFDerivAt_cayley_matrix`:
+  the Fréchet derivative of `cayley` at any `M` with `1+M` invertible is
+  the sandwich `δ ↦ -2 (1+M)⁻¹ δ (1+M)⁻¹`. The `Ring.inverse`/`Matrix.inv`
+  bridge is explicit (`Ring.inverse_unit` + `nonsing_inv_eq_ringInverse`).
+- `sandwichOnSkCLM`, `_apply_val`, `_one`, `_mul` (multiplicativity, so
+  `det ∘ sandwichOnSkCLM` is a monoid hom).
+
+**Track A — BLOCKED:** `det_sandwichOnSkCLM (B) = (det B)^(n-1)`
+(the `det Λ²B` second-exterior-power determinant) and the three A3
+theorems that consume it remain `sorry`. Committed deferral strategy
+(recorded by the reviewer): multiplicativity + density. The two
+load-bearing pieces (`sandwichOnSkCLM_mul`, diagonal case) are in hand;
+the remaining step is conjugation-invariance on diagonalizable matrices +
+polynomial density (`MvPolynomial` over ℂ, specialize to ℝ), or the
+direct Plücker-minor route (~250 lines). Scalar/diagonal sanity checks
+confirmed by hand.
+
+**Track B (typeclass instances + Haar) — COMPLETE (B1–B5).**
+- `K n`: `Group`, `IsTopologicalGroup`, `T2Space`, **`CompactSpace`**
+  (built from scratch: closed orthogonal set ⊆ compact box `[-1,1]^{n×n}`).
+- `G n`: `Group`, `IsTopologicalGroup`, `T2Space`, `LocallyCompactSpace`
+  (open in the locally compact `Matrix`).
+- `A n`: `CommGroup`, `IsTopologicalGroup`, `T2Space`, `LocallyCompactSpace`
+  (transported via `A.toFinNRHomeomorph`).
+- `UU n`: `Group`, `IsTopologicalGroup`, `T2Space`, `LocallyCompactSpace`
+  (closed subset of `Matrix`).
+- `MeasurableSpace`/`BorelSpace` on `Matrix` (defeq Pi) and the four
+  subtypes (`Subtype.borelSpace`, auto). `Nonempty` instances.
+- `haarK`, `haarA`, `haarN`, `haarG` (`MeasureTheory.Measure.haar`) and
+  their `IsHaarMeasure` instances.
+- Required adding `import Mathlib.MeasureTheory.Measure.Haar.Basic`.
+
+## Status of the 8 gaps from NextSessionIntel §7
+
+1. `prod_isHaarMeasure` (general product-of-Haar-is-Haar) — **STILL OPEN.**
+   Not needed for B5 (we used `Measure.haar` on each group individually).
+   Needed for the final assembly (§7) to push `haarK ×ₘ haarA ×ₘ haarN`.
+2. `CompactSpace orthogonalGroup` — **CLOSED** (`instCompactSpaceK`,
+   project-local). Clean upstream-PR candidate (no Mathlib precedent).
+3. `LocallyCompactSpace SL` — **N/A** (project uses `G n` not `SL`).
+4. `LocallyCompactSpace GL` — **CLOSED** for `G n` (`instLocallyCompactSpaceG`).
+   Upstream-PR candidate for `GeneralLinearGroup`.
+5. `det (exteriorPower 2 f)` — **STILL MISSING.** This is exactly the A2
+   blocker `det_sandwichOnSkCLM`.
+6. `det (1 - X²)` for skew `X` — **N/A** (A1 took the `2(1+·)⁻¹-1` route,
+   no `1-X²` needed).
+7. Cayley transform — A1 gives the Fréchet derivative; the transform
+   itself remains project-local.
+8. Modular function `distribHaarChar (NN n) a = |det adNN a|` —
+   **STILL OPEN, but now UNBLOCKED.** B3+B5 supply the `A n`/`NN n` group
+   and Haar instances that the `distribHaarChar` routing needs. The
+   composition `distribHaarChar_eq_of_measure_smul_eq_mul` +
+   `addHaar_image_linearMap` (NextSessionIntel §1j, §3) is now writable
+   (~50 lines), pending the conjugation `DistribMulAction (A n) (NN n)`.
+
+## Revised line / time estimate for the remaining work
+
+| Item | Status | Revised est. |
+|---|---|---|
+| §2 typeclass instances on K, A, UU, G | **DONE** | — (was ~430 lines) |
+| §3 Haar measures (B5) | **DONE** | — (was ~100 lines) |
+| A2 `det_sandwichOnSkCLM` (= det Λ²) | blocked | ~250 lines (Plücker) or exterior-power density |
+| §4.2 general-point Jacobian (A3) | blocked on A2 | ~150 lines once A2 lands |
+| §5 modular routing via `distribHaarChar` | unblocked | ~50 lines + ~20 for the `DistribMulAction` |
+| §6 unimodularity of K, A, N | open | ~50 lines |
+| Q9 complement `K \ K_open` measure zero | open | ~30 lines (analytic hypersurface) |
+| §7 final pushforward assembly | open | ~400 lines |
+| `prod_isHaarMeasure` (gap 1) | open | ~50 lines (local) |
+| **Remaining total** | | **~1000 lines, ~1.5–2 person-weeks** |
+
+(Down from the original ~1480 lines / 2–3 weeks: Track B's ~530 lines are
+now done, leaving the A2 exterior-power determinant as the critical path.)
+
+## Q9 status (complement-of-image measure zero)
+
+Still required and now approachable. `iwasawaCharted '' univ` realizes
+the `K_open` part of `K`; `K \ K_open = {Q ∈ K | det(1+Q) = 0}` is a
+proper closed real-analytic subset, hence Haar-measure zero. With the
+B5 Haar instances this is now a stateable ~30-line lemma (proper closed
+hypersurface in a connected manifold has measure zero), but it is not
+yet written.
+
+## Phase 0 outcome (Garrett `volumes.pdf`)
+
+Resolved (partial). Garrett, "Volume of `SL_n(Z)\SL_n(R)` and
+`Sp_n(Z)\Sp_n(R)`" (April 20 2014; ed. from Feb 19 2005),
+`https://www-users.cse.umn.edu/~garrett/m/v/volumes.pdf` (WebFetch can't
+parse the PDF, but `pdftotext -layout` extracts it locally). For
+`P⁺ = AN` the left Haar measure is a `2ρ`-type product of powers of the
+diagonal entries `t_i` (exponents in arithmetic progression `-2n, -2n+2,
+…`) times `dn ∏ dt_i/t_i`, consistent with `∏_{i<j} a_i/a_j` up to the
+left-vs-right and GL-vs-SL convention. The exact exponent vector is
+still garbled by the 2-column extraction even with `-layout`; the
+structure is confirmed, the precise constant should be read off the
+rendered source at the final-assembly step.
+
+## New upstream-PR candidates (do NOT PR now)
+
+- `CompactSpace (Matrix.orthogonalGroup (Fin n) ℝ)` (closed-box proof).
+- `LocallyCompactSpace (Matrix.GeneralLinearGroup (Fin n) ℝ)`.
+- `det (Λ² f) = (det f)^{n-1}` (general exterior-power determinant) — the
+  A2 blocker; the highest-value contribution.
+
+## Scope honesty (session 2)
+
+Track B is genuinely complete and axiom-clean (verified by `#print
+axioms` on every instance and the four Haar measures). The only `sorry`s
+in `IwasawaComplete.lean` are `det_sandwichOnSkCLM` and the three A3
+theorems, all consuming the missing exterior-power determinant. No
+estimate here was checked against a textbook line; the modular-function
+normalization caveat from §12(a) stands.
