@@ -1058,14 +1058,69 @@ private lemma det_one_add_of_isNilpotent {R M : Type*} [Field R] [AddCommGroup M
 Holds for every `D : Fin n → ℝ`, including ones with zero entries. -/
 private lemma prod_nnIndex_mul_pair_eq_prod_pow (D : Fin n → ℝ) :
     (∏ ij : nnIndex n, D ij.1.1 * D ij.1.2) = (∏ i : Fin n, D i) ^ (n - 1) := by
-  sorry
+  rcases lt_or_ge n 2 with hn | hn
+  · -- `n = 0` or `n = 1`: `nnIndex n` is empty (no `i < j`) and `n - 1 = 0`.
+    rw [show n - 1 = 0 by omega, pow_zero]
+    apply Finset.prod_eq_one
+    rintro ⟨⟨a, b⟩, hab⟩ -
+    exfalso
+    have ha := a.isLt
+    have hb := b.isLt
+    have hab' : a.val < b.val := hab
+    omega
+  · -- `n ≥ 2`.
+    set S : ℝ := ∏ i : Fin n, D i with hS
+    rw [Finset.prod_mul_distrib]
+    -- goal: `(∏ ij, D ij.1.1) * (∏ ij, D ij.1.2) = S ^ (n - 1)`.
+    by_cases hS0 : S = 0
+    · rw [hS0, zero_pow (show n - 1 ≠ 0 by omega), ← Finset.prod_mul_distrib]
+      have hD0 : (∏ i : Fin n, D i) = 0 := by rw [← hS]; exact hS0
+      obtain ⟨k, -, hk⟩ := Finset.prod_eq_zero_iff.mp hD0
+      haveI : Nontrivial (Fin n) := Fin.nontrivial_iff_two_le.mpr hn
+      obtain ⟨m, hm⟩ := exists_ne k
+      rcases lt_or_gt_of_ne hm with h | h
+      · exact Finset.prod_eq_zero (Finset.mem_univ (⟨(m, k), h⟩ : nnIndex n))
+          (by show D m * D k = 0; rw [hk, mul_zero])
+      · exact Finset.prod_eq_zero (Finset.mem_univ (⟨(k, m), h⟩ : nnIndex n))
+          (by show D k * D m = 0; rw [hk, zero_mul])
+    · have hpow : S ^ n = S ^ (n - 1) * S := by
+        conv_lhs => rw [show n = (n - 1) + 1 by omega]
+        rw [pow_succ]
+      have hex := nnIndex_snd_prod_mul_diag_prod_mul_fst_prod_eq_diag_prod_pow (n := n) D
+      rw [← hS] at hex
+      -- hex : (∏ ij, D ij.1.2) * (S * (∏ ij, D ij.1.1)) = S ^ n
+      have heq2 :
+          S * ((∏ ij : nnIndex n, D ij.1.1) * (∏ ij : nnIndex n, D ij.1.2)) = S * S ^ (n - 1) := by
+        have hstep : S * ((∏ ij : nnIndex n, D ij.1.1) * (∏ ij : nnIndex n, D ij.1.2)) = S ^ n := by
+          rw [← hex]; ring
+        rw [hstep, hpow]; ring
+      exact mul_left_cancel₀ hS0 heq2
 
 /-- The congruence by a diagonal matrix acts diagonally on `skBasis`, scaling
 the `ij`-th basis vector by `D_{ij.1} · D_{ij.2}`. -/
 private lemma sandwichOnSkCLM_diagonal_skBasis (D : Fin n → ℝ) (ij : nnIndex n) :
     sandwichOnSkCLM (Matrix.diagonal D) (skBasis ij)
       = (D ij.1.1 * D ij.1.2) • skBasis ij := by
-  sorry
+  apply Subtype.ext
+  show ((sandwichOnSkCLM (Matrix.diagonal D) (skBasis ij) : Sk n) : Matrix (Fin n) (Fin n) ℝ)
+      = (((D ij.1.1 * D ij.1.2) • skBasis ij : Sk n) : Matrix (Fin n) (Fin n) ℝ)
+  rw [sandwichOnSkCLM_apply_val, Matrix.diagonal_transpose, Submodule.coe_smul]
+  ext p q
+  rw [Matrix.mul_diagonal, Matrix.diagonal_mul, Matrix.smul_apply, smul_eq_mul,
+      skBasis_val_eq_single_sub_single]
+  simp only [Matrix.sub_apply, Matrix.single_apply]
+  by_cases h1 : ij.1.1 = p ∧ ij.1.2 = q
+  · obtain ⟨hap, hbq⟩ := h1
+    have h2 : ¬ (ij.1.2 = p ∧ ij.1.1 = q) := by
+      rintro ⟨hbp, _⟩
+      exact absurd (hap.trans hbp.symm) (ne_of_lt ij.2)
+    rw [if_pos ⟨hap, hbq⟩, if_neg h2]
+    subst hap; subst hbq; ring
+  · by_cases h2 : ij.1.2 = p ∧ ij.1.1 = q
+    · obtain ⟨hbp, haq⟩ := h2
+      rw [if_neg h1, if_pos ⟨hbp, haq⟩]
+      subst hbp; subst haq; ring
+    · rw [if_neg h1, if_neg h2]; ring
 
 /-- Diagonal case of `det_sandwichOnSkCLM`: the operator is diagonal in
 `skBasis`, so its determinant is the product of eigenvalues, which equals
@@ -1073,7 +1128,18 @@ private lemma sandwichOnSkCLM_diagonal_skBasis (D : Fin n → ℝ) (ij : nnIndex
 private lemma det_sandwichOnSkCLM_diagonal (D : Fin n → ℝ) :
     LinearMap.det (sandwichOnSkCLM (Matrix.diagonal D)).toLinearMap
       = (Matrix.diagonal D).det ^ (n - 1) := by
-  sorry
+  have hmat :
+      LinearMap.toMatrix skBasis skBasis (sandwichOnSkCLM (Matrix.diagonal D)).toLinearMap
+        = Matrix.diagonal (fun ij : nnIndex n => D ij.1.1 * D ij.1.2) := by
+    ext kl ij
+    simp only [LinearMap.toMatrix_apply, ContinuousLinearMap.coe_coe,
+               sandwichOnSkCLM_diagonal_skBasis, map_smul, Finsupp.smul_apply, smul_eq_mul,
+               Matrix.diagonal_apply, Module.Basis.repr_self_apply]
+    by_cases hkl : kl = ij
+    · subst hkl; simp
+    · rw [if_neg (Ne.symm hkl), if_neg hkl, mul_zero]
+  rw [← LinearMap.det_toMatrix skBasis (sandwichOnSkCLM (Matrix.diagonal D)).toLinearMap, hmat,
+      Matrix.det_diagonal, prod_nnIndex_mul_pair_eq_prod_pow, Matrix.det_diagonal]
 
 /-- Transvection case of `det_sandwichOnSkCLM`: the congruence by a
 transvection `1 + c·E_{ij}` (with `i ≠ j`) is unipotent on `Sk n` (the
