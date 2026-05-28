@@ -1240,6 +1240,83 @@ instance instLocallyCompactSpaceMatrix :
 instance instLocallyCompactSpaceG : LocallyCompactSpace (G n) :=
   G_isOpenEmbedding.locallyCompactSpace
 
+/-! ### B3. `A n = { D // IsPositiveDiagonal D }` (positive diagonal group) -/
+
+/-- `IsPositiveDiagonal` is closed under natural-number powers. -/
+private lemma isPositiveDiagonal_pow {D : Matrix (Fin n) (Fin n) ℝ}
+    (hD : IsPositiveDiagonal D) : ∀ m : ℕ, IsPositiveDiagonal (D ^ m)
+  | 0 => by simpa using IsPositiveDiagonal.one
+  | (m + 1) => by rw [pow_succ]; exact IsPositiveDiagonal.mul (isPositiveDiagonal_pow hD m) hD
+
+noncomputable instance : Mul (A n) :=
+  ⟨fun D E => ⟨D.1 * E.1, IsPositiveDiagonal.mul D.2 E.2⟩⟩
+instance : One (A n) := ⟨⟨1, IsPositiveDiagonal.one⟩⟩
+noncomputable instance : Inv (A n) := ⟨fun D => ⟨D.1⁻¹, D.2.matInv⟩⟩
+noncomputable instance : Pow (A n) ℕ :=
+  ⟨fun D m => ⟨D.1 ^ m, isPositiveDiagonal_pow D.2 m⟩⟩
+
+@[simp] lemma A_coe_mul (D E : A n) :
+    ((D * E : A n) : Matrix (Fin n) (Fin n) ℝ) = D.1 * E.1 := rfl
+@[simp] lemma A_coe_one :
+    ((1 : A n) : Matrix (Fin n) (Fin n) ℝ) = 1 := rfl
+@[simp] lemma A_coe_inv (D : A n) :
+    ((D⁻¹ : A n) : Matrix (Fin n) (Fin n) ℝ) = D.1⁻¹ := rfl
+@[simp] lemma A_coe_pow (D : A n) (m : ℕ) :
+    ((D ^ m : A n) : Matrix (Fin n) (Fin n) ℝ) = D.1 ^ m := rfl
+
+noncomputable instance instMonoidA : Monoid (A n) :=
+  Function.Injective.monoid (Subtype.val) Subtype.coe_injective A_coe_one A_coe_mul A_coe_pow
+
+/-- **B3.** `A n` is a commutative group (positive diagonal matrices).
+Diagonal matrices commute (entrywise argument), inverse is the
+entrywise reciprocal (`IsPositiveDiagonal.matInv`). -/
+noncomputable instance instCommGroupA : CommGroup (A n) :=
+  { instMonoidA with
+    inv := Inv.inv
+    inv_mul_cancel := fun D => by
+      apply Subtype.ext
+      show D.1⁻¹ * D.1 = 1
+      exact Matrix.nonsing_inv_mul D.1 (isUnit_iff_ne_zero.mpr D.2.det_pos.ne')
+    mul_comm := fun D E => by
+      apply Subtype.ext
+      show D.1 * E.1 = E.1 * D.1
+      ext i j
+      rw [Matrix.mul_apply, Matrix.mul_apply]
+      rw [Finset.sum_eq_single i
+          (fun k _ hk => by rw [D.2.1 i k (Ne.symm hk), zero_mul])
+          (fun h => absurd (Finset.mem_univ i) h)]
+      rw [Finset.sum_eq_single i
+          (fun k _ hk => by rw [E.2.1 i k (Ne.symm hk), zero_mul])
+          (fun h => absurd (Finset.mem_univ i) h)]
+      rcases eq_or_ne i j with h | h
+      · subst h; ring
+      · rw [E.2.1 i j h, D.2.1 i j h]; ring }
+
+/-- **B3.** `A n` is a topological group (subtype topology). Inversion
+uses `continuousAt_matrix_inv` on the positive-determinant locus. -/
+instance instIsTopologicalGroupA : IsTopologicalGroup (A n) where
+  continuous_mul := by
+    refine continuous_induced_rng.mpr ?_
+    exact (continuous_induced_dom.comp continuous_fst).matrix_mul
+      (continuous_induced_dom.comp continuous_snd)
+  continuous_inv := by
+    refine continuous_induced_rng.mpr ?_
+    rw [continuous_iff_continuousAt]
+    intro D
+    have hUnit : IsUnit (D.1.det) := isUnit_iff_ne_zero.mpr D.2.det_pos.ne'
+    have hRingInv : ContinuousAt Ring.inverse (D.1.det) :=
+      NormedRing.inverse_continuousAt hUnit.unit
+    have hMatInv : ContinuousAt Inv.inv D.1 := continuousAt_matrix_inv D.1 hRingInv
+    exact hMatInv.comp continuous_induced_dom.continuousAt
+
+/-- **B3.** `A n` is Hausdorff. -/
+instance instT2SpaceA : T2Space (A n) := inferInstance
+
+/-- **B3.** `A n` is locally compact, transported through the
+log/exp homeomorphism `A.toFinNRHomeomorph : A n ≃ₜ (Fin n → ℝ)`. -/
+instance instLocallyCompactSpaceA : LocallyCompactSpace (A n) :=
+  (A.toFinNRHomeomorph (n := n)).locallyCompactSpace_iff.mpr inferInstance
+
 end TrackBInstances
 
 end Complete
