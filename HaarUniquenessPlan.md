@@ -5,6 +5,86 @@ target, the weight power, the crux route, and the dependency order. Proves
 nothing here. Mathlib facts were read from the pinned copy under
 `.lake/packages/mathlib` on 2026-05-28; project facts from the current source.
 
+## Progress (2026-05-28f): GL_n Haar groundwork + route recommendation
+
+All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`).
+
+### PHASE 1a DONE — determinant of matrix multiplication maps (`IwasawaHaar.lean`)
+
+The linear-algebra linchpins Mathlib lacks, all proved row/column-wise via
+`LinearMap.det_pi`:
+- `leftMulMatLin g` / `rightMulMatLin g`: `M ↦ g * M` and `M ↦ M * g` as
+  `ℝ`-linear endomorphisms of `Matrix (Fin n) (Fin n) ℝ`.
+- `det_rightMulMatLin : LinearMap.det (rightMulMatLin g) = (det g) ^ n` (row
+  decomposition: each row is `toLin' gᵀ`).
+- `det_leftMulMatLin : LinearMap.det (leftMulMatLin g) = (det g) ^ n` (conjugate
+  by transpose to reduce to the right version, via `leftMul_conj_eq_rightMul`).
+- `det_conjMatLin (hg : det g ≠ 0) : det ((leftMulMatLin g) ∘ (rightMulMatLin g⁻¹)) = 1`.
+  **The algebraic reason `GL_n(ℝ)` is unimodular**: the adjoint `M ↦ g M g⁻¹`
+  has determinant `(det g)^n · (det g)^{-n} = 1`, so it preserves Lebesgue.
+
+### Mathlib has a modular character
+
+`MeasureTheory.Measure.modularCharacter : G →* ℝ≥0` exists
+(`Mathlib/MeasureTheory/Group/ModularCharacter.lean`), with
+`map_right_mul_eq_modularCharacterFun_smul : map (· * g) μ = modularCharacterFun g • μ`.
+So "`G n` unimodular" is exactly `modularCharacterFun g = 1`, equivalently
+`haarG` right invariant. There is still no `modularCharacter = |det Ad|`
+lemma, so the value must be obtained from an explicit bi-invariant Haar.
+
+### PHASE 1b BLOCKER (genuine friction, not yet built): measures on `Matrix`
+
+Attempting `map (leftMulMatLin g) (volume : Measure (Matrix (Fin n) (Fin n) ℝ))`
+fails: `Matrix (Fin n) (Fin n) ℝ` carries a **MeasurableSpace diamond** — the
+project's `instMeasurableSpaceMatrix` (used by `Measure.map` on a
+`Matrix →ₗ Matrix`) versus the `MeasureSpace.toMeasurableSpace` that `volume`
+elaborates with. They are not defeq, so `volume` cannot be placed on `Matrix`
+directly, and `map_linearMap_addHaar_eq_smul_addHaar` needs the global normed
+structure `Matrix` deliberately lacks. The clean fix (as `nuU` did with
+`nnChart`) is to never measure `Matrix`: work on the coordinate space
+`Fin n × Fin n → ℝ` (clean `volume`/normed/Borel instances) through a chart
+`Matrix ≃ₗ (Fin n × Fin n → ℝ)`, and transport `det_leftMulMatLin` /
+`det_rightMulMatLin` through `LinearMap.det_conj`.
+
+Extra difficulty unique to `G n`: unlike `UU n` (globally `≃ₜ ℝ^k` via strict
+upper entries), `G n = GL_n` is an **open subset** of `Matrix`, not globally a
+vector space. So `haarGExplicit` is `volume`-on-the-coordinate-space restricted
+to the open `det ≠ 0` set, with density `|det|^{-n}` (`withDensity`), and the
+group-multiplication invariance must be matched on the open subset. The chain
+needed: chart + linear-pushforward scaling (`= |det g|^{-n} • vol`) + the
+`withDensity`/pushforward change-of-variables identity + restriction to the open
+subtype + identification with `haarG` by Haar uniqueness. This is a multi-step
+measure-theory construction; the algebraic foundation (1a) is in place.
+
+### PHASE 2 — route recommendation: prefer Route B (change of variables)
+
+Both routes require the GL_n Haar ↔ `haarG` identification above (the target is
+stated with `haarG`), so that groundwork is shared.
+
+- **Route A (Haar uniqueness on the pullback)** `ν := map iwasawaDiffeomorph.symm haarG`:
+  prove left-`K` invariance (from `haarG` left invariance + an unproved
+  `iwasawaMap (k₀·k, a, u) = k₀ · iwasawaMap (k,a,u)` intertwining), right-`U`
+  and right-`A` invariance (need `haarG` right invariance = GL_n unimodularity),
+  the crux T4 / `map_conjAut_haarN` pinning the right-`A` weight, then **per
+  factor Haar uniqueness / disintegration** of `ν` into the product. The
+  disintegration step is the hard, least-supported part in Mathlib.
+
+- **Route B (change of variables)**: the Iwasawa-map **Jacobian is already
+  proved** (`absDetInIwasawaBases_factored… = 2^{|nnIndex|} (det a)^n det(adNN a)`,
+  axiom clean) and `iwasawaDiffeomorph` is a finished smooth diffeomorphism. Use
+  Mathlib's `integral_image_eq_integral_abs_det_fderiv_smul` on the charted map
+  (the charted `fderiv` is the computed Jacobian), then identify each coordinate
+  Lebesgue with `haarK`/`haarA`/`haarN` and the target with `haarG`. This
+  **avoids disintegration and does not even need the crux** (the weight comes
+  straight from the Jacobian). Main intricacy: the manifold→vector-space chart
+  plumbing for the change-of-variables theorem, plus the shared Lebesgue↔Haar
+  identifications.
+
+**Recommendation: Route B.** It reuses the largest finished pieces (Jacobian +
+diffeomorphism), sidesteps disintegration, and needs no new invariance/crux
+chain — only chart plumbing for `integral_image_eq_integral_abs_det_fderiv_smul`
+and the per-factor Lebesgue↔Haar identifications (which both routes share).
+
 ## Progress (2026-05-28e): T3 and T4 closed in `IwasawaHaar.lean` — crux complete
 
 All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`).
