@@ -3,6 +3,7 @@ import Mathlib.MeasureTheory.Constructions.Pi
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 import Mathlib.MeasureTheory.Measure.Haar.MulEquivHaarChar
+import Mathlib.MeasureTheory.Group.ModularCharacter
 
 /-
 Measure theory layer for the Iwasawa decomposition.
@@ -1320,6 +1321,26 @@ instance instIsHaarMeasure_nuG : (nuG (n := n)).IsHaarMeasure := ⟨⟩
 #print axioms instIsFiniteMeasureOnCompacts_nuG
 #print axioms instIsOpenPosMeasure_nuG
 #print axioms instIsHaarMeasure_nuG
+
+/-! ### GL_n is unimodular: the modular character is trivial
+
+Since `nuG` is a Haar measure on `G n` that is also right invariant
+(`map_rightMul_nuG`), and the modular character does not depend on the chosen
+Haar measure (`modularCharacterFun_eq_haarScalarFactor`), its scalar factor is
+`haarScalarFactor nuG nuG = 1`. This is the measure level statement of
+unimodularity of `GL_n(ℝ)`. -/
+
+/-- **Unimodularity of `GL_n(ℝ)`.** The modular character of `G n` is trivial:
+`modularCharacterFun g = 1` for every `g : G n`. Computed with the explicit bi
+invariant Haar measure `nuG`: right invariance makes the Haar scalar factor of
+right translation equal to `haarScalarFactor nuG nuG = 1`. -/
+theorem modularCharacterFun_eq_one (g : G n) :
+    Measure.modularCharacterFun g = 1 := by
+  rw [Measure.modularCharacterFun_eq_haarScalarFactor (nuG (n := n)) g]
+  simp only [map_rightMul_nuG]
+  exact Measure.haarScalarFactor_self _
+
+#print axioms modularCharacterFun_eq_one
 
 end Complete
 end IwasawaCoC
