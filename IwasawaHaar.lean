@@ -1375,5 +1375,53 @@ lemma nuG_eq_haarScalarFactor_smul_haarG :
 #print axioms instRegular_nuG
 #print axioms nuG_eq_haarScalarFactor_smul_haarG
 
+/-! ### Level 0: factor Haar identifications for `A` and `U`
+
+Mirroring `nuG = c . haarG`. `nuU` already carries its regularity instances, so the
+`U` identification is immediate. For `A`, `haarAExplicit` only needs the finite on
+compacts and regular instances (transported through the log chart homeomorphism, like
+`nuU`); inner regularity then follows on the second countable, pseudo metrizable,
+sigma compact group `A n`. Haar uniqueness then identifies each with the canonical
+factor Haar up to a positive scalar. -/
+
+/-- `haarAExplicit` is finite on compacts (pushforward of `volume` via the log
+chart homeomorphism). -/
+instance instIsFiniteOnCompacts_haarAExplicit :
+    IsFiniteMeasureOnCompacts (haarAExplicit (n := n)) := by
+  refine ⟨fun K hK => ?_⟩
+  have hpre : (A.toFinNRHomeomorph (n := n)).symm ⁻¹' K
+      = (A.toFinNRHomeomorph (n := n)) '' K := by
+    ext v
+    simp only [Set.mem_preimage, Set.mem_image]
+    constructor
+    · intro h
+      exact ⟨(A.toFinNRHomeomorph (n := n)).symm v, h,
+        (A.toFinNRHomeomorph (n := n)).apply_symm_apply v⟩
+    · rintro ⟨D, hD, rfl⟩
+      rwa [Homeomorph.symm_apply_apply]
+  unfold haarAExplicit
+  rw [Measure.map_apply (A.toFinNRHomeomorph (n := n)).symm.measurable hK.measurableSet, hpre]
+  exact (hK.image (A.toFinNRHomeomorph (n := n)).continuous).measure_lt_top
+
+/-- `haarAExplicit` is regular (pushforward of the regular `volume`). -/
+instance instRegular_haarAExplicit : (haarAExplicit (n := n)).Regular :=
+  Measure.Regular.map (A.toFinNRHomeomorph (n := n)).symm
+
+/-- **A factor identification.** `haarAExplicit` equals `haarA` up to a positive
+scalar, by Haar uniqueness. -/
+lemma haarAExplicit_eq_haarScalarFactor_smul_haarA :
+    haarAExplicit (n := n)
+      = Measure.haarScalarFactor (haarAExplicit (n := n)) haarA • haarA :=
+  Measure.isMulLeftInvariant_eq_smul_of_innerRegular haarAExplicit haarA
+
+/-- **U factor identification.** `nuU` equals `haarN` up to a positive scalar, by
+Haar uniqueness. -/
+lemma nuU_eq_haarScalarFactor_smul_haarN :
+    nuU (n := n) = Measure.haarScalarFactor (nuU (n := n)) haarN • haarN :=
+  Measure.isMulLeftInvariant_eq_smul_of_innerRegular nuU haarN
+
+#print axioms haarAExplicit_eq_haarScalarFactor_smul_haarA
+#print axioms nuU_eq_haarScalarFactor_smul_haarN
+
 end Complete
 end IwasawaCoC
