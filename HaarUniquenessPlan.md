@@ -107,6 +107,78 @@ All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`).
   `ℝ≥0` and `ℝ` form). The crux measure identity is genuine, not a positivity
   existential.
 
+## Progress (2026-05-28f): GL_n Haar foundation built (steps 1 to 3)
+
+Building the explicit `GL_n` Haar measure incrementally, all axiom clean
+([propext, Classical.choice, Quot.sound], no sorryAx). Commits 7d4f8a4,
+a39f0c2, 3e9c1a7 in `IwasawaHaar.lean`. The full matrix space is charted onto
+the Pi coordinate space `(Fin n x Fin n) to R` (which carries Lebesgue
+`volume`), mirroring the `nuU` technique to avoid the local matrix norm.
+
+- **Step 1 (7d4f8a4).** `matCoord` the uncurry chart
+  `Matrix (Fin n) (Fin n) R` to `(Fin n x Fin n) to R`; `leftMulC g`,
+  `rightMulC g` left and right multiplication transported to the coordinate
+  space; `det_leftMulC`, `det_rightMulC`: determinant `(det g)^n` (via the
+  project's `det_matrixLeftRightCLM`); `map_leftMulC_volume`,
+  `map_rightMulC_volume`: each scales Lebesgue by `|det g|^(-n)` (via
+  `map_linearMap_addHaar_eq_smul_addHaar`).
+- **Step 2 (a39f0c2).** `weightC w = ofReal((|det(matCoord.symm w)|^n) inv)`,
+  the `|det|^(-n)` density in coordinates; `matCoord_symm_leftMulC`,
+  `matCoord_symm_rightMulC` relate the chart maps to matrix multiplication;
+  `weightC_leftMulC`, `weightC_rightMulC`: the density picks up the factor
+  `|det g|^(-n)` under left and right multiplication.
+- **Step 3 (3e9c1a7).** `lintegral_comp_leftMulC`, `lintegral_comp_rightMulC`:
+  the lintegral change of variables
+  `int F(leftMulC g x) dvol = |det g|^(-n) times int F dvol` (via
+  `lintegral_map` and step 1).
+
+Remaining for the explicit Haar and unimodularity:
+- **Invariance.** `map (leftMulC g) (volume.withDensity weightC)
+  = volume.withDensity weightC` for `det g not 0` (and the right version): the
+  step 1 Lebesgue scaling `|det g|^(-n)` cancels the step 2 density factor
+  `|det g|^(-n)`. The lintegral ingredients are all in place (steps 2 and 3);
+  the assembly needs `Measurable weightC` (the friction point: `det` composed
+  with the matrix chart whose codomain has no activated norm) plus indicator,
+  `lintegral_const_mul`, and ENNReal cancellation bookkeeping.
+- **Subtype and packaging.** Transport `volume.withDensity weightC` from the
+  coordinate space to `G n = { g // det g not 0 }` (open embedding), prove
+  `IsHaarMeasure` and `Regular`, then `IsMulRightInvariant` from the right
+  version, giving `G n` unimodular; finally identify with `haarG` up to a
+  positive scalar by Haar uniqueness, transferring right invariance to `haarG`.
+
+## PHASE 2 route scoping (recommendation)
+
+With the crux (T1 to T4) done and the `GL_n` Haar foundation built, the two
+routes to the genuine integration formula compare as follows.
+
+- **Route A, Haar uniqueness.** Let `nu = map iwasawaDiffeomorph.symm haarG`.
+  Prove three invariances of `nu`: left `K` (from left invariance of `haarG`,
+  ungated), right `U` and right `A` (from `G n` unimodular, i.e. PHASE 1), with
+  the right `A` weight pinned by the crux (`map_conjAut_haarN`). Then per factor
+  Haar uniqueness assembles the formula. Intricacy: the per factor uniqueness
+  and disintegration of the product measure `haarK times haarA times haarN`,
+  for which Mathlib support is thin; and it needs PHASE 1 (unimodularity)
+  finished.
+- **Route B, change of variables.** Use the already proved Jacobian
+  `absDetInIwasawaBases ... = 2^|nnIndex| times (det a)^n times det(adNN a)` and
+  Mathlib's `integral_image_eq_integral_abs_det_fderiv_smul`. Set the charted
+  Iwasawa map up as a self map of the coordinate spaces and identify each
+  coordinate Lebesgue with the corresponding Haar measure (`haarK`, `haarA`,
+  `haarN`, and the `GL_n` Haar from PHASE 1). Route B does not need the crux
+  (the weight comes from the Jacobian directly). Intricacy: the manifold change
+  of variables setup (the Mathlib lemma is for open sets of normed spaces via
+  `fderiv`, so everything must be charted) and the Lebesgue to Haar
+  identifications for each factor.
+
+**Recommendation: Route B.** The Jacobian, the single largest ingredient, is
+already proved and axiom clean, and Route B avoids the disintegration that
+makes Route A per factor uniqueness awkward in current Mathlib. Both routes
+still require the PHASE 1 `GL_n` Haar (Route B to identify `haarG` with the
+explicit `|det|^(-n)` Lebesgue, Route A for unimodularity), so finishing the
+invariance and uniqueness from steps 1 to 3 is the common next milestone. The
+crux stays valuable as an independent cross check of the `A` weight, and as the
+Route A path should disintegration support improve.
+
 ## PHASE 2 gate (verified 2026-05-28e): GL_n unimodularity / GL_n Haar NOT in Mathlib
 
 A thorough search of the pinned Mathlib confirms the gate for the full
