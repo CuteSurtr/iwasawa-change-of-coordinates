@@ -846,21 +846,27 @@ lemma map_rightMulCoord_volume (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 
 Integrating against coordinate Lebesgue, precomposition with left/right
 multiplication by an invertible `g` picks up the factor `|det g|^(-n)`. -/
 
+/-- Normalize `|((det g)^n)⁻¹|` (the Lebesgue scaling factor) to the clean
+density form `(|det g|^n)⁻¹`. -/
+private lemma abs_detPow_inv (g : Matrix (Fin n) (Fin n) ℝ) :
+    |((Matrix.det g) ^ n)⁻¹| = (|g.det| ^ n)⁻¹ := by
+  rw [abs_inv, abs_pow]
+
 /-- Change of variables for left multiplication. -/
 lemma lintegral_leftMulCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0)
     {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
     ∫⁻ x, F (leftMulCoord g x) ∂(volume : Measure ((Fin n × Fin n) → ℝ))
-      = ENNReal.ofReal |((Matrix.det g) ^ n)⁻¹| * ∫⁻ x, F x ∂volume := by
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * ∫⁻ x, F x ∂volume := by
   rw [← lintegral_map hF (leftMulCoord g).continuous_of_finiteDimensional.measurable,
-    map_leftMulCoord_volume g hg, lintegral_smul_measure, smul_eq_mul]
+    map_leftMulCoord_volume g hg, lintegral_smul_measure, smul_eq_mul, abs_detPow_inv]
 
 /-- Change of variables for right multiplication. -/
 lemma lintegral_rightMulCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0)
     {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
     ∫⁻ x, F (rightMulCoord g x) ∂(volume : Measure ((Fin n × Fin n) → ℝ))
-      = ENNReal.ofReal |((Matrix.det g) ^ n)⁻¹| * ∫⁻ x, F x ∂volume := by
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * ∫⁻ x, F x ∂volume := by
   rw [← lintegral_map hF (rightMulCoord g).continuous_of_finiteDimensional.measurable,
-    map_rightMulCoord_volume g hg, lintegral_smul_measure, smul_eq_mul]
+    map_rightMulCoord_volume g hg, lintegral_smul_measure, smul_eq_mul, abs_detPow_inv]
 
 #print axioms lintegral_leftMulCoord
 #print axioms lintegral_rightMulCoord
@@ -936,11 +942,6 @@ private lemma ofReal_detFactor_ne_zero (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.
   rw [Ne, ENNReal.ofReal_eq_zero, not_le]
   exact inv_pos.mpr (pow_pos (abs_pos.mpr hg) n)
 
-/-- `withDensity` normalizes the density through `NNReal`; this folds it back. -/
-private lemma coe_toNNReal_detWeightCoord (w : (Fin n × Fin n) → ℝ) :
-    (↑(detWeightCoord (n := n) w).toNNReal : ℝ≥0∞) = detWeightCoord w :=
-  ENNReal.coe_toNNReal ENNReal.ofReal_ne_top
-
 /-- **Left invariance** of the explicit `GL_n` Haar measure. -/
 lemma map_leftMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
     Measure.map (leftMulCoord g) (haarGCoord (n := n)) = haarGCoord := by
@@ -986,14 +987,22 @@ lemma map_rightMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det 
   rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hFR,
     lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hF]
   simp only [Pi.mul_apply]
-  refine (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
-    ENNReal.ofReal_ne_top).mp ?_
-  rw [← lintegral_rightMulCoord g hg (measurable_detWeightCoord.mul hF),
-    ← lintegral_const_mul _ (measurable_detWeightCoord.mul hFR)]
-  refine lintegral_congr fun x => ?_
-  simp only [Pi.mul_apply]
-  rw [detWeightCoord_rightMulCoord]
-  ring
+  have hcov : ∫⁻ x, detWeightCoord (n := n) (rightMulCoord g x) * F (rightMulCoord g x) ∂volume
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * ∫⁻ x, detWeightCoord x * F x ∂volume := by
+    have h := lintegral_rightMulCoord g hg (measurable_detWeightCoord.mul hF)
+    simpa only [Pi.mul_apply] using h
+  have htrans : ∫⁻ x, detWeightCoord (n := n) (rightMulCoord g x) * F (rightMulCoord g x) ∂volume
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹)
+        * ∫⁻ x, detWeightCoord x * F (rightMulCoord g x) ∂volume := by
+    rw [← lintegral_const_mul _ (measurable_detWeightCoord.mul hFR)]
+    refine lintegral_congr fun x => ?_
+    rw [detWeightCoord_rightMulCoord, mul_assoc]
+  have key : ENNReal.ofReal ((|g.det| ^ n)⁻¹)
+      * ∫⁻ x, detWeightCoord (n := n) x * F (rightMulCoord g x) ∂volume
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * ∫⁻ x, detWeightCoord x * F x ∂volume := by
+    rw [← htrans, hcov]
+  exact (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
+    ENNReal.ofReal_ne_top).mp key
 
 #print axioms map_leftMulCoord_haarGCoord
 #print axioms map_rightMulCoord_haarGCoord
