@@ -223,6 +223,62 @@ noncomputable def conjAut (a : A n) : UU n ≃ₜ* UU n where
 @[simp] lemma conjAut_apply_val (a : A n) (u : UU n) :
     ((conjAut a u : UU n) : Matrix (Fin n) (Fin n) ℝ) = a.1⁻¹ * u.1 * a.1 := rfl
 
+/-! ### C2: a fresh chart `UU n ≃ₜ (nnIndex n → ℝ)` by strict upper entries -/
+
+/-- The upper unipotent matrix built from strict upper coordinates. -/
+def fromCoords (v : nnIndex n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
+  fun i j => if h : i < j then v ⟨(i, j), h⟩ else if i = j then 1 else 0
+
+lemma fromCoords_isUpperUnipotent (v : nnIndex n → ℝ) :
+    IsUpperUnipotent (fromCoords v) := by
+  refine ⟨?_, ?_⟩
+  · intro i j hji
+    have hji' : j < i := hji
+    simp only [fromCoords]
+    split_ifs with h1 h2 <;> first | rfl | omega
+  · intro i
+    simp only [fromCoords]
+    split_ifs with h1 h2 <;> first | rfl | omega
+
+/-- **C2.** The chart `UU n ≃ₜ (nnIndex n → ℝ)` reading off strict upper
+entries. Built directly in the product topology, so no norm on `NN n` is
+needed. -/
+def nnChart : UU n ≃ₜ (nnIndex n → ℝ) where
+  toFun u := fun ij => u.1 ij.1.1 ij.1.2
+  invFun v := ⟨fromCoords v, fromCoords_isUpperUnipotent v⟩
+  left_inv u := by
+    apply Subtype.ext
+    funext i j
+    show fromCoords (fun ij => u.1 ij.1.1 ij.1.2) i j = u.1 i j
+    simp only [fromCoords]
+    split_ifs with h1 h2
+    · rfl
+    · subst h2; exact (u.2.2 i).symm
+    · exact (u.2.1 (show j < i by omega)).symm
+  right_inv v := by
+    funext ij
+    show fromCoords v ij.1.1 ij.1.2 = v ij
+    simp only [fromCoords]
+    exact dif_pos ij.2
+  continuous_toFun := by
+    apply continuous_pi
+    intro ij
+    exact (continuous_apply ij.1.2).comp
+      ((continuous_apply ij.1.1).comp continuous_subtype_val)
+  continuous_invFun := by
+    apply Continuous.subtype_mk
+    apply continuous_pi; intro i
+    apply continuous_pi; intro j
+    by_cases hij : i < j
+    · have heq : (fun v : nnIndex n → ℝ => fromCoords v i j)
+          = fun v => v ⟨(i, j), hij⟩ := by
+        funext v; simp only [fromCoords, dif_pos hij]
+      rw [heq]; exact continuous_apply _
+    · have heq : (fun v : nnIndex n → ℝ => fromCoords v i j)
+          = fun _ => (if i = j then (1 : ℝ) else 0) := by
+        funext v; simp only [fromCoords, dif_neg hij]
+      rw [heq]; exact continuous_const
+
 #print axioms haarKAU
 #print axioms instIsHaarMeasureHaarKAU
 #print axioms toFinNRHomeomorph_mul
@@ -233,6 +289,8 @@ noncomputable def conjAut (a : A n) : UU n ≃ₜ* UU n where
 #print axioms conjAut_mem'
 #print axioms conjAut
 #print axioms conjAut_apply_val
+#print axioms fromCoords_isUpperUnipotent
+#print axioms nnChart
 
 end Complete
 end IwasawaCoC
