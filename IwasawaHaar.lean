@@ -1212,5 +1212,114 @@ lemma map_rightMul_nuG (g₀ : G n) :
 #print axioms map_leftMul_nuG
 #print axioms map_rightMul_nuG
 
+/-! ### GL_n Haar: `nuG` is a Haar measure on `G n`
+
+The chart `gToCoord` is continuous and an open embedding (all norm free, using
+`continuous_of_finiteDimensional` and the existing open embedding
+`G_isOpenEmbedding`). With left invariance already established, `nuG` is finite
+on compacts (a compact in `G n` maps to a compact in the invertible locus where
+the density `|det|^(-n)` is bounded) and positive on opens (the density is
+strictly positive on the invertible locus), hence a Haar measure. -/
+
+/-- `matrixToCoord` is continuous (a linear map between finite dimensional real
+spaces; no norm on the matrix space is needed). -/
+lemma continuous_matrixToCoord : Continuous (matrixToCoord (n := n)) :=
+  matrixToCoord.toLinearMap.continuous_of_finiteDimensional
+
+/-- `matrixToCoord.symm` is continuous. -/
+lemma continuous_matrixToCoord_symm : Continuous (matrixToCoord (n := n)).symm :=
+  matrixToCoord.symm.toLinearMap.continuous_of_finiteDimensional
+
+/-- `matrixToCoord` is an open map (its inverse is continuous). -/
+lemma isOpenMap_matrixToCoord : IsOpenMap (matrixToCoord (n := n)) := by
+  intro U hU
+  have hset : matrixToCoord (n := n) '' U = (matrixToCoord (n := n)).symm ⁻¹' U := by
+    ext w
+    constructor
+    · rintro ⟨M, hM, rfl⟩
+      rw [Set.mem_preimage, LinearEquiv.symm_apply_apply]; exact hM
+    · intro hw
+      exact ⟨matrixToCoord.symm w, hw, matrixToCoord.apply_symm_apply w⟩
+  rw [hset]
+  exact hU.preimage continuous_matrixToCoord_symm
+
+/-- `gToCoord` is continuous. -/
+lemma continuous_gToCoord : Continuous (gToCoord (n := n)) :=
+  continuous_matrixToCoord.comp continuous_subtype_val
+
+/-- `gToCoord` is an open map (composite of the open map `matrixToCoord` and the
+open embedding `Subtype.val`). -/
+lemma isOpenMap_gToCoord : IsOpenMap (gToCoord (n := n)) :=
+  isOpenMap_matrixToCoord.comp G_isOpenEmbedding.isOpenMap
+
+/-- `nuG` is left invariant (from `map_leftMul_nuG`). -/
+instance instIsMulLeftInvariant_nuG : (nuG (n := n)).IsMulLeftInvariant :=
+  ⟨map_leftMul_nuG⟩
+
+/-- The density `detWeightCoord` is nonzero on the invertible locus. -/
+lemma detWeightCoord_ne_zero_of_det_ne_zero {w : (Fin n × Fin n) → ℝ}
+    (hw : (matrixToCoord.symm w).det ≠ 0) : detWeightCoord w ≠ 0 := by
+  unfold detWeightCoord
+  rw [ne_eq, ENNReal.ofReal_eq_zero, not_le, inv_pos]
+  exact pow_pos (abs_pos.mpr hw) n
+
+/-- `nuG` is finite on compact sets: a compact subset of `G n` maps to a compact
+subset of the invertible locus, where the continuous density `|det|^(-n)` is
+bounded; the chart image has finite Lebesgue measure. -/
+instance instIsFiniteMeasureOnCompacts_nuG : IsFiniteMeasureOnCompacts (nuG (n := n)) := by
+  refine ⟨fun K hK => ?_⟩
+  rw [show nuG (n := n) K = haarGCoord (gToCoord '' K) from
+        measurableEmbedding_gToCoord.comap_apply haarGCoord K]
+  have hCcomp : IsCompact (gToCoord (n := n) '' K) := hK.image continuous_gToCoord
+  have hCmeas : MeasurableSet (gToCoord (n := n) '' K) :=
+    measurableEmbedding_gToCoord.measurableSet_image' hK.measurableSet
+  have hCsub : ∀ w ∈ gToCoord (n := n) '' K, (matrixToCoord.symm w).det ≠ 0 := by
+    intro w hw
+    have hwr : w ∈ Set.range (gToCoord (n := n)) := Set.image_subset_range _ _ hw
+    rwa [range_gToCoord] at hwr
+  have hcontOn : ContinuousOn (fun w => (|(matrixToCoord.symm w).det| ^ n)⁻¹)
+      (gToCoord (n := n) '' K) :=
+    ((continuous_abs.comp continuous_det_matrixToCoord_symm).pow n).continuousOn.inv₀
+      (fun w hw => pow_ne_zero n (abs_ne_zero.mpr (hCsub w hw)))
+  obtain ⟨B, hB⟩ := hCcomp.exists_bound_of_continuousOn hcontOn
+  unfold haarGCoord
+  rw [withDensity_apply _ hCmeas]
+  calc ∫⁻ w in gToCoord (n := n) '' K, detWeightCoord w ∂volume
+      ≤ ∫⁻ _ in gToCoord (n := n) '' K, ENNReal.ofReal B ∂volume := by
+        refine setLIntegral_mono measurable_const (fun w hw => ?_)
+        show ENNReal.ofReal ((|(matrixToCoord.symm w).det| ^ n)⁻¹) ≤ ENNReal.ofReal B
+        exact ENNReal.ofReal_le_ofReal ((Real.le_norm_self _).trans (hB w hw))
+    _ = ENNReal.ofReal B * volume (gToCoord (n := n) '' K) := setLIntegral_const _ _
+    _ < ⊤ := ENNReal.mul_lt_top ENNReal.ofReal_lt_top hCcomp.measure_lt_top
+
+/-- `nuG` is positive on nonempty open sets: the chart maps an open set to an
+open subset of the invertible locus, where the density is strictly positive. -/
+instance instIsOpenPosMeasure_nuG : (nuG (n := n)).IsOpenPosMeasure := by
+  refine ⟨fun U hU hUne => ?_⟩
+  rw [show nuG (n := n) U = haarGCoord (gToCoord '' U) from
+        measurableEmbedding_gToCoord.comap_apply haarGCoord U]
+  have hVopen : IsOpen (gToCoord (n := n) '' U) := isOpenMap_gToCoord U hU
+  have hVne : (gToCoord (n := n) '' U).Nonempty := hUne.image _
+  have hVsub : gToCoord (n := n) '' U ⊆ Function.support (detWeightCoord (n := n)) := by
+    intro w hw
+    have hwr : w ∈ Set.range (gToCoord (n := n)) := Set.image_subset_range _ _ hw
+    rw [range_gToCoord] at hwr
+    exact Function.mem_support.mpr (detWeightCoord_ne_zero_of_det_ne_zero hwr)
+  unfold haarGCoord
+  rw [withDensity_apply _ hVopen.measurableSet]
+  have hpos : 0 < ∫⁻ w in gToCoord (n := n) '' U, detWeightCoord w ∂volume := by
+    rw [setLIntegral_pos_iff measurable_detWeightCoord, Set.inter_eq_right.mpr hVsub]
+    exact IsOpen.measure_pos volume hVopen hVne
+  exact hpos.ne'
+
+/-- **`nuG` is a Haar measure on `G n`** (left invariant, finite on compacts,
+positive on opens). -/
+instance instIsHaarMeasure_nuG : (nuG (n := n)).IsHaarMeasure := ⟨⟩
+
+#print axioms isOpenMap_gToCoord
+#print axioms instIsFiniteMeasureOnCompacts_nuG
+#print axioms instIsOpenPosMeasure_nuG
+#print axioms instIsHaarMeasure_nuG
+
 end Complete
 end IwasawaCoC
