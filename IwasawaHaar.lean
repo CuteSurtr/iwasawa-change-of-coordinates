@@ -705,5 +705,69 @@ lemma map_conjAut_haarN (a : A n) :
 
 #print axioms map_conjAut_haarN
 
+/-! ### Determinant of matrix multiplication maps (toward GL_n Haar)
+
+Left/right multiplication by a fixed matrix `g` on the matrix space
+`Matrix (Fin n) (Fin n) ℝ` is `ℝ`-linear with determinant `(det g) ^ n`
+(each of the `n` columns/rows is transformed by `g`). Proved column/row-wise
+via `LinearMap.det_pi`; purely algebraic, no normed structure needed. -/
+
+/-- Left multiplication `M ↦ g * M` as an `ℝ`-linear endomorphism of the
+matrix space. -/
+def leftMulMatLin (g : Matrix (Fin n) (Fin n) ℝ) :
+    Matrix (Fin n) (Fin n) ℝ →ₗ[ℝ] Matrix (Fin n) (Fin n) ℝ where
+  toFun M := g * M
+  map_add' M N := mul_add g M N
+  map_smul' c M := mul_smul_comm c g M
+
+/-- Right multiplication `M ↦ M * g` as an `ℝ`-linear endomorphism of the
+matrix space. -/
+def rightMulMatLin (g : Matrix (Fin n) (Fin n) ℝ) :
+    Matrix (Fin n) (Fin n) ℝ →ₗ[ℝ] Matrix (Fin n) (Fin n) ℝ where
+  toFun M := M * g
+  map_add' M N := add_mul M N g
+  map_smul' c M := smul_mul_assoc c M g
+
+/-- Right multiplication, row-by-row, is the `n`-fold diagonal map applying
+`Matrix.toLin' gᵀ` to each row. -/
+lemma rightMulMatLin_eq_pi (g : Matrix (Fin n) (Fin n) ℝ) :
+    rightMulMatLin g
+      = LinearMap.pi (fun i : Fin n => (Matrix.toLin' gᵀ).comp (LinearMap.proj i)) := by
+  refine LinearMap.ext fun M => funext fun i => ?_
+  show (M * g) i = Matrix.toLin' gᵀ (M i)
+  rw [Matrix.toLin'_apply, Matrix.mulVec_transpose, Matrix.mul_apply_eq_vecMul]
+
+/-- `det (M ↦ M * g) = (det g) ^ n`. -/
+lemma det_rightMulMatLin (g : Matrix (Fin n) (Fin n) ℝ) :
+    LinearMap.det (rightMulMatLin g) = (Matrix.det g) ^ n := by
+  have key : LinearMap.det (rightMulMatLin g)
+      = ∏ _i : Fin n, LinearMap.det (Matrix.toLin' gᵀ) := by
+    rw [rightMulMatLin_eq_pi]
+    exact LinearMap.det_pi _
+  rw [key, LinearMap.det_toLin', Finset.prod_const, Finset.card_univ, Fintype.card_fin,
+    Matrix.det_transpose]
+
+/-- Left multiplication, conjugated by transpose, is right multiplication by
+`gᵀ`: `(·ᵀ) ∘ (g * ·) ∘ (·ᵀ) = (· * gᵀ)`. -/
+lemma leftMul_conj_eq_rightMul (g : Matrix (Fin n) (Fin n) ℝ) :
+    (Matrix.transposeLinearEquiv (Fin n) (Fin n) ℝ ℝ : _ →ₗ[ℝ] _) ∘ₗ
+        (leftMulMatLin g) ∘ₗ
+        ((Matrix.transposeLinearEquiv (Fin n) (Fin n) ℝ ℝ).symm : _ →ₗ[ℝ] _)
+      = rightMulMatLin gᵀ := by
+  refine LinearMap.ext fun M => ?_
+  ext i k
+  show ((g * Mᵀ)ᵀ) i k = (M * gᵀ) i k
+  simp only [Matrix.transpose_apply, Matrix.mul_apply]
+  exact Finset.sum_congr rfl fun j _ => mul_comm _ _
+
+/-- `det (M ↦ g * M) = (det g) ^ n`. -/
+lemma det_leftMulMatLin (g : Matrix (Fin n) (Fin n) ℝ) :
+    LinearMap.det (leftMulMatLin g) = (Matrix.det g) ^ n := by
+  rw [← LinearMap.det_conj (leftMulMatLin g) (Matrix.transposeLinearEquiv (Fin n) (Fin n) ℝ ℝ),
+    leftMul_conj_eq_rightMul, det_rightMulMatLin, Matrix.det_transpose]
+
+#print axioms det_leftMulMatLin
+#print axioms det_rightMulMatLin
+
 end Complete
 end IwasawaCoC
