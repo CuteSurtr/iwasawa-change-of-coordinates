@@ -88,6 +88,28 @@ topology diamond with the existing subtype topology used by
 standard `addHaar`), in which the conjugation is the diagonal scaling
 `(i,j) ↦ (a_j / a_i)` and the left translation Jacobian is `det (1 + M_Y) = 1`.
 
+## Progress (2026-05-28c): chain partially built in `IwasawaHaar.lean`
+
+All axiom clean.
+- **C1 DONE.** `conjAut a : UU n ≃ₜ* UU n`, conjugation `u ↦ a⁻¹ u a`, with
+  `conjAut_mem`, `conjAut_mem'`, `conjAut_apply_val`. Membership via the public
+  chart and `adNN` (no private dependencies).
+- **C2 DONE.** `nnChart : UU n ≃ₜ (nnIndex n → ℝ)` (strict upper entries),
+  with `fromCoords` and `fromCoords_isUpperUnipotent`. Built in the product
+  topology, so the `NN n` normed structure is sidestepped entirely.
+- **C5 core DONE.** `conjAut_nnChart_apply`: through the chart, `conjAut a`
+  multiplies coordinate `ij` by `(a⁻¹)_{i i} / (a⁻¹)_{j j}`, i.e. it is the
+  diagonal scaling matching `adNN a⁻¹`. Proved with public lemmas only.
+- Already available: `det_one_add_of_isNilpotent` (the C4 determinant input).
+
+Remaining: the diagonal map's determinant equals `det (adNN a⁻¹) = δ(a)⁻¹`
+(via `Matrix.det_diagonal` and `adNN_det_eq_pair_product`); the measure
+identity `map (conjAut a) νU = δ(a) • νU` for `νU := map nnChart.symm volume`
+(via `map_linearMap_addHaar_eq_smul_addHaar`); C3/C4 left invariance of `νU`
+(the affine Jacobian `det (1 + M_Y) = 1`, using the proved nilpotent
+determinant lemma) to upgrade to `mulEquivHaarChar (conjAut a) = δ(a)⁻¹`; then
+the PHASE 3/4 assembly.
+
 ## Dependency ordered plan
 
 - C0 (have): `adNN`, `adNN_entry`, `adNN_det_eq_pair_product`,
