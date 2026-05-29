@@ -953,16 +953,26 @@ lemma map_leftMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det �
   rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hFL,
     lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hF]
   simp only [Pi.mul_apply]
-  -- Goal: ∫ dW a * F (leftMul a) = ∫ dW a * F a. Cancel the factor |det g|^(-n).
-  refine (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
-    ENNReal.ofReal_ne_top).mp ?_
-  -- RHS: change of variables on `H = fun a => dW a * F a`.
-  rw [← lintegral_leftMulCoord g hg (measurable_detWeightCoord.mul hF),
-    ← lintegral_const_mul _ (measurable_detWeightCoord.mul hFL)]
-  refine lintegral_congr fun x => ?_
-  simp only [Pi.mul_apply]
-  rw [detWeightCoord_leftMulCoord]
-  ring
+  -- Goal: ∫ dW a * F (leftMul a) = ∫ dW a * F a.
+  -- Change of variables on `H = fun a => dW a * F a` gives the factor |det g|^(-n).
+  have hcov : ∫⁻ x, detWeightCoord (n := n) (leftMulCoord g x) * F (leftMulCoord g x) ∂volume
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * ∫⁻ x, detWeightCoord x * F x ∂volume := by
+    have h := lintegral_leftMulCoord g hg (measurable_detWeightCoord.mul hF)
+    simpa only [Pi.mul_apply] using h
+  -- The density transformation also pulls out that factor.
+  have htrans : ∫⁻ x, detWeightCoord (n := n) (leftMulCoord g x) * F (leftMulCoord g x) ∂volume
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹)
+        * ∫⁻ x, detWeightCoord x * F (leftMulCoord g x) ∂volume := by
+    rw [← lintegral_const_mul _ (measurable_detWeightCoord.mul hFL)]
+    refine lintegral_congr fun x => ?_
+    rw [detWeightCoord_leftMulCoord, mul_assoc]
+  -- Combine and cancel the positive finite factor.
+  have key : ENNReal.ofReal ((|g.det| ^ n)⁻¹)
+      * ∫⁻ x, detWeightCoord (n := n) x * F (leftMulCoord g x) ∂volume
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * ∫⁻ x, detWeightCoord x * F x ∂volume := by
+    rw [← htrans, hcov]
+  exact (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
+    ENNReal.ofReal_ne_top).mp key
 
 /-- **Right invariance** of the explicit `GL_n` Haar measure. -/
 lemma map_rightMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
