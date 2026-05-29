@@ -556,5 +556,71 @@ lemma transLin_apply (Y : NN n) (w : nnIndex n → ℝ) (ij : nnIndex n) :
 #print axioms det_transLin
 #print axioms transLin_apply
 
+lemma fromCoords_eq (w : nnIndex n → ℝ) : fromCoords w = coordMat w + 1 := by
+  funext i j
+  simp only [fromCoords, coordMat, Matrix.add_apply, Matrix.one_apply]
+  split_ifs <;> first | omega | ring
+
+lemma u_mul_fromCoords (u₀ : UU n) (w : nnIndex n → ℝ) :
+    u₀.1 * fromCoords w = (u₀.1 - 1) * coordMat w + coordMat w + u₀.1 := by
+  rw [fromCoords_eq]; noncomm_ring
+
+/-- **Affine decomposition of left translation in chart coordinates.** Left
+multiplication by `u₀` on `U`, transported by the chart, is the affine map
+`w ↦ transLin (u₀ - 1) w + nnChart u₀`. -/
+lemma leftMul_nnChart_symm (u₀ : UU n) (w : nnIndex n → ℝ) :
+    u₀ * nnChart.symm w
+      = nnChart.symm (transLin (UU.toNNHomeomorph u₀) w + nnChart u₀) := by
+  apply nnChart.injective
+  rw [Homeomorph.apply_symm_apply]
+  funext ij
+  have hcm : coordMat w ij.1.1 ij.1.2 = w ij := by
+    simp only [coordMat]; exact dif_pos ij.2
+  rw [Pi.add_apply, transLin_apply]
+  show (u₀.1 * fromCoords w) ij.1.1 ij.1.2
+      = (w ij + ((u₀.1 - 1) * coordMat w) ij.1.1 ij.1.2) + u₀.1 ij.1.1 ij.1.2
+  rw [u_mul_fromCoords, Matrix.add_apply, Matrix.add_apply, hcm]
+  ring
+
+#print axioms fromCoords_eq
+#print axioms leftMul_nnChart_symm
+
+/-- The linear part preserves volume (determinant `1`). -/
+lemma map_transLin_volume (Y : NN n) :
+    Measure.map (transLin Y) (volume : Measure (nnIndex n → ℝ)) = volume := by
+  have hne : LinearMap.det (transLin Y) ≠ 0 := by rw [det_transLin]; norm_num
+  rw [Measure.map_linearMap_addHaar_eq_smul_addHaar volume hne, det_transLin]
+  simp
+
+/-- The affine map `w ↦ transLin Y w + c` preserves volume (linear part has
+determinant `1`, plus translation invariance). -/
+lemma map_transAffine_volume (Y : NN n) (c : nnIndex n → ℝ) :
+    Measure.map (fun w => transLin Y w + c) (volume : Measure (nnIndex n → ℝ)) = volume := by
+  have hf : (fun w => transLin Y w + c) = (fun x => x + c) ∘ (transLin Y) := by funext w; rfl
+  rw [hf, ← Measure.map_map (measurable_add_const c)
+      (transLin Y).continuous_of_finiteDimensional.measurable,
+      map_transLin_volume, map_add_right_eq_self]
+
+/-- **T3.** The explicit `U` measure `nuU` is left invariant, hence a left
+Haar measure on `U`. -/
+instance instIsMulLeftInvariant_nuU : (nuU (n := n)).IsMulLeftInvariant := by
+  refine ⟨fun u₀ => ?_⟩
+  have hmL : Measurable (fun u : UU n => u₀ * u) :=
+    (continuous_const.mul continuous_id).measurable
+  have hmChart : Measurable (nnChart (n := n)).symm := (nnChart (n := n)).symm.measurable
+  have hmAff : Measurable
+      (fun w : nnIndex n → ℝ => transLin (UU.toNNHomeomorph u₀) w + nnChart u₀) :=
+    ((transLin (UU.toNNHomeomorph u₀)).continuous_of_finiteDimensional.measurable).add_const _
+  have hcomp : (fun u : UU n => u₀ * u) ∘ (nnChart (n := n)).symm
+      = (nnChart (n := n)).symm
+          ∘ (fun w => transLin (UU.toNNHomeomorph u₀) w + nnChart u₀) := by
+    funext w; exact leftMul_nnChart_symm u₀ w
+  unfold nuU
+  rw [Measure.map_map hmL hmChart, hcomp, ← Measure.map_map hmChart hmAff,
+      map_transAffine_volume]
+
+#print axioms map_transLin_volume
+#print axioms instIsMulLeftInvariant_nuU
+
 end Complete
 end IwasawaCoC
