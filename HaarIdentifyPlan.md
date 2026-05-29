@@ -31,16 +31,33 @@ Use `matrixToCoordMeasEquiv : Matrix =m coords` built from the Equiv + `continuo
 (norm free, already used at IwasawaHaar.lean:890 for `.symm`), compose with `subtype_coe` to get
 `MeasurableEmbedding gToCoord`.
 
-## Steps / commits
-1. [build green -> commit] chart lemmas: `gToCoord`, `matrixToCoordMeasEquiv`, `measurableSet_det_ne_zero`,
+## Steps / commits  (PHASE 1 COMPLETE, all green, axiom clean)
+1. [DONE] chart lemmas: `gToCoord`, `matrixToCoordMeasEquiv`, `measurableSet_det_ne_zero`,
    `measurableEmbedding_gToCoord`, `measurable_gToCoord`, `gToCoord_injective`,
    `leftMulCoord_matrixToCoord`, `rightMulCoord_matrixToCoord`, `gToCoord_leftMul`, `gToCoord_rightMul`.
-2. [build green -> commit] `nuG := Measure.comap gToCoord haarGCoord`; left + right invariance (measure eqs).
-3. [build green -> commit] `nuG` IsHaarMeasure + Regular (finite on compacts, open pos, left inv). HARD:
-   likely needs `Continuous gToCoord` (Pi/finite-dim, norm free) and open-embedding for open pos.
-   Range preservation: `range gToCoord = {w | (matrixToCoord.symm w).det != 0}`,
-   preserved by `leftMulCoord g0.1` and `rightMulCoord g0.1` since det scales by det g0 != 0.
-4. [build green -> commit] `modularCharacterFun g = 1` via `modularCharacterFun_eq_haarScalarFactor nuG g`
-   + right invariance + `haarScalarFactor_self`. Optionally `nuG = c . haarG` by Haar uniqueness.
+2. [DONE] `nuG := Measure.comap gToCoord haarGCoord`; `range_gToCoord`, the two preimage range lemmas,
+   `map_gToCoord_nuG`, `map_restrict_range_gToCoord_of_invariant`; `map_leftMul_nuG`, `map_rightMul_nuG`.
+3. [DONE] chart topology norm free (`continuous_matrixToCoord`(_symm), `isOpenMap_matrixToCoord`,
+   `continuous_gToCoord`, `isOpenMap_gToCoord`); `instIsMulLeftInvariant_nuG`,
+   `instIsFiniteMeasureOnCompacts_nuG` (density bounded on chart image of a compact),
+   `instIsOpenPosMeasure_nuG` (density positive on the invertible locus), `instIsHaarMeasure_nuG`.
+4. [DONE] `modularCharacterFun_eq_one (g : G n) : modularCharacterFun g = 1`
+   via `modularCharacterFun_eq_haarScalarFactor nuG g` + `map_rightMul_nuG` (simp, to dodge the
+   dependent instance motive) + `haarScalarFactor_self`. Needed `import Mathlib.MeasureTheory.Group.ModularCharacter`.
+
+## Optional / next (NOT done; reverted an attempt that needed unestablished regularity)
+- `nuG = haarScalarFactor nuG haarG . haarG` by `isMulLeftInvariant_eq_smul_of_innerRegular`.
+  Blocked: needs `InnerRegular nuG` and `InnerRegular haarG`, neither auto synthesizes here.
+  To unblock: prove `SigmaCompactSpace (G n)` (second countable + locally compact), then
+  `IsLocallyFiniteMeasure nuG` (from finite on compacts) gives `Regular nuG` via
+  `Regular.of_sigmaCompactSpace_of_isLocallyFiniteMeasure`, and `InnerRegular` via the
+  `[InnerRegularCompactLTTop] [SigmaFinite] -> InnerRegular` instance; similarly for `haarG`.
+  Note: this identification is NOT required for `modularCharacterFun = 1` (that uses measure
+  independence of the modular character, so any explicit bi invariant Haar `nuG` suffices).
+
+## PHASE 2 (Route B per factor Lebesgue to Haar) - not started yet
+- `haarAExplicit` (A, log chart) and `nuU` (U, entry chart) already exist as explicit left Haar.
+- Still needed: Cayley chart on K to `haarK`; assemble product `haarKAU` to `haarG` via the
+  Iwasawa diffeomorphism and the Jacobian `2^{n(n-1)/2} |det a|^n |det adNN a|`.
 
 STOP if a step needs an unprovable fact; never sorry/axiom; commit last green state.
