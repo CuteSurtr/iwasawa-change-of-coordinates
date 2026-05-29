@@ -947,17 +947,18 @@ lemma map_leftMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det �
   have hcont : Measurable (leftMulCoord g) :=
     (leftMulCoord g).continuous_of_finiteDimensional.measurable
   refine Measure.ext_of_lintegral _ fun F hF => ?_
+  have hFL : Measurable (fun a => F (leftMulCoord g a)) := hF.comp hcont
   rw [lintegral_map hF hcont]
   unfold haarGCoord
-  rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord
-      (hF.comp hcont),
+  rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hFL,
     lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hF]
-  -- Cancel the common positive finite factor `|det g|^(-n)`.
+  simp only [Pi.mul_apply]
+  -- Goal: ∫ dW a * F (leftMul a) = ∫ dW a * F a. Cancel the factor |det g|^(-n).
   refine (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
     ENNReal.ofReal_ne_top).mp ?_
-  -- RHS: `a * ∫ (detWeightCoord * F) = ∫ (detWeightCoord * F)(leftMul x)`.
+  -- RHS: change of variables on `H = fun a => dW a * F a`.
   rw [← lintegral_leftMulCoord g hg (measurable_detWeightCoord.mul hF),
-    ← lintegral_const_mul _ (measurable_detWeightCoord.mul (hF.comp hcont))]
+    ← lintegral_const_mul _ (measurable_detWeightCoord.mul hFL)]
   refine lintegral_congr fun x => ?_
   simp only [Pi.mul_apply]
   rw [detWeightCoord_leftMulCoord]
@@ -969,15 +970,16 @@ lemma map_rightMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det 
   have hcont : Measurable (rightMulCoord g) :=
     (rightMulCoord g).continuous_of_finiteDimensional.measurable
   refine Measure.ext_of_lintegral _ fun F hF => ?_
+  have hFR : Measurable (fun a => F (rightMulCoord g a)) := hF.comp hcont
   rw [lintegral_map hF hcont]
   unfold haarGCoord
-  rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord
-      (hF.comp hcont),
+  rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hFR,
     lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hF]
+  simp only [Pi.mul_apply]
   refine (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
     ENNReal.ofReal_ne_top).mp ?_
   rw [← lintegral_rightMulCoord g hg (measurable_detWeightCoord.mul hF),
-    ← lintegral_const_mul _ (measurable_detWeightCoord.mul (hF.comp hcont))]
+    ← lintegral_const_mul _ (measurable_detWeightCoord.mul hFR)]
   refine lintegral_congr fun x => ?_
   simp only [Pi.mul_apply]
   rw [detWeightCoord_rightMulCoord]
