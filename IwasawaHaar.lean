@@ -779,5 +779,66 @@ lemma det_conjMatLin (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
 #print axioms det_rightMulMatLin
 #print axioms det_conjMatLin
 
+/-! ### GL_n Haar: coordinate space Lebesgue scaling
+
+Following the `nuU` technique, the measure work is done on the coordinate space
+`(Fin n × Fin n) → ℝ` (which carries Lebesgue `volume`, an additive Haar
+measure) rather than on `Matrix` directly (which has a measurable space diamond
+and no global normed structure). Left/right multiplication by a fixed invertible
+matrix, transported to the coordinate space, scales `volume` by `|det g|^(-n)`
+(from `det_leftMulMatLin` / `det_rightMulMatLin` via `LinearMap.det_conj` and
+`map_linearMap_addHaar_eq_smul_addHaar`). -/
+
+/-- The coordinate chart `Matrix ≃ₗ (Fin n × Fin n → ℝ)` (uncurry), used to
+place Lebesgue `volume` on the matrix space without a measurable space diamond. -/
+noncomputable def matrixToCoord :
+    Matrix (Fin n) (Fin n) ℝ ≃ₗ[ℝ] ((Fin n × Fin n) → ℝ) :=
+  (LinearEquiv.curry ℝ ℝ (Fin n) (Fin n)).symm
+
+/-- Left multiplication `M ↦ g * M` transported to the coordinate space. -/
+noncomputable def leftMulCoord (g : Matrix (Fin n) (Fin n) ℝ) :
+    ((Fin n × Fin n) → ℝ) →ₗ[ℝ] ((Fin n × Fin n) → ℝ) :=
+  matrixToCoord.conj (leftMulMatLin g)
+
+/-- Right multiplication `M ↦ M * g` transported to the coordinate space. -/
+noncomputable def rightMulCoord (g : Matrix (Fin n) (Fin n) ℝ) :
+    ((Fin n × Fin n) → ℝ) →ₗ[ℝ] ((Fin n × Fin n) → ℝ) :=
+  matrixToCoord.conj (rightMulMatLin g)
+
+/-- `det (leftMulCoord g) = (det g) ^ n`. -/
+lemma det_leftMulCoord (g : Matrix (Fin n) (Fin n) ℝ) :
+    LinearMap.det (leftMulCoord g) = (Matrix.det g) ^ n := by
+  have h : LinearMap.det (leftMulCoord g) = LinearMap.det (leftMulMatLin g) :=
+    LinearMap.det_conj (leftMulMatLin g) matrixToCoord
+  rw [h, det_leftMulMatLin]
+
+/-- `det (rightMulCoord g) = (det g) ^ n`. -/
+lemma det_rightMulCoord (g : Matrix (Fin n) (Fin n) ℝ) :
+    LinearMap.det (rightMulCoord g) = (Matrix.det g) ^ n := by
+  have h : LinearMap.det (rightMulCoord g) = LinearMap.det (rightMulMatLin g) :=
+    LinearMap.det_conj (rightMulMatLin g) matrixToCoord
+  rw [h, det_rightMulMatLin]
+
+/-- Left multiplication by an invertible `g` scales coordinate Lebesgue by
+`|det g|^(-n)`. -/
+lemma map_leftMulCoord_volume (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
+    Measure.map (leftMulCoord g) (volume : Measure ((Fin n × Fin n) → ℝ))
+      = ENNReal.ofReal |((Matrix.det g) ^ n)⁻¹| • volume := by
+  have hdet : LinearMap.det (leftMulCoord g) ≠ 0 := by
+    rw [det_leftMulCoord]; exact pow_ne_zero n hg
+  rw [Measure.map_linearMap_addHaar_eq_smul_addHaar volume hdet, det_leftMulCoord]
+
+/-- Right multiplication by an invertible `g` scales coordinate Lebesgue by
+`|det g|^(-n)`. -/
+lemma map_rightMulCoord_volume (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
+    Measure.map (rightMulCoord g) (volume : Measure ((Fin n × Fin n) → ℝ))
+      = ENNReal.ofReal |((Matrix.det g) ^ n)⁻¹| • volume := by
+  have hdet : LinearMap.det (rightMulCoord g) ≠ 0 := by
+    rw [det_rightMulCoord]; exact pow_ne_zero n hg
+  rw [Measure.map_linearMap_addHaar_eq_smul_addHaar volume hdet, det_rightMulCoord]
+
+#print axioms map_leftMulCoord_volume
+#print axioms map_rightMulCoord_volume
+
 end Complete
 end IwasawaCoC
