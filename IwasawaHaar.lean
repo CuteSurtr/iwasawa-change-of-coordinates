@@ -287,10 +287,39 @@ def nnChart : UU n ≃ₜ (nnIndex n → ℝ) where
 #print axioms det_one_add_of_isNilpotent
 #print axioms conjAut_mem
 #print axioms conjAut_mem'
+/-! ### C3: conjugation is the diagonal scaling in the chart coordinates -/
+
+/-- In the chart, `conjAut a` multiplies coordinate `ij` by the positive ratio
+`(a⁻¹)_{i i} / (a⁻¹)_{j j}` (`= a_j / a_i`). The algebraic heart of the
+conjugation scaling: through the chart, `conjAut a` is diagonal, matching
+`adNN a⁻¹`. -/
+lemma conjAut_nnChart_apply (a : A n) (u : UU n) (ij : nnIndex n) :
+    nnChart (conjAut a u) ij
+      = ((a⁻¹).1 ij.1.1 ij.1.1 / (a⁻¹).1 ij.1.2 ij.1.2) * nnChart u ij := by
+  have hai : a.1⁻¹ * a.1 = 1 :=
+    Matrix.nonsing_inv_mul a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  have hainv : (a.1⁻¹)⁻¹ = a.1 :=
+    Matrix.nonsing_inv_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  have hne : ij.1.1 ≠ ij.1.2 := ne_of_lt ij.2
+  have hval : ((conjAut a u : UU n) : Matrix (Fin n) (Fin n) ℝ)
+      = ((adNN a⁻¹ (UU.toNNHomeomorph u) : NN n) : Matrix (Fin n) (Fin n) ℝ) + 1 := by
+    rw [conjAut_apply_val, adNN_apply_val, A_coe_inv]
+    have e2 : ((UU.toNNHomeomorph u : NN n) : Matrix (Fin n) (Fin n) ℝ) = u.1 - 1 := rfl
+    rw [e2, hainv, Matrix.mul_sub, Matrix.mul_one, Matrix.sub_mul, hai, sub_add_cancel]
+  show ((conjAut a u : UU n) : Matrix (Fin n) (Fin n) ℝ) ij.1.1 ij.1.2
+      = ((a⁻¹).1 ij.1.1 ij.1.1 / (a⁻¹).1 ij.1.2 ij.1.2) * u.1 ij.1.1 ij.1.2
+  rw [hval, Matrix.add_apply, Matrix.one_apply_ne hne, add_zero, adNN_entry]
+  have e3 : ((UU.toNNHomeomorph u : NN n) : Matrix (Fin n) (Fin n) ℝ) ij.1.1 ij.1.2
+      = u.1 ij.1.1 ij.1.2 := by
+    show (u.1 - 1) ij.1.1 ij.1.2 = u.1 ij.1.1 ij.1.2
+    rw [Matrix.sub_apply, Matrix.one_apply_ne hne, sub_zero]
+  rw [e3]
+
 #print axioms conjAut
 #print axioms conjAut_apply_val
 #print axioms fromCoords_isUpperUnipotent
 #print axioms nnChart
+#print axioms conjAut_nnChart_apply
 
 end Complete
 end IwasawaCoC
