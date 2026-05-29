@@ -1085,5 +1085,132 @@ lemma gToCoord_rightMul (g₀ g : G n) :
 #print axioms gToCoord_leftMul
 #print axioms gToCoord_rightMul
 
+/-! ### GL_n Haar: the measure `nuG` on `G n` and its bi invariance
+
+`nuG` is `haarGCoord` pulled back to `G n` along the chart `gToCoord`. The
+range of `gToCoord` is the invertible locus `{ w | (matrixToCoord.symm w).det ≠ 0 }`,
+which is preserved by `leftMulCoord g₀.1` and `rightMulCoord g₀.1` (multiplying
+by an invertible matrix scales the determinant by `det g₀ ≠ 0`). Combined with
+the bi invariance of `haarGCoord`, this makes `nuG` both left and right
+invariant on `G n`. -/
+
+/-- The pullback of the explicit `GL_n` Haar measure to `G n` along the
+chart `gToCoord`. -/
+noncomputable def nuG : Measure (G n) := Measure.comap gToCoord haarGCoord
+
+/-- The range of the chart is exactly the invertible locus in coordinates. -/
+lemma range_gToCoord :
+    Set.range (gToCoord (n := n)) = {w | (matrixToCoord.symm w).det ≠ 0} := by
+  ext w
+  simp only [Set.mem_range, Set.mem_setOf_eq]
+  constructor
+  · rintro ⟨g, rfl⟩
+    show (matrixToCoord.symm (matrixToCoord g.1)).det ≠ 0
+    rw [LinearEquiv.symm_apply_apply]; exact g.2
+  · intro hw
+    exact ⟨⟨matrixToCoord.symm w, hw⟩, matrixToCoord.apply_symm_apply w⟩
+
+/-- The range of `gToCoord` is measurable. -/
+lemma measurableSet_range_gToCoord :
+    MeasurableSet (Set.range (gToCoord (n := n))) :=
+  measurableEmbedding_gToCoord.measurableSet_range
+
+/-- Pushing `nuG` forward along the chart recovers `haarGCoord` restricted to
+the chart range. -/
+lemma map_gToCoord_nuG :
+    Measure.map gToCoord (nuG (n := n))
+      = haarGCoord.restrict (Set.range (gToCoord (n := n))) := by
+  unfold nuG
+  exact measurableEmbedding_gToCoord.map_comap haarGCoord
+
+/-- `leftMulCoord g₀.1` preserves the chart range. -/
+lemma leftMulCoord_preimage_range_gToCoord (g₀ : G n) :
+    (leftMulCoord g₀.1) ⁻¹' (Set.range (gToCoord (n := n)))
+      = Set.range (gToCoord (n := n)) := by
+  rw [range_gToCoord]
+  ext w
+  simp only [Set.mem_preimage, Set.mem_setOf_eq]
+  have hsymm : matrixToCoord.symm (leftMulCoord g₀.1 w) = g₀.1 * matrixToCoord.symm w := by
+    rw [leftMulCoord, LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply]; rfl
+  rw [hsymm, Matrix.det_mul]
+  exact ⟨fun h => right_ne_zero_of_mul h, fun h => mul_ne_zero g₀.2 h⟩
+
+/-- `rightMulCoord g₀.1` preserves the chart range. -/
+lemma rightMulCoord_preimage_range_gToCoord (g₀ : G n) :
+    (rightMulCoord g₀.1) ⁻¹' (Set.range (gToCoord (n := n)))
+      = Set.range (gToCoord (n := n)) := by
+  rw [range_gToCoord]
+  ext w
+  simp only [Set.mem_preimage, Set.mem_setOf_eq]
+  have hsymm : matrixToCoord.symm (rightMulCoord g₀.1 w) = matrixToCoord.symm w * g₀.1 := by
+    rw [rightMulCoord, LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply]; rfl
+  rw [hsymm, Matrix.det_mul]
+  exact ⟨fun h => left_ne_zero_of_mul h, fun h => mul_ne_zero h g₀.2⟩
+
+/-- A measurable, `haarGCoord` preserving, range preserving self map of the
+coordinate space also preserves `haarGCoord` restricted to the chart range. -/
+lemma map_restrict_range_gToCoord_of_invariant
+    {f : ((Fin n × Fin n) → ℝ) → ((Fin n × Fin n) → ℝ)} (hf : Measurable f)
+    (hmap : Measure.map f haarGCoord = haarGCoord)
+    (hrange : f ⁻¹' (Set.range (gToCoord (n := n))) = Set.range (gToCoord (n := n))) :
+    Measure.map f (haarGCoord.restrict (Set.range (gToCoord (n := n))))
+      = haarGCoord.restrict (Set.range (gToCoord (n := n))) := by
+  refine Measure.ext fun T hT => ?_
+  have hpre : MeasurableSet (f ⁻¹' T) := hf hT
+  rw [Measure.map_apply hf hT, Measure.restrict_apply hpre, Measure.restrict_apply hT,
+    show f ⁻¹' T ∩ Set.range (gToCoord (n := n))
+        = f ⁻¹' (T ∩ Set.range (gToCoord (n := n))) by rw [Set.preimage_inter, hrange],
+    ← Measure.map_apply hf (hT.inter measurableSet_range_gToCoord), hmap]
+
+/-- **Left invariance of `nuG`.** -/
+lemma map_leftMul_nuG (g₀ : G n) :
+    Measure.map (fun g : G n => g₀ * g) (nuG (n := n)) = nuG := by
+  have hL : Measurable (fun g : G n => g₀ * g) :=
+    (continuous_const.mul continuous_id).measurable
+  have hLC : Measurable (leftMulCoord g₀.1) :=
+    (leftMulCoord g₀.1).continuous_of_finiteDimensional.measurable
+  have hcomp : gToCoord ∘ (fun g : G n => g₀ * g) = (leftMulCoord g₀.1) ∘ gToCoord := by
+    funext g; exact gToCoord_leftMul g₀ g
+  have key : Measure.map gToCoord (Measure.map (fun g : G n => g₀ * g) (nuG (n := n)))
+      = Measure.map gToCoord (nuG (n := n)) := by
+    rw [Measure.map_map measurable_gToCoord hL, hcomp,
+      ← Measure.map_map hLC measurable_gToCoord, map_gToCoord_nuG,
+      map_restrict_range_gToCoord_of_invariant hLC
+        (map_leftMulCoord_haarGCoord g₀.1 g₀.2)
+        (leftMulCoord_preimage_range_gToCoord g₀)]
+  calc Measure.map (fun g : G n => g₀ * g) (nuG (n := n))
+      = Measure.comap gToCoord
+          (Measure.map gToCoord (Measure.map (fun g : G n => g₀ * g) (nuG (n := n)))) :=
+        (measurableEmbedding_gToCoord.comap_map _).symm
+    _ = Measure.comap gToCoord (Measure.map gToCoord (nuG (n := n))) := by rw [key]
+    _ = nuG := measurableEmbedding_gToCoord.comap_map (nuG (n := n))
+
+/-- **Right invariance of `nuG`.** -/
+lemma map_rightMul_nuG (g₀ : G n) :
+    Measure.map (fun g : G n => g * g₀) (nuG (n := n)) = nuG := by
+  have hR : Measurable (fun g : G n => g * g₀) :=
+    (continuous_id.mul continuous_const).measurable
+  have hRC : Measurable (rightMulCoord g₀.1) :=
+    (rightMulCoord g₀.1).continuous_of_finiteDimensional.measurable
+  have hcomp : gToCoord ∘ (fun g : G n => g * g₀) = (rightMulCoord g₀.1) ∘ gToCoord := by
+    funext g; exact gToCoord_rightMul g₀ g
+  have key : Measure.map gToCoord (Measure.map (fun g : G n => g * g₀) (nuG (n := n)))
+      = Measure.map gToCoord (nuG (n := n)) := by
+    rw [Measure.map_map measurable_gToCoord hR, hcomp,
+      ← Measure.map_map hRC measurable_gToCoord, map_gToCoord_nuG,
+      map_restrict_range_gToCoord_of_invariant hRC
+        (map_rightMulCoord_haarGCoord g₀.1 g₀.2)
+        (rightMulCoord_preimage_range_gToCoord g₀)]
+  calc Measure.map (fun g : G n => g * g₀) (nuG (n := n))
+      = Measure.comap gToCoord
+          (Measure.map gToCoord (Measure.map (fun g : G n => g * g₀) (nuG (n := n)))) :=
+        (measurableEmbedding_gToCoord.comap_map _).symm
+    _ = Measure.comap gToCoord (Measure.map gToCoord (nuG (n := n))) := by rw [key]
+    _ = nuG := measurableEmbedding_gToCoord.comap_map (nuG (n := n))
+
+#print axioms nuG
+#print axioms map_leftMul_nuG
+#print axioms map_rightMul_nuG
+
 end Complete
 end IwasawaCoC
