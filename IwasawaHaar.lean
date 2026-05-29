@@ -1007,5 +1007,83 @@ lemma map_rightMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det 
 #print axioms map_leftMulCoord_haarGCoord
 #print axioms map_rightMulCoord_haarGCoord
 
+/-! ### GL_n Haar: the chart `gToCoord : G n → coordinate space`
+
+To transport the explicit bi invariant measure `haarGCoord` from the
+coordinate space to `G n = GL_n(ℝ)`, we use the chart `g ↦ matrixToCoord g.1`.
+Following the project rule that the matrix space carries no norm, we do **not**
+build a homeomorphism or a continuous linear equivalence on it. Instead we view
+`matrixToCoord` as a *measurable* equivalence between the two Pi style
+measurable spaces (`Matrix = Fin n → Fin n → ℝ` and `Fin n × Fin n → ℝ`,
+measurable both ways through `continuous_of_finiteDimensional`), and compose it
+with the measurable embedding `Subtype.val : G n → Matrix` of the open subtype
+`{ g // g.det ≠ 0 }`. A `MeasurableEmbedding` is all that the comap needs. -/
+
+/-- `matrixToCoord` as a measurable equivalence (measurable both ways, since a
+linear map between finite dimensional real spaces is continuous). -/
+noncomputable def matrixToCoordMeasEquiv :
+    Matrix (Fin n) (Fin n) ℝ ≃ᵐ ((Fin n × Fin n) → ℝ) where
+  toEquiv := matrixToCoord.toEquiv
+  measurable_toFun :=
+    matrixToCoord.toLinearMap.continuous_of_finiteDimensional.measurable
+  measurable_invFun :=
+    matrixToCoord.symm.toLinearMap.continuous_of_finiteDimensional.measurable
+
+/-- The invertible locus `{ g | g.det ≠ 0 }` is measurable (`det` is
+continuous, so it is the preimage of the open set `{0}ᶜ`). -/
+lemma measurableSet_det_ne_zero :
+    MeasurableSet {g : Matrix (Fin n) (Fin n) ℝ | g.det ≠ 0} := by
+  have hdet : Measurable fun g : Matrix (Fin n) (Fin n) ℝ => g.det :=
+    continuous_id.matrix_det.measurable
+  exact hdet (measurableSet_singleton (0 : ℝ)).compl
+
+/-- The chart from `G n` (invertible matrices) to the coordinate space. -/
+noncomputable def gToCoord (g : G n) : (Fin n × Fin n) → ℝ := matrixToCoord g.1
+
+/-- `gToCoord` is a measurable embedding: the measurable equivalence
+`matrixToCoordMeasEquiv` composed with the subtype inclusion of the measurable
+set `{ g | g.det ≠ 0 }`. -/
+lemma measurableEmbedding_gToCoord :
+    MeasurableEmbedding (gToCoord (n := n)) :=
+  (matrixToCoordMeasEquiv (n := n)).measurableEmbedding.comp
+    (MeasurableEmbedding.subtype_coe measurableSet_det_ne_zero)
+
+/-- `gToCoord` is measurable. -/
+lemma measurable_gToCoord : Measurable (gToCoord (n := n)) :=
+  measurableEmbedding_gToCoord.measurable
+
+/-- `gToCoord` is injective. -/
+lemma gToCoord_injective : Function.Injective (gToCoord (n := n)) :=
+  measurableEmbedding_gToCoord.injective
+
+#print axioms matrixToCoordMeasEquiv
+#print axioms measurableEmbedding_gToCoord
+
+/-- Chart intertwiner core: left multiplication by `g` on matrices commutes
+with `leftMulCoord g` through `matrixToCoord`. -/
+lemma leftMulCoord_matrixToCoord (g M : Matrix (Fin n) (Fin n) ℝ) :
+    leftMulCoord g (matrixToCoord M) = matrixToCoord (g * M) := by
+  rw [leftMulCoord, LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply]; rfl
+
+/-- Chart intertwiner core for right multiplication. -/
+lemma rightMulCoord_matrixToCoord (g M : Matrix (Fin n) (Fin n) ℝ) :
+    rightMulCoord g (matrixToCoord M) = matrixToCoord (M * g) := by
+  rw [rightMulCoord, LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply]; rfl
+
+/-- **Left intertwiner.** `gToCoord` carries left multiplication by `g₀` on
+`G n` to `leftMulCoord g₀.1` on the coordinate space. -/
+lemma gToCoord_leftMul (g₀ g : G n) :
+    gToCoord (g₀ * g) = leftMulCoord g₀.1 (gToCoord g) := by
+  simp only [gToCoord, leftMulCoord_matrixToCoord, G_coe_mul]
+
+/-- **Right intertwiner.** `gToCoord` carries right multiplication by `g₀` on
+`G n` to `rightMulCoord g₀.1` on the coordinate space. -/
+lemma gToCoord_rightMul (g₀ g : G n) :
+    gToCoord (g * g₀) = rightMulCoord g₀.1 (gToCoord g) := by
+  simp only [gToCoord, rightMulCoord_matrixToCoord, G_coe_mul]
+
+#print axioms gToCoord_leftMul
+#print axioms gToCoord_rightMul
+
 end Complete
 end IwasawaCoC
