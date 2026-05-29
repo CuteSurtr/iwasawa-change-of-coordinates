@@ -1342,5 +1342,38 @@ theorem modularCharacterFun_eq_one (g : G n) :
 
 #print axioms modularCharacterFun_eq_one
 
+/-! ### Regularity of `nuG` and identification with `haarG`
+
+`G n` is second countable (it embeds openly into the second countable matrix
+space) and pseudo metrizable, hence sigma compact (it is also locally compact).
+A locally finite measure on such a space is regular and inner regular, so both
+`nuG` and `haarG` are inner regular. Haar uniqueness then identifies `nuG` with
+`haarG` up to a positive scalar. -/
+
+/-- `G n` is second countable, transported from the second countable matrix
+space through the open embedding `Subtype.val`. -/
+instance instSecondCountableG : SecondCountableTopology (G n) :=
+  G_isOpenEmbedding.isEmbedding.secondCountableTopology
+
+/-- `G n` is pseudo metrizable, transported from the matrix space through the
+inducing map `Subtype.val`. -/
+instance instPseudoMetrizableG : TopologicalSpace.PseudoMetrizableSpace (G n) :=
+  G_isOpenEmbedding.isEmbedding.toIsInducing.pseudoMetrizableSpace
+
+/-- `nuG` is regular: a locally finite measure on the sigma compact, pseudo
+metrizable group `G n`. -/
+instance instRegular_nuG : (nuG (n := n)).Regular := inferInstance
+
+/-- **Identification of `nuG` with the abstract Haar measure.** By Haar
+uniqueness, the explicit pullback `nuG` of `haarGCoord` equals the project's
+canonical Haar measure `haarG` up to the positive scalar
+`haarScalarFactor nuG haarG`. -/
+lemma nuG_eq_haarScalarFactor_smul_haarG :
+    nuG (n := n) = Measure.haarScalarFactor (nuG (n := n)) haarG • haarG :=
+  Measure.isMulLeftInvariant_eq_smul_of_innerRegular nuG haarG
+
+#print axioms instRegular_nuG
+#print axioms nuG_eq_haarScalarFactor_smul_haarG
+
 end Complete
 end IwasawaCoC
