@@ -235,10 +235,10 @@ lemma fromCoords_isUpperUnipotent (v : nnIndex n → ℝ) :
   · intro i j hji
     have hji' : j < i := hji
     simp only [fromCoords]
-    split_ifs with h1 h2 <;> first | rfl | omega
+    split_ifs <;> first | rfl | omega
   · intro i
     simp only [fromCoords]
-    split_ifs with h1 h2 <;> first | rfl | omega
+    split_ifs <;> first | rfl | omega
 
 /-- **C2.** The chart `UU n ≃ₜ (nnIndex n → ℝ)` reading off strict upper
 entries. Built directly in the product topology, so no norm on `NN n` is
