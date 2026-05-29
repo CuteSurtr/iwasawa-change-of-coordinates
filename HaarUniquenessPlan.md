@@ -5,6 +5,54 @@ target, the weight power, the crux route, and the dependency order. Proves
 nothing here. Mathlib facts were read from the pinned copy under
 `.lake/packages/mathlib` on 2026-05-28; project facts from the current source.
 
+## Progress (2026-05-29): explicit GL_n Haar measure + measure level unimodularity
+
+All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`). New in
+`IwasawaHaar.lean`, commits `8f91c23` (chart and scaling) and `6f4c1e3` (the
+explicit measure and its bi invariance). The measure work is done on the
+coordinate space `(Fin n × Fin n) → ℝ` (which carries Lebesgue `volume`),
+avoiding the `Matrix` measurable space diamond, exactly as `nuU` used `nnChart`.
+
+### Coordinate chart and Lebesgue scaling (`8f91c23`)
+- `matrixToCoord : Matrix (Fin n) (Fin n) ℝ ≃ₗ[ℝ] (Fin n × Fin n → ℝ)` (uncurry).
+- `leftMulCoord g` / `rightMulCoord g`: left / right multiplication by `g`,
+  transported to the coordinate space via `matrixToCoord.conj`.
+- `det_leftMulCoord` / `det_rightMulCoord`: each has `LinearMap.det = (det g)^n`
+  (from `det_leftMulMatLin` / `det_rightMulMatLin` via `LinearMap.det_conj`).
+- `map_leftMulCoord_volume` / `map_rightMulCoord_volume`: each scales `volume`
+  by `|det g|^(-n)` (via `map_linearMap_addHaar_eq_smul_addHaar`).
+
+### Explicit Haar measure and bi invariance (`6f4c1e3`)
+- `lintegral_leftMulCoord` / `lintegral_rightMulCoord`: the lintegral change of
+  variables, precomposition by `leftMulCoord g` / `rightMulCoord g` against
+  `volume` introduces the factor `|det g|^(-n)`.
+- `detWeightCoord w = ENNReal.ofReal ((|(matrixToCoord.symm w).det|^n)⁻¹)`: the
+  `|det|^(-n)` Haar density in coordinates; `measurable_detWeightCoord`.
+- `detWeightCoord_leftMulCoord` / `detWeightCoord_rightMulCoord`: precomposition
+  multiplies the density by `|det g|^(-n)`.
+- `haarGCoord = volume.withDensity detWeightCoord`: the explicit `GL_n` Haar
+  measure on the coordinate space.
+- `map_leftMulCoord_haarGCoord` / `map_rightMulCoord_haarGCoord`
+  (`hg : g.det ≠ 0`): `haarGCoord` is invariant under both left and right
+  multiplication by an invertible `g`. **This is measure level unimodularity of
+  `GL_n(ℝ)`**: the `|det g|^(-n)` Lebesgue scaling cancels the density factor.
+
+(The bi invariant lemmas were first committed in `603a545`, completed in
+`ed7c588`, and made robust in `6f4c1e3`, which is the green axiom clean state.)
+
+### Remaining for the `haarG` identification (next milestone)
+The bi invariant `haarGCoord` lives on the coordinate space. To land the
+`haarG`-level statements the assembly needs:
+- Transport `haarGCoord` to `G n = { g // g.det ≠ 0 }` (the open `det ≠ 0`
+  subset, `G_isOpenEmbedding`), restricting / comap-ing to the subtype.
+- Show the transported measure is `IsHaarMeasure` and `Regular` on `G n`, and
+  that left / right multiplication on `G n` corresponds to `leftMulCoord` /
+  `rightMulCoord` under the chart, transferring bi invariance.
+- Conclude `modularCharacterFun g = 1` (Mathlib's
+  `map_right_mul_eq_modularCharacterFun_smul` plus uniqueness), i.e. `haarG`
+  right invariant, and identify `haarGCoord`-transported with `haarG` up to a
+  positive scalar by Haar uniqueness.
+
 ## Progress (2026-05-28f): GL_n Haar groundwork + route recommendation
 
 All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`).
