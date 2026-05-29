@@ -8,7 +8,7 @@ nothing here. Mathlib facts were read from the pinned copy under
 ## Progress (2026-05-29): explicit GL_n Haar measure + measure level unimodularity
 
 All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`). New in
-`IwasawaHaar.lean`, commits `8f91c23` (chart and scaling) and `ff7c476` (the
+`IwasawaHaar.lean`, commits `8f91c23` (chart and scaling) and `891577b` (the
 explicit measure and its bi invariance). The measure work is done on the
 coordinate space `(Fin n × Fin n) → ℝ` (which carries Lebesgue `volume`),
 avoiding the `Matrix` measurable space diamond, exactly as `nuU` used `nnChart`.
@@ -22,7 +22,7 @@ avoiding the `Matrix` measurable space diamond, exactly as `nuU` used `nnChart`.
 - `map_leftMulCoord_volume` / `map_rightMulCoord_volume`: each scales `volume`
   by `|det g|^(-n)` (via `map_linearMap_addHaar_eq_smul_addHaar`).
 
-### Explicit Haar measure and bi invariance (`ff7c476`)
+### Explicit Haar measure and bi invariance (`891577b`)
 - `lintegral_leftMulCoord` / `lintegral_rightMulCoord`: the lintegral change of
   variables, precomposition by `leftMulCoord g` / `rightMulCoord g` against
   `volume` introduces the factor `|det g|^(-n)`.
@@ -37,8 +37,7 @@ avoiding the `Matrix` measurable space diamond, exactly as `nuU` used `nnChart`.
   multiplication by an invertible `g`. **This is measure level unimodularity of
   `GL_n(ℝ)`**: the `|det g|^(-n)` Lebesgue scaling cancels the density factor.
 
-(The bi invariant lemmas were first committed in `603a545`, completed in
-`ed7c588`, and made robust in `ff7c476`, which is the green axiom clean state.)
+(The green axiom clean state of these bi invariant lemmas is commit `891577b`.)
 
 ### Remaining for the `haarG` identification (next milestone)
 The bi invariant `haarGCoord` lives on the coordinate space. To land the
