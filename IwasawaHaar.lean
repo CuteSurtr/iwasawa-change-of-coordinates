@@ -1,6 +1,7 @@
 import iwasawa_change_of_coords.IwasawaComplete
 import Mathlib.MeasureTheory.Constructions.Pi
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
 
 /-
 Measure theory layer for the Iwasawa decomposition.
@@ -320,6 +321,103 @@ lemma conjAut_nnChart_apply (a : A n) (u : UU n) (ij : nnIndex n) :
 #print axioms fromCoords_isUpperUnipotent
 #print axioms nnChart
 #print axioms conjAut_nnChart_apply
+
+/-! ### T2: conjugation scaling of the explicit U Haar measure -/
+
+/-- Conjugation ratios on `nnIndex` (`(a⁻¹)_{i i} / (a⁻¹)_{j j}`). -/
+noncomputable def conjRatio (a : A n) (ij : nnIndex n) : ℝ :=
+  (a⁻¹).1 ij.1.1 ij.1.1 / (a⁻¹).1 ij.1.2 ij.1.2
+
+/-- Conjugation in chart coordinates, as the diagonal linear map. -/
+noncomputable def conjDiag (a : A n) : (nnIndex n → ℝ) →ₗ[ℝ] (nnIndex n → ℝ) :=
+  Matrix.toLin' (Matrix.diagonal (conjRatio a))
+
+lemma conjDiag_apply (a : A n) (w : nnIndex n → ℝ) (ij : nnIndex n) :
+    conjDiag a w ij = conjRatio a ij * w ij := by
+  simp only [conjDiag, Matrix.toLin'_apply, Matrix.mulVec_diagonal]
+
+lemma det_conjDiag_prod (a : A n) :
+    LinearMap.det (conjDiag a) = ∏ ij : nnIndex n, conjRatio a ij := by
+  rw [conjDiag, LinearMap.det_toLin', Matrix.det_diagonal]
+
+/-- `det (adNN a) > 0` (a product of positive ratios). -/
+lemma det_adNN_pos (a : A n) : 0 < LinearMap.det (adNN a).toLinearMap := by
+  rw [adNN_det_eq_pair_product]
+  apply Finset.prod_pos
+  intro ij _
+  exact div_pos (a.2.2 ij.1.1) (a.2.2 ij.1.2)
+
+/-- `adNN a (adNN a⁻¹ X) = X` (pointwise). -/
+lemma adNN_adNN_inv (a : A n) (X : NN n) : adNN a (adNN a⁻¹ X) = X := by
+  have hia : a.1 * a.1⁻¹ = 1 :=
+    Matrix.mul_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  have hainv : (a.1⁻¹)⁻¹ = a.1 :=
+    Matrix.nonsing_inv_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  apply Subtype.ext
+  show ((adNN a (adNN a⁻¹ X) : NN n) : Matrix (Fin n) (Fin n) ℝ) = (X : Matrix (Fin n) (Fin n) ℝ)
+  rw [adNN_apply_val, adNN_apply_val, A_coe_inv, hainv,
+      show a.1 * (a.1⁻¹ * X.1 * a.1) * a.1⁻¹
+        = (a.1 * a.1⁻¹) * X.1 * (a.1 * a.1⁻¹) by noncomm_ring, hia, one_mul, mul_one]
+
+/-- `adNN a` composed with `adNN a⁻¹` is the identity on `NN n`. -/
+lemma adNN_comp_adNN_inv (a : A n) :
+    (adNN a).toLinearMap ∘ₗ (adNN a⁻¹).toLinearMap = LinearMap.id := by
+  refine LinearMap.ext fun X => ?_
+  exact adNN_adNN_inv a X
+
+/-- `det (adNN a⁻¹) = (det adNN a)⁻¹`. -/
+lemma det_adNN_inv (a : A n) :
+    LinearMap.det (adNN a⁻¹).toLinearMap = (LinearMap.det (adNN a).toLinearMap)⁻¹ := by
+  have hd : LinearMap.det ((adNN a).toLinearMap ∘ₗ (adNN a⁻¹).toLinearMap) = 1 := by
+    rw [adNN_comp_adNN_inv, LinearMap.det_id]
+  rw [LinearMap.det_comp] at hd
+  exact eq_inv_of_mul_eq_one_left (by rw [mul_comm]; exact hd)
+
+/-- `det (conjDiag a) = (det adNN a)⁻¹`. -/
+lemma det_conjDiag (a : A n) :
+    LinearMap.det (conjDiag a) = (LinearMap.det (adNN a).toLinearMap)⁻¹ := by
+  rw [det_conjDiag_prod, ← det_adNN_inv, adNN_det_eq_pair_product]
+  rfl
+
+/-- The chart conjugate of `conjAut a` is the diagonal map `conjDiag a`. -/
+lemma conjAut_nnChart_symm (a : A n) (w : nnIndex n → ℝ) :
+    conjAut a (nnChart.symm w) = nnChart.symm (conjDiag a w) := by
+  apply nnChart.injective
+  rw [Homeomorph.apply_symm_apply]
+  funext ij
+  rw [conjAut_nnChart_apply, Homeomorph.apply_symm_apply, conjDiag_apply]
+  rfl
+
+/-- **The explicit `U` Haar measure**: the pushforward of Lebesgue measure on
+the chart coordinates through the inverse chart. -/
+noncomputable def nuU : Measure (UU n) := Measure.map nnChart.symm volume
+
+/-- **T2.** Conjugation by `a` scales the explicit `U` measure by
+`δ(a) = det (adNN a)`: `map (conjAut a) nuU = δ(a) • nuU`. The determinant
+half of the crux, via the chart and the additive Haar determinant scaling. -/
+lemma map_conjAut_nuU (a : A n) :
+    Measure.map (conjAut a) (nuU (n := n))
+      = ENNReal.ofReal (LinearMap.det (adNN a).toLinearMap) • nuU := by
+  have hmConj : Measurable (conjAut a) := (conjAut a).continuous.measurable
+  have hmChart : Measurable (nnChart (n := n)).symm := (nnChart (n := n)).symm.measurable
+  have hmDiag : Measurable (conjDiag a) :=
+    (conjDiag a).continuous_of_finiteDimensional.measurable
+  have hfun : (⇑(conjAut a)) ∘ (⇑(nnChart (n := n)).symm)
+      = (⇑(nnChart (n := n)).symm) ∘ (⇑(conjDiag a)) := by
+    funext w; exact conjAut_nnChart_symm a w
+  have hdne : LinearMap.det (conjDiag a) ≠ 0 := by
+    rw [det_conjDiag]; exact inv_ne_zero (det_adNN_pos a).ne'
+  unfold nuU
+  rw [Measure.map_map hmConj hmChart, hfun, ← Measure.map_map hmChart hmDiag,
+      Measure.map_linearMap_addHaar_eq_smul_addHaar volume hdne, Measure.map_smul]
+  congr 1
+  rw [det_conjDiag, inv_inv, abs_of_pos (det_adNN_pos a)]
+
+#print axioms det_adNN_pos
+#print axioms det_adNN_inv
+#print axioms det_conjDiag
+#print axioms conjAut_nnChart_symm
+#print axioms map_conjAut_nuU
 
 end Complete
 end IwasawaCoC
