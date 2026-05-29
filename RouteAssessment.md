@@ -84,21 +84,48 @@ measure on `K` is left invariant by direct matrix computation and invoke `haarMe
 `leftMul_nnChart_symm` for `U`.
 
 ## Route B: dependency ordered lemma DAG (to implement next; not started)
-Level 0 (factor Haar identifications by uniqueness; reuse PHASE 1 regularity pattern):
-- B0a `haarAExplicit_eq_smul_haarA : haarAExplicit = haarScalarFactor haarAExplicit haarA . haarA`
-  (A is locally compact abelian, second countable; same uniqueness step as `nuG = c . haarG`).
-- B0b `nuU_eq_smul_haarN : nuU = haarScalarFactor nuU haarN . haarN` (same, for U).
+Level 0 (factor Haar identifications by uniqueness; reuse PHASE 1 regularity pattern): DONE
+on branch `haar-routeb` (commit `efcb18b`), green and axiom clean.
+- B0a [DONE] `haarAExplicit_eq_haarScalarFactor_smul_haarA : haarAExplicit = haarScalarFactor haarAExplicit haarA . haarA`.
+  Needed two new instances on `haarAExplicit` (finite on compacts and `Regular`, transported
+  through the log chart homeomorphism, mirroring `nuU`); `A` already had second countable and
+  pseudo metrizable, so inner regularity then resolved automatically.
+- B0b [DONE] `nuU_eq_haarScalarFactor_smul_haarN : nuU = haarScalarFactor nuU haarN . haarN`.
+  No new instances; `nuU` already carried its regularity (`instRegular_nuU`).
 
-Level 1 (the K chart):
-- B1a `cayleyK` per component: an `OpenPartialHomeomorph` (or local diffeo) from an open
-  subset of `Sk n` onto an open dense subset of each component of `K n`; off chart set
-  is closed of measure zero.
-- B1b `cayleyK` is `C^1` with invertible derivative (for the change of variables and the
-  chart pushforward); record `|det D cayleyK|` if the Riemannian route is taken.
-- B1c `nuK := map cayleyK.symm volume` is left `K` invariant (direct computation of left
-  multiplication in Cayley coordinates), hence a Haar measure on `K`.
-- B1d `nuK_eq_smul_haarK : nuK = c_K . haarK` by `haarMeasure_unique` (K compact, chart free);
-  off chart complement is `haarK` null and `nuK` null.
+Level 1 (the K chart): IN PROGRESS. Existing machinery inventoried and reused (do not rebuild):
+`Sk n` (skew matrices), `cayley` / `cayleyInv`, `cayleyToK : Sk n -> K n`,
+`cayleyHomeomorph : Sk n =t K_open n`, `cayleyOpenChartAt Q0 : OpenPartialHomeomorph (K n) (Sk n)`,
+`cayleyFDerivCLM M : d cayley = -2 . (1+M)^{-1} . _ . (1+M)^{-1}`, `det_cayley_skew : (cayley X).det = 1`,
+`instCompactSpaceK : CompactSpace (K n)`.
+
+CORRECTION to the earlier plan (important). The premise "flat chart Lebesgue `map cayleyToK volume`
+is left invariant, mirroring A and U" is FALSE for `n >= 2`. A (abelian, log linearizes left
+translation to addition) and U (unipotent, affine with unit linear part) are flat groups, so flat
+Lebesgue is invariant there. `O(n)` is curved: left translation in Cayley coordinates is a Mobius
+type map with non constant Jacobian (the `cayleyFDerivCLM` sandwich by `(1+M)^{-1}` is not volume
+preserving). Verified for `SO(2)`: with `X = [[0,a],[-a,0]]`, `cayley X` is rotation by `2 arctan a`,
+so Haar `dtheta` pulls back to `(2/(1+a^2)) da`, NOT flat `da`. The invariant density in Cayley
+coordinates is `proportional to det(1+X)^{-(n-1)}` (consistent with the `cayleyFDerivCLM` sandwich
+and the `SO(2)` value `2/(1+a^2)`). Also `det_cayley_skew = 1` means one Cayley chart covers only the
+`SO(n)` (det +1) component, so `O(n) = SO(n) sqcup (det -1)` needs a second chart.
+
+Corrected Level 1 sub steps (not yet implemented; the long pole):
+- B1a [available, reuse] the Cayley chart `cayleyHomeomorph` / `cayleyOpenChartAt` and
+  `cayleyFDerivCLM` already exist; no rebuild needed.
+- B1b' define the Cayley density `rhoK : Sk n -> R>=0 inf`, `rhoK X = ENNReal.ofReal (|det (1+X.1)|^{-(n-1)})`
+  (or derive the exact constant from `LinearMap.det` of the `cayleyFDerivCLM` sandwich restricted to `Sk`).
+- B1c' `nuK := map cayleyToK (volume.withDensity rhoK)` on the `SO(n)` component (and a reflected
+  copy on the det -1 component). Prove `nuK` left invariant: this needs the density transformation
+  under left translation `X |-> cayleyInv (k0 . cayley X)` (a Mobius map), the genuine hard step.
+  No flat Lebesgue shortcut. The Riemannian submanifold volume from `O(n) subset Matrix` (Frobenius)
+  is the alternative source of `rhoK`; Mathlib support for it is thin, so the direct density
+  transformation is likely still required.
+- B1d `nuK_eq_smul_haarK : nuK = c_K . haarK` by uniqueness (`K` compact). `InnerRegular haarK` is
+  free (compact space instance). Off chart complement is null.
+
+Status: flat Lebesgue approach retired as incorrect; correct density `rhoK` identified; left
+invariance of the density weighted `nuK` under the Mobius left translation is the next concrete step.
 
 Level 2 (the change of variables on the full chart):
 - B2a `haarG_integral_eq_coord : integral over G of f d haarG = (scalar) . integral over the
@@ -120,5 +147,6 @@ Level 3 (assembly):
 - B3c `iwasawaIntegrationFormula : integral over G of f d haarG = (scalar) . integral over
   K x A x U of f(k a u) . delta-weight d(haarK x haarA x haarN)`. Final result.
 
-Critical path: B1a -> B1b -> B1c -> B1d (the K chart) is the long pole; B0a, B0b and
-B2a, B2b can proceed independently and in parallel with B1.
+Critical path: B1b' -> B1c' -> B1d (the density weighted K chart and its left invariance under
+the Mobius left translation) is the long pole; Level 0 (B0a, B0b) is done, and B2a, B2b can proceed
+independently and in parallel with B1.
