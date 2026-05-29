@@ -437,5 +437,124 @@ lemma nn_isNilpotent (Y : NN n) : IsNilpotent Y.1 := by
 
 #print axioms nn_isNilpotent
 
+/-! ### T3: left invariance of `nuU` (the gate) -/
+
+/-- The strict upper matrix built from coordinates (the linear part of
+`fromCoords`, with no diagonal `1`). -/
+def coordMat (w : nnIndex n → ℝ) : Matrix (Fin n) (Fin n) ℝ :=
+  fun i j => if h : i < j then w ⟨(i, j), h⟩ else 0
+
+lemma coordMat_mem (w : nnIndex n → ℝ) : coordMat w ∈ NN n := by
+  intro i j hji
+  simp only [coordMat]
+  rw [dif_neg (by omega : ¬ i < j)]
+
+/-- The product of two strict upper triangular matrices is strict upper
+triangular. -/
+lemma nn_mul_mem (Y X : NN n) : Y.1 * X.1 ∈ NN n := by
+  intro i j hji
+  rw [Matrix.mul_apply]
+  apply Finset.sum_eq_zero
+  intro k _
+  rcases lt_or_ge i k with hik | hik
+  · rcases lt_or_ge k j with hkj | hkj
+    · omega
+    · rw [X.2 k j hkj, mul_zero]
+  · rw [Y.2 i k hik, zero_mul]
+
+/-- The linear isomorphism `NN n ≃ₗ (nnIndex n → ℝ)` reading off strict upper
+entries (the linear core of the chart). -/
+def nnCoordEquiv : NN n ≃ₗ[ℝ] (nnIndex n → ℝ) where
+  toFun X := fun ij => X.1 ij.1.1 ij.1.2
+  map_add' X X' := by funext ij; simp only [Submodule.coe_add, Matrix.add_apply, Pi.add_apply]
+  map_smul' c X := by funext ij; simp only [SetLike.val_smul, Matrix.smul_apply, Pi.smul_apply,
+    RingHom.id_apply, smul_eq_mul]
+  invFun w := ⟨coordMat w, coordMat_mem w⟩
+  left_inv X := by
+    apply Subtype.ext
+    funext i j
+    show coordMat (fun ij => X.1 ij.1.1 ij.1.2) i j = X.1 i j
+    simp only [coordMat]
+    split_ifs with h
+    · rfl
+    · exact (X.2 i j (by omega)).symm
+  right_inv w := by
+    funext ij
+    show coordMat w ij.1.1 ij.1.2 = w ij
+    simp only [coordMat]
+    exact dif_pos ij.2
+
+@[simp] lemma nnCoordEquiv_apply (X : NN n) (ij : nnIndex n) :
+    nnCoordEquiv X ij = X.1 ij.1.1 ij.1.2 := rfl
+
+@[simp] lemma nnCoordEquiv_symm_val (w : nnIndex n → ℝ) :
+    ((nnCoordEquiv.symm w : NN n) : Matrix (Fin n) (Fin n) ℝ) = coordMat w := rfl
+
+#print axioms nn_mul_mem
+#print axioms nnCoordEquiv
+
+/-- Left multiplication by a strict upper `Y` as an endomorphism of `NN n`. -/
+def leftMulNN (Y : NN n) : NN n →ₗ[ℝ] NN n where
+  toFun X := ⟨Y.1 * X.1, nn_mul_mem Y X⟩
+  map_add' X X' := by
+    apply Subtype.ext
+    show Y.1 * (X + X' : NN n).1 = Y.1 * X.1 + Y.1 * X'.1
+    rw [Submodule.coe_add, Matrix.mul_add]
+  map_smul' c X := by
+    apply Subtype.ext
+    show Y.1 * (c • X : NN n).1 = c • (Y.1 * X.1)
+    rw [SetLike.val_smul, Matrix.mul_smul]
+
+@[simp] lemma leftMulNN_apply_val (Y X : NN n) :
+    ((leftMulNN Y X : NN n) : Matrix (Fin n) (Fin n) ℝ) = Y.1 * X.1 := rfl
+
+lemma leftMulNN_pow_apply_val (Y : NN n) (m : ℕ) (X : NN n) :
+    (((leftMulNN Y) ^ m) X : Matrix (Fin n) (Fin n) ℝ) = Y.1 ^ m * X.1 := by
+  induction m with
+  | zero => simp
+  | succ k ih =>
+    rw [pow_succ', Module.End.mul_apply, leftMulNN_apply_val, ih, pow_succ', Matrix.mul_assoc]
+
+/-- `leftMulNN Y` is nilpotent (from `Y` being nilpotent, T1). -/
+lemma leftMulNN_isNilpotent (Y : NN n) : IsNilpotent (leftMulNN Y) := by
+  obtain ⟨m, hm⟩ := nn_isNilpotent Y
+  refine ⟨m, ?_⟩
+  apply LinearMap.ext
+  intro X
+  apply Subtype.ext
+  rw [show (((leftMulNN Y) ^ m) X : NN n) = (((leftMulNN Y) ^ m) X) from rfl]
+  show (((leftMulNN Y) ^ m) X : Matrix (Fin n) (Fin n) ℝ) = ((0 : NN n →ₗ[ℝ] NN n) X : NN n)
+  rw [leftMulNN_pow_apply_val, hm, Matrix.zero_mul]
+  rfl
+
+#print axioms leftMulNN
+#print axioms leftMulNN_isNilpotent
+
+/-- The linear part of left translation in chart coordinates: the conjugate
+of the unipotent `1 + leftMulNN Y` by `nnCoordEquiv`. -/
+noncomputable def transLin (Y : NN n) : (nnIndex n → ℝ) →ₗ[ℝ] (nnIndex n → ℝ) :=
+  nnCoordEquiv.toLinearMap ∘ₗ ((1 : Module.End ℝ (NN n)) + leftMulNN Y) ∘ₗ
+      nnCoordEquiv.symm.toLinearMap
+
+/-- The linear part has determinant `1` (it is conjugate to a unipotent). -/
+lemma det_transLin (Y : NN n) : LinearMap.det (transLin Y) = 1 := by
+  rw [transLin, LinearMap.det_conj]
+  exact det_one_add_of_isNilpotent (leftMulNN_isNilpotent Y)
+
+lemma transLin_apply (Y : NN n) (w : nnIndex n → ℝ) (ij : nnIndex n) :
+    transLin Y w ij = w ij + (Y.1 * coordMat w) ij.1.1 ij.1.2 := by
+  have h1 : transLin Y w
+      = nnCoordEquiv (nnCoordEquiv.symm w + leftMulNN Y (nnCoordEquiv.symm w)) := by
+    simp only [transLin, LinearMap.comp_apply, LinearEquiv.coe_coe, LinearMap.add_apply,
+      Module.End.one_apply]
+  rw [h1, map_add, Pi.add_apply, nnCoordEquiv_apply, nnCoordEquiv_apply, leftMulNN_apply_val,
+    nnCoordEquiv_symm_val]
+  congr 1
+  show coordMat w ij.1.1 ij.1.2 = w ij
+  simp only [coordMat]; exact dif_pos ij.2
+
+#print axioms det_transLin
+#print axioms transLin_apply
+
 end Complete
 end IwasawaCoC
