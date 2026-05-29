@@ -15,7 +15,7 @@ and builds the product Haar measure on `K n × A n × UU n`.
 namespace IwasawaCoC
 namespace Complete
 
-open MeasureTheory
+open MeasureTheory Matrix Iwasawa
 
 variable {n : ℕ}
 
@@ -150,12 +150,89 @@ lemma det_one_add_of_isNilpotent {R M : Type*} [Field R] [AddCommGroup M]
   rw [LinearMap.det_eq_sign_charpoly_coeff, heval, ← mul_pow]
   norm_num
 
+/-! ### C1: conjugation `u ↦ a⁻¹ u a` as a continuous group automorphism of `U` -/
+
+/-- `a⁻¹ u a` is upper unipotent. Proved by recognizing it, through the public
+chart `UU.toNNHomeomorph` and `adNN`, as `1 + (a⁻¹ (u-1) a)` with the bracket
+in `NN n`. -/
+lemma conjAut_mem (a : A n) (u : UU n) :
+    IsUpperUnipotent (a.1⁻¹ * u.1 * a.1) := by
+  have hai : a.1⁻¹ * a.1 = 1 :=
+    Matrix.nonsing_inv_mul a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  have hainv : (a.1⁻¹)⁻¹ = a.1 :=
+    Matrix.nonsing_inv_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  set w : UU n := UU.toNNHomeomorph.symm (adNN a⁻¹ (UU.toNNHomeomorph u)) with hw
+  have key : a.1⁻¹ * u.1 * a.1 = w.1 := by
+    have e1 : w.1 = ((adNN a⁻¹ (UU.toNNHomeomorph u) : NN n) : Matrix (Fin n) (Fin n) ℝ) + 1 :=
+      rfl
+    rw [e1, adNN_apply_val, A_coe_inv]
+    have e2 : ((UU.toNNHomeomorph u : NN n) : Matrix (Fin n) (Fin n) ℝ) = u.1 - 1 := rfl
+    rw [e2, hainv, Matrix.mul_sub, Matrix.mul_one, Matrix.sub_mul, hai, sub_add_cancel]
+  rw [key]
+  exact w.2
+
+/-- `a u a⁻¹` is upper unipotent (the inverse direction of `conjAut`). -/
+lemma conjAut_mem' (a : A n) (u : UU n) :
+    IsUpperUnipotent (a.1 * u.1 * a.1⁻¹) := by
+  have hia : a.1 * a.1⁻¹ = 1 :=
+    Matrix.mul_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+  set w : UU n := UU.toNNHomeomorph.symm (adNN a (UU.toNNHomeomorph u)) with hw
+  have key : a.1 * u.1 * a.1⁻¹ = w.1 := by
+    have e1 : w.1 = ((adNN a (UU.toNNHomeomorph u) : NN n) : Matrix (Fin n) (Fin n) ℝ) + 1 :=
+      rfl
+    rw [e1, adNN_apply_val]
+    have e2 : ((UU.toNNHomeomorph u : NN n) : Matrix (Fin n) (Fin n) ℝ) = u.1 - 1 := rfl
+    rw [e2, Matrix.mul_sub, Matrix.mul_one, Matrix.sub_mul, hia, sub_add_cancel]
+  rw [key]; exact w.2
+
+/-- **C1.** Conjugation `u ↦ a⁻¹ u a` is a continuous group automorphism of
+`UU n`. -/
+noncomputable def conjAut (a : A n) : UU n ≃ₜ* UU n where
+  toFun u := ⟨a.1⁻¹ * u.1 * a.1, conjAut_mem a u⟩
+  invFun u := ⟨a.1 * u.1 * a.1⁻¹, conjAut_mem' a u⟩
+  left_inv u := by
+    apply Subtype.ext
+    have hia : a.1 * a.1⁻¹ = 1 :=
+      Matrix.mul_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+    show a.1 * (a.1⁻¹ * u.1 * a.1) * a.1⁻¹ = u.1
+    rw [show a.1 * (a.1⁻¹ * u.1 * a.1) * a.1⁻¹
+          = (a.1 * a.1⁻¹) * u.1 * (a.1 * a.1⁻¹) by noncomm_ring, hia, one_mul, mul_one]
+  right_inv u := by
+    apply Subtype.ext
+    have hai : a.1⁻¹ * a.1 = 1 :=
+      Matrix.nonsing_inv_mul a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+    show a.1⁻¹ * (a.1 * u.1 * a.1⁻¹) * a.1 = u.1
+    rw [show a.1⁻¹ * (a.1 * u.1 * a.1⁻¹) * a.1
+          = (a.1⁻¹ * a.1) * u.1 * (a.1⁻¹ * a.1) by noncomm_ring, hai, one_mul, mul_one]
+  map_mul' u v := by
+    apply Subtype.ext
+    have hia : a.1 * a.1⁻¹ = 1 :=
+      Matrix.mul_nonsing_inv a.1 (isUnit_iff_ne_zero.mpr a.2.det_pos.ne')
+    show a.1⁻¹ * (u.1 * v.1) * a.1
+        = (a.1⁻¹ * u.1 * a.1) * (a.1⁻¹ * v.1 * a.1)
+    rw [show (a.1⁻¹ * u.1 * a.1) * (a.1⁻¹ * v.1 * a.1)
+          = a.1⁻¹ * u.1 * (a.1 * a.1⁻¹) * v.1 * a.1 by noncomm_ring, hia]
+    noncomm_ring
+  continuous_toFun := by
+    apply Continuous.subtype_mk
+    exact (continuous_const.matrix_mul continuous_subtype_val).matrix_mul continuous_const
+  continuous_invFun := by
+    apply Continuous.subtype_mk
+    exact (continuous_const.matrix_mul continuous_subtype_val).matrix_mul continuous_const
+
+@[simp] lemma conjAut_apply_val (a : A n) (u : UU n) :
+    ((conjAut a u : UU n) : Matrix (Fin n) (Fin n) ℝ) = a.1⁻¹ * u.1 * a.1 := rfl
+
 #print axioms haarKAU
 #print axioms instIsHaarMeasureHaarKAU
 #print axioms toFinNRHomeomorph_mul
 #print axioms haarAExplicit
 #print axioms instIsMulLeftInvariantHaarAExplicit
 #print axioms det_one_add_of_isNilpotent
+#print axioms conjAut_mem
+#print axioms conjAut_mem'
+#print axioms conjAut
+#print axioms conjAut_apply_val
 
 end Complete
 end IwasawaCoC
