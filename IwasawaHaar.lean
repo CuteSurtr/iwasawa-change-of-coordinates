@@ -18,6 +18,7 @@ namespace IwasawaCoC
 namespace Complete
 
 open MeasureTheory Matrix Iwasawa
+open scoped ENNReal NNReal
 
 variable {n : ℕ}
 
@@ -839,6 +840,151 @@ lemma map_rightMulCoord_volume (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 
 
 #print axioms map_leftMulCoord_volume
 #print axioms map_rightMulCoord_volume
+
+/-! ### GL_n Haar: lintegral change of variables
+
+Integrating against coordinate Lebesgue, precomposition with left/right
+multiplication by an invertible `g` picks up the factor `|det g|^(-n)`. -/
+
+/-- Change of variables for left multiplication. -/
+lemma lintegral_leftMulCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0)
+    {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ x, F (leftMulCoord g x) ∂(volume : Measure ((Fin n × Fin n) → ℝ))
+      = ENNReal.ofReal |((Matrix.det g) ^ n)⁻¹| * ∫⁻ x, F x ∂volume := by
+  rw [← lintegral_map hF (leftMulCoord g).continuous_of_finiteDimensional.measurable,
+    map_leftMulCoord_volume g hg, lintegral_smul_measure, smul_eq_mul]
+
+/-- Change of variables for right multiplication. -/
+lemma lintegral_rightMulCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0)
+    {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ x, F (rightMulCoord g x) ∂(volume : Measure ((Fin n × Fin n) → ℝ))
+      = ENNReal.ofReal |((Matrix.det g) ^ n)⁻¹| * ∫⁻ x, F x ∂volume := by
+  rw [← lintegral_map hF (rightMulCoord g).continuous_of_finiteDimensional.measurable,
+    map_rightMulCoord_volume g hg, lintegral_smul_measure, smul_eq_mul]
+
+#print axioms lintegral_leftMulCoord
+#print axioms lintegral_rightMulCoord
+
+/-! ### GL_n Haar: the explicit bi invariant density measure
+
+The `GL_n` Haar density `|det g|^(-n)` in coordinates, with its transformation
+laws under left/right multiplication, and the resulting bi invariance of the
+measure `volume.withDensity detWeightCoord` under multiplication by an
+invertible matrix. -/
+
+/-- The `GL_n` Haar density `|det g|^(-n)` at the coordinate point `w`
+(`g = matrixToCoord.symm w`). -/
+noncomputable def detWeightCoord (w : (Fin n × Fin n) → ℝ) : ℝ≥0∞ :=
+  ENNReal.ofReal ((|(matrixToCoord.symm w).det| ^ n)⁻¹)
+
+/-- `det ∘ matrixToCoord.symm` is continuous (`det` is a polynomial in the
+entries, and the chart is linear on a finite dimensional space). -/
+lemma continuous_det_matrixToCoord_symm :
+    Continuous (fun w : (Fin n × Fin n) → ℝ => (matrixToCoord.symm w).det) :=
+  (matrixToCoord.symm.toLinearMap.continuous_of_finiteDimensional).matrix_det
+
+/-- The density `detWeightCoord` is measurable. -/
+lemma measurable_detWeightCoord :
+    Measurable (detWeightCoord (n := n)) := by
+  unfold detWeightCoord
+  exact (((continuous_det_matrixToCoord_symm.abs.pow n).measurable).inv).ennreal_ofReal
+
+/-- Density transformation under left multiplication: precomposing with
+`leftMulCoord g` multiplies the density by `|det g|^(-n)`. -/
+lemma detWeightCoord_leftMulCoord (g : Matrix (Fin n) (Fin n) ℝ)
+    (w : (Fin n × Fin n) → ℝ) :
+    detWeightCoord (leftMulCoord g w)
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * detWeightCoord w := by
+  have hsymm : matrixToCoord.symm (leftMulCoord g w) = g * matrixToCoord.symm w := by
+    rw [leftMulCoord, LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply]
+    rfl
+  unfold detWeightCoord
+  rw [hsymm, Matrix.det_mul, abs_mul, mul_pow, mul_inv,
+    ENNReal.ofReal_mul (by positivity)]
+
+/-- Density transformation under right multiplication. -/
+lemma detWeightCoord_rightMulCoord (g : Matrix (Fin n) (Fin n) ℝ)
+    (w : (Fin n × Fin n) → ℝ) :
+    detWeightCoord (rightMulCoord g w)
+      = ENNReal.ofReal ((|g.det| ^ n)⁻¹) * detWeightCoord w := by
+  have hsymm : matrixToCoord.symm (rightMulCoord g w) = matrixToCoord.symm w * g := by
+    rw [rightMulCoord, LinearEquiv.conj_apply_apply, LinearEquiv.symm_apply_apply]
+    rfl
+  unfold detWeightCoord
+  rw [hsymm, Matrix.det_mul, abs_mul, mul_pow, mul_inv,
+    ENNReal.ofReal_mul (by positivity), mul_comm (ENNReal.ofReal ((|(matrixToCoord.symm w).det| ^ n)⁻¹))]
+
+/-- **The explicit `GL_n` Haar measure**, on the coordinate space: Lebesgue
+weighted by the density `|det g|^(-n)`. -/
+noncomputable def haarGCoord : Measure ((Fin n × Fin n) → ℝ) :=
+  volume.withDensity (detWeightCoord (n := n))
+
+#print axioms measurable_detWeightCoord
+#print axioms detWeightCoord_leftMulCoord
+#print axioms detWeightCoord_rightMulCoord
+
+/-! ### GL_n Haar: bi invariance (measure level unimodularity)
+
+The measure `haarGCoord = volume.withDensity detWeightCoord` is invariant under
+both left and right multiplication by an invertible matrix: the `|det g|^(-n)`
+Lebesgue scaling (step 1) cancels the `|det g|^(-n)` density factor (step 3).
+This is the linear-algebra heart of `GL_n(ℝ)` unimodularity. -/
+
+/-- The `|det g|^(-n)` factor is nonzero (for invertible `g`). -/
+private lemma ofReal_detFactor_ne_zero (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
+    ENNReal.ofReal ((|g.det| ^ n)⁻¹) ≠ 0 := by
+  rw [Ne, ENNReal.ofReal_eq_zero, not_le]
+  exact inv_pos.mpr (pow_pos (abs_pos.mpr hg) n)
+
+/-- `withDensity` normalizes the density through `NNReal`; this folds it back. -/
+private lemma coe_toNNReal_detWeightCoord (w : (Fin n × Fin n) → ℝ) :
+    (↑(detWeightCoord (n := n) w).toNNReal : ℝ≥0∞) = detWeightCoord w :=
+  ENNReal.coe_toNNReal ENNReal.ofReal_ne_top
+
+/-- **Left invariance** of the explicit `GL_n` Haar measure. -/
+lemma map_leftMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
+    Measure.map (leftMulCoord g) (haarGCoord (n := n)) = haarGCoord := by
+  have hcont : Measurable (leftMulCoord g) :=
+    (leftMulCoord g).continuous_of_finiteDimensional.measurable
+  refine Measure.ext_of_lintegral _ fun F hF => ?_
+  rw [lintegral_map hF hcont]
+  unfold haarGCoord
+  rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord
+      (hF.comp hcont),
+    lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hF]
+  -- Cancel the common positive finite factor `|det g|^(-n)`.
+  refine (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
+    ENNReal.ofReal_ne_top).mp ?_
+  -- RHS: `a * ∫ (detWeightCoord * F) = ∫ (detWeightCoord * F)(leftMul x)`.
+  rw [← lintegral_leftMulCoord g hg (measurable_detWeightCoord.mul hF),
+    ← lintegral_const_mul _ (measurable_detWeightCoord.mul (hF.comp hcont))]
+  refine lintegral_congr fun x => ?_
+  simp only [Pi.mul_apply]
+  rw [detWeightCoord_leftMulCoord]
+  ring
+
+/-- **Right invariance** of the explicit `GL_n` Haar measure. -/
+lemma map_rightMulCoord_haarGCoord (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
+    Measure.map (rightMulCoord g) (haarGCoord (n := n)) = haarGCoord := by
+  have hcont : Measurable (rightMulCoord g) :=
+    (rightMulCoord g).continuous_of_finiteDimensional.measurable
+  refine Measure.ext_of_lintegral _ fun F hF => ?_
+  rw [lintegral_map hF hcont]
+  unfold haarGCoord
+  rw [lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord
+      (hF.comp hcont),
+    lintegral_withDensity_eq_lintegral_mul _ measurable_detWeightCoord hF]
+  refine (ENNReal.mul_right_inj (ofReal_detFactor_ne_zero g hg)
+    ENNReal.ofReal_ne_top).mp ?_
+  rw [← lintegral_rightMulCoord g hg (measurable_detWeightCoord.mul hF),
+    ← lintegral_const_mul _ (measurable_detWeightCoord.mul (hF.comp hcont))]
+  refine lintegral_congr fun x => ?_
+  simp only [Pi.mul_apply]
+  rw [detWeightCoord_rightMulCoord]
+  ring
+
+#print axioms map_leftMulCoord_haarGCoord
+#print axioms map_rightMulCoord_haarGCoord
 
 end Complete
 end IwasawaCoC
