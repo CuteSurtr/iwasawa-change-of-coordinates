@@ -622,5 +622,34 @@ instance instIsMulLeftInvariant_nuU : (nuU (n := n)).IsMulLeftInvariant := by
 #print axioms map_transLin_volume
 #print axioms instIsMulLeftInvariant_nuU
 
+/-- `nuU` is finite on compacts (pushforward of `volume` via the chart). -/
+instance instIsFiniteOnCompacts_nuU : IsFiniteMeasureOnCompacts (nuU (n := n)) := by
+  refine ⟨fun K hK => ?_⟩
+  have hpre : (nnChart (n := n)).symm ⁻¹' K = (nnChart (n := n)) '' K := by
+    ext w
+    simp only [Set.mem_preimage, Set.mem_image]
+    constructor
+    · intro h
+      exact ⟨(nnChart (n := n)).symm w, h, (nnChart (n := n)).apply_symm_apply w⟩
+    · rintro ⟨u, hu, rfl⟩
+      rwa [Homeomorph.symm_apply_apply]
+  unfold nuU
+  rw [Measure.map_apply (nnChart (n := n)).symm.measurable hK.measurableSet, hpre]
+  exact (hK.image (nnChart (n := n)).continuous).measure_lt_top
+
+/-- `nuU` is positive on opens (pushforward of `volume` via the chart). -/
+instance instIsOpenPos_nuU : (nuU (n := n)).IsOpenPosMeasure :=
+  (nnChart (n := n)).symm.continuous.isOpenPosMeasure_map (nnChart (n := n)).symm.surjective
+
+/-- `nuU` is regular (pushforward of the regular `volume` via the chart). -/
+instance instRegular_nuU : (nuU (n := n)).Regular :=
+  Measure.Regular.map (nnChart (n := n)).symm
+
+/-- `nuU` is a Haar measure on `U` (left invariant, finite on compacts,
+positive on opens). -/
+instance instIsHaarMeasure_nuU : (nuU (n := n)).IsHaarMeasure := ⟨⟩
+
+#print axioms instIsHaarMeasure_nuU
+
 end Complete
 end IwasawaCoC
