@@ -2,6 +2,7 @@ import iwasawa_change_of_coords.IwasawaComplete
 import Mathlib.MeasureTheory.Constructions.Pi
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+import Mathlib.MeasureTheory.Measure.Haar.MulEquivHaarChar
 
 /-
 Measure theory layer for the Iwasawa decomposition.
@@ -650,6 +651,39 @@ positive on opens). -/
 instance instIsHaarMeasure_nuU : (nuU (n := n)).IsHaarMeasure := ⟨⟩
 
 #print axioms instIsHaarMeasure_nuU
+
+/-! ### T4: the crux — conjugation scales `U`-Haar by `δ(a)⁻¹` -/
+
+/-- **T4 — the crux**, `ℝ≥0` form. Combining the determinant scaling (T2,
+`map_conjAut_nuU`) with `nuU` being a regular Haar measure (T3), the Haar
+character of conjugation is `δ(a)⁻¹`:
+`mulEquivHaarChar (conjAut a) = (det (adNN a))⁻¹`. -/
+lemma mulEquivHaarChar_conjAut_eq_toNNReal_inv (a : A n) :
+    mulEquivHaarChar (conjAut a)
+      = (Real.toNNReal (LinearMap.det (adNN a).toLinearMap))⁻¹ := by
+  have hδnn : Real.toNNReal (LinearMap.det (adNN a).toLinearMap) ≠ 0 := by
+    rw [Ne, Real.toNNReal_eq_zero]; exact not_le.mpr (det_adNN_pos a)
+  haveI : Measure.IsHaarMeasure
+      ((LinearMap.det (adNN a).toLinearMap).toNNReal • nuU (n := n)) :=
+    Measure.IsHaarMeasure.nnreal_smul (nuU (n := n)) hδnn
+  have hmap : Measure.map (conjAut a) (nuU (n := n))
+      = Real.toNNReal (LinearMap.det (adNN a).toLinearMap) • nuU := by
+    rw [map_conjAut_nuU a]
+    exact Measure.coe_nnreal_smul _ nuU
+  rw [mulEquivHaarChar_eq nuU (conjAut a)]
+  simp only [hmap]
+  have hkey := Measure.mul_haarScalarFactor_smul (nuU (n := n)) (nuU (n := n)) hδnn
+  rw [Measure.haarScalarFactor_self] at hkey
+  exact eq_inv_of_mul_eq_one_right hkey
+
+/-- **T4 — the crux**, real form: `mulEquivHaarChar (conjAut a) = δ(a)⁻¹`,
+where `δ(a) = det (adNN a) = ∏_{i<j} a_i / a_j`. -/
+lemma mulEquivHaarChar_conjAut (a : A n) :
+    (mulEquivHaarChar (conjAut a) : ℝ) = (LinearMap.det (adNN a).toLinearMap)⁻¹ := by
+  rw [mulEquivHaarChar_conjAut_eq_toNNReal_inv a, NNReal.coe_inv,
+      Real.coe_toNNReal _ (det_adNN_pos a).le]
+
+#print axioms mulEquivHaarChar_conjAut
 
 end Complete
 end IwasawaCoC
