@@ -419,5 +419,23 @@ lemma map_conjAut_nuU (a : A n) :
 #print axioms conjAut_nnChart_symm
 #print axioms map_conjAut_nuU
 
+/-! ### T1: strictly upper triangular matrices are nilpotent -/
+
+/-- **T1.** A strictly upper triangular matrix (a member of `NN n`) is
+nilpotent. Via the upper triangular characteristic polynomial `X ^ n` and
+Cayley-Hamilton. -/
+lemma nn_isNilpotent (Y : NN n) : IsNilpotent Y.1 := by
+  have hbt : Y.1.BlockTriangular id := fun i j hji => Y.2 i j (le_of_lt hji)
+  have hdiag : ∀ i, Y.1 i i = 0 := fun i => Y.2 i i le_rfl
+  have hcp : Y.1.charpoly = (Polynomial.X : Polynomial ℝ) ^ Fintype.card (Fin n) := by
+    rw [Matrix.charpoly_of_upperTriangular Y.1 hbt]
+    simp only [hdiag, map_zero, sub_zero, Finset.prod_const, Finset.card_univ]
+  refine ⟨Fintype.card (Fin n), ?_⟩
+  have hch := Y.1.aeval_self_charpoly
+  rw [hcp, map_pow, Polynomial.aeval_X] at hch
+  exact hch
+
+#print axioms nn_isNilpotent
+
 end Complete
 end IwasawaCoC
