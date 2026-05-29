@@ -766,8 +766,18 @@ lemma det_leftMulMatLin (g : Matrix (Fin n) (Fin n) ℝ) :
   rw [← LinearMap.det_conj (leftMulMatLin g) (Matrix.transposeLinearEquiv (Fin n) (Fin n) ℝ ℝ),
     leftMul_conj_eq_rightMul, det_rightMulMatLin, Matrix.det_transpose]
 
+/-- **Algebraic unimodularity core.** Conjugation `M ↦ g * M * g⁻¹` by an
+invertible matrix `g` has determinant `1` on the matrix space, since
+`det (Lₘ ∘ R_{g⁻¹}) = (det g)^n · (det g⁻¹)^n = 1`. This is the linear-algebra
+reason `GL_n(ℝ)` is unimodular (the adjoint action preserves volume). -/
+lemma det_conjMatLin (g : Matrix (Fin n) (Fin n) ℝ) (hg : g.det ≠ 0) :
+    LinearMap.det ((leftMulMatLin g).comp (rightMulMatLin g⁻¹)) = 1 := by
+  rw [LinearMap.det_comp, det_leftMulMatLin, det_rightMulMatLin, Matrix.det_nonsing_inv,
+    Ring.inverse_eq_inv', ← mul_pow, mul_inv_cancel₀ hg, one_pow]
+
 #print axioms det_leftMulMatLin
 #print axioms det_rightMulMatLin
+#print axioms det_conjMatLin
 
 end Complete
 end IwasawaCoC
