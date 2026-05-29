@@ -5,6 +5,53 @@ target, the weight power, the crux route, and the dependency order. Proves
 nothing here. Mathlib facts were read from the pinned copy under
 `.lake/packages/mathlib` on 2026-05-28; project facts from the current source.
 
+## Progress (2026-05-28e): T3 and T4 closed in `IwasawaHaar.lean` — crux complete
+
+All axiom clean (`[propext, Classical.choice, Quot.sound]`, no `sorryAx`).
+- **T3 DONE (the left invariance gate).** `instIsMulLeftInvariant_nuU` plus the
+  Haar instances `instIsFiniteOnCompacts_nuU`, `instIsOpenPos_nuU`,
+  `instRegular_nuU`, `instIsHaarMeasure_nuU`. Left translation `u ↦ u₀ u` in
+  `nnChart` coordinates is the affine map `w ↦ transLin Y w + nnChart u₀` with
+  `Y = u₀ - 1`, where `transLin Y` is the conjugate by `nnCoordEquiv` of
+  `1 + leftMulNN Y`; `leftMulNN Y` is nilpotent (`leftMulNN_isNilpotent`, from
+  T1), so `det (transLin Y) = 1` (`det_transLin` via `LinearMap.det_conj` and
+  `det_one_add_of_isNilpotent`). The measure chain uses `map_transLin_volume`
+  (`map (transLin Y) volume = volume`) and `map_add_right_eq_self`. Support:
+  `nnCoordEquiv`, `leftMulNN`, `fromCoords_eq`, `leftMul_nnChart_symm`,
+  `map_transAffine_volume`.
+- **T4 DONE (closes the crux).** `mulEquivHaarChar_conjAut_eq_toNNReal_inv` and
+  `mulEquivHaarChar_conjAut`: combining T2 (`map_conjAut_nuU`) with `nuU` being
+  a regular Haar measure (T3), via `mulEquivHaarChar_eq` and
+  `mul_haarScalarFactor_smul` + `haarScalarFactor_self`,
+  `mulEquivHaarChar (conjAut a) = (det (adNN a))⁻¹ = δ(a)⁻¹` (stated in both
+  `ℝ≥0` and `ℝ` form). The crux measure identity is genuine, not a positivity
+  existential.
+
+## PHASE 2 gate (verified 2026-05-28e): GL_n unimodularity / GL_n Haar NOT in Mathlib
+
+A thorough search of the pinned Mathlib confirms the gate for the full
+integration formula:
+- **No group-theoretic unimodularity.** Only `Matrix.TotallyUnimodular`
+  (0/±1 minors) exists; unrelated. No modular-function / `haarChar`-trivial
+  predicate, no "Haar on compact/abelian is right invariant" packaged beyond
+  `IsMulLeftInvariant.isMulRightInvariant` (abelian only).
+- **No Haar on `GL_n`.** `Matrix.GeneralLinearGroup` has the group/`det`
+  structure but no topology/measure/Haar. The classical fact "Haar on `GL_n(ℝ)`
+  is `|det g|^{-n} d(Lebesgue)`" is not in Mathlib.
+- **No `distribHaarChar`/`mulEquivHaarChar` ↔ `det` lemma.** Confirms T4 is
+  genuinely novel (we proved it via the explicit `U` Haar).
+- **Available:** `map_linearMap_addHaar_eq_smul_addHaar` (and the `volume_pi`
+  variants) for `map L volume = |det L|⁻¹ • volume`; `IsMulRightInvariant`
+  typeclass; `withDensity`.
+
+Consequence: assembling the genuine integration formula on `G n = GL_n(ℝ)`
+requires either (a) an explicit bi-invariant Haar `|det g|^{-n} • volume` on the
+open set `GL_n ⊂ Matrix`, proved `IsHaarMeasure` and reconciled with the
+abstract `haarG` by uniqueness, then the Iwasawa-map Jacobian; or (b) proving
+`G n` unimodular. Both are large multi-lemma constructions, not quick wins.
+The crux (T1–T4) is the self-contained, axiom-clean core; the remaining
+assembly is gated on this GL_n groundwork.
+
 ## Progress (2026-05-28d): T1 and T2 closed in `IwasawaHaar.lean`
 
 All axiom clean.

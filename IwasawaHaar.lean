@@ -685,5 +685,25 @@ lemma mulEquivHaarChar_conjAut (a : A n) :
 
 #print axioms mulEquivHaarChar_conjAut
 
+/-! ### The crux for the canonical Haar measure `haarN` -/
+
+/-- **Crux, canonical form.** Conjugation by `a` scales the abstract Haar
+measure `haarN = Measure.haar` on `U` by `δ(a) = det (adNN a)`:
+`map (conjAut a) haarN = δ(a) • haarN`. This transports T4 from the explicit
+chart measure `nuU` to the project's canonical Haar measure, since
+`mulEquivHaarChar` does not depend on the chosen regular Haar measure. -/
+lemma map_conjAut_haarN (a : A n) :
+    Measure.map (conjAut a) (haarN (n := n))
+      = (LinearMap.det (adNN a).toLinearMap).toNNReal • haarN := by
+  have hδnn : (LinearMap.det (adNN a).toLinearMap).toNNReal ≠ 0 := by
+    rw [Ne, Real.toNNReal_eq_zero]; exact not_le.mpr (det_adNN_pos a)
+  have h := mulEquivHaarChar_smul_map (haarN (n := n)) (conjAut a)
+  rw [mulEquivHaarChar_conjAut_eq_toNNReal_inv a] at h
+  have h2 := congrArg (fun μ : Measure (UU n) =>
+      (LinearMap.det (adNN a).toLinearMap).toNNReal • μ) h
+  simpa only [smul_smul, mul_inv_cancel₀ hδnn, one_smul] using h2
+
+#print axioms map_conjAut_haarN
+
 end Complete
 end IwasawaCoC
