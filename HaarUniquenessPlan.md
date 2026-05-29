@@ -5,6 +5,35 @@ target, the weight power, the crux route, and the dependency order. Proves
 nothing here. Mathlib facts were read from the pinned copy under
 `.lake/packages/mathlib` on 2026-05-28; project facts from the current source.
 
+## Progress (2026-05-28d): T1 and T2 closed in `IwasawaHaar.lean`
+
+All axiom clean.
+- **T1 DONE.** `nn_isNilpotent`: a member of `NN n` (strictly upper
+  triangular) is nilpotent. Via `charpoly_of_upperTriangular` (charpoly is
+  `X ^ n` since the diagonal is zero) and Cayley-Hamilton.
+- **T2 DONE (the determinant half of the crux).** `map_conjAut_nuU`:
+  `map (conjAut a) nuU = ENNReal.ofReal (det (adNN a)) • nuU`, where
+  `nuU := map nnChart.symm volume` is the explicit `U` measure. Built from the
+  diagonal map `conjDiag a` (det `= det (adNN a⁻¹) = (det adNN a)⁻¹` via
+  `det_adNN_inv` from `adNN` multiplicativity `adNN_adNN_inv` /
+  `adNN_comp_adNN_inv`, and `adNN_det_eq_pair_product`), and
+  `map_linearMap_addHaar_eq_smul_addHaar`. Supporting: `conjRatio`,
+  `conjDiag`, `det_conjDiag`, `det_adNN_pos`.
+
+Remaining:
+- **T3 (the left invariance gate).** `nuU` is left invariant, hence a Haar
+  measure. Left translation `u ↦ u₀ u` in `nnChart` coordinates is the affine
+  map `w ↦ nnChart u₀ + (1 + N) w`, where `N w = ` strict upper entries of
+  `Y · S(w)` with `Y = u₀ - 1` and `S` the linear iso to strict upper
+  matrices, so `N = S⁻¹ ∘ (left mul by Y) ∘ S` is nilpotent (T1 gives
+  `Y` nilpotent), giving `det (1 + N) = 1` by `det_one_add_of_isNilpotent`,
+  and the affine map preserves `volume`. This is a large tightly coupled
+  piece (the iso `S`, the operator `N`, its nilpotency transfer, the affine
+  decomposition, and the measure chain); not yet built.
+- **T4 (closes the crux).** From T3 (`nuU` is regular Haar) and T2, via
+  `mulEquivHaarChar φ • map φ μ = μ`, conclude
+  `mulEquivHaarChar (conjAut a) = (det adNN a)⁻¹ = δ(a)⁻¹`. Needs T3.
+
 ## Target theorem
 
 With `iwasawaDiffeomorph : K n × A n × UU n ≃ G n` and the real Haar measures
