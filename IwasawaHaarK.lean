@@ -231,12 +231,52 @@ lemma cayleyToK_cayleyLeftTransSk (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeft
   show cayley (cayleyLeftTrans k₀ X) = k₀.1 * cayley X.1
   exact cayley_cayleyLeftTrans k₀ hX
 
+/-- `X ↦ k₀ · cayley X` is continuous everywhere on `Sk n`. -/
+lemma continuous_k_mul_cayley (k₀ : K n) :
+    Continuous (fun X : Sk n => k₀.1 * cayley X.1) :=
+  continuous_const.matrix_mul continuous_cayley_on_skew
+
+/-- The chart domain `cayleyLeftDom k₀` is open: it is the preimage of the open
+set `{u | u ≠ 0}` under the continuous map `X ↦ det (1 + k₀ · cayley X)`. -/
+lemma isOpen_cayleyLeftDom (k₀ : K n) : IsOpen (cayleyLeftDom k₀) := by
+  have hcont : Continuous (fun X : Sk n => (1 + k₀.1 * cayley X.1).det) :=
+    (continuous_const.add (continuous_k_mul_cayley k₀)).matrix_det
+  have hset : cayleyLeftDom k₀
+      = (fun X : Sk n => (1 + k₀.1 * cayley X.1).det) ⁻¹' {u | u ≠ 0} := by
+    ext X
+    simp only [cayleyLeftDom, Set.mem_setOf_eq, Set.mem_preimage, isUnit_iff_ne_zero]
+  rw [hset]
+  exact hcont.isOpen_preimage _ isOpen_ne
+
+/-- The Möbius left translation `Ψ k₀` is continuous on its domain. The only
+discontinuity of the matrix inverse `(1 + k₀ · cayley X)⁻¹` is where
+`1 + k₀ · cayley X` is singular, which is exactly off `cayleyLeftDom k₀`. -/
+lemma continuousOn_cayleyLeftTrans (k₀ : K n) :
+    ContinuousOn (cayleyLeftTrans k₀) (cayleyLeftDom k₀) := by
+  intro X hX
+  refine ContinuousAt.continuousWithinAt ?_
+  have hsub : ContinuousAt (fun Y : Sk n => 1 - k₀.1 * cayley Y.1) X :=
+    (continuous_const.sub (continuous_k_mul_cayley k₀)).continuousAt
+  have hadd : ContinuousAt (fun Y : Sk n => 1 + k₀.1 * cayley Y.1) X :=
+    (continuous_const.add (continuous_k_mul_cayley k₀)).continuousAt
+  have hUnitDet : IsUnit ((1 + k₀.1 * cayley X.1).det) := hX
+  have hRingInv : ContinuousAt Ring.inverse ((1 + k₀.1 * cayley X.1).det) :=
+    NormedRing.inverse_continuousAt hUnitDet.unit
+  have hMatInv : ContinuousAt (fun Y : Sk n => (1 + k₀.1 * cayley Y.1)⁻¹) X :=
+    ContinuousAt.comp (g := Inv.inv) (f := fun Y : Sk n => 1 + k₀.1 * cayley Y.1)
+      (continuousAt_matrix_inv (1 + k₀.1 * cayley X.1) hRingInv) hadd
+  show ContinuousAt (fun Y : Sk n => cayleyInv (k₀.1 * cayley Y.1)) X
+  unfold cayleyInv
+  exact hsub.mul hMatInv
+
 #print axioms volSk
 #print axioms nuK
 #print axioms measurable_cayleyToK
 #print axioms nuK_apply
 #print axioms cayley_cayleyLeftTrans
 #print axioms cayleyToK_cayleyLeftTransSk
+#print axioms isOpen_cayleyLeftDom
+#print axioms continuousOn_cayleyLeftTrans
 #print axioms continuous_rhoK
 #print axioms measurable_rhoK
 #print axioms abs_det_cayleyDerivOnSk
