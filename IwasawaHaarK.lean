@@ -122,6 +122,23 @@ lemma abs_det_cayleyDerivOnSk_two (X : Sk 2) :
     |LinearMap.det (cayleyDerivOnSk X).toLinearMap| = 2 * |(1 + X.1).det|⁻¹ := by
   rw [abs_det_cayleyDerivOnSk, card_nnIndex_two, pow_one, pow_one]
 
+/-! ### Measurability of the density -/
+
+/-- `ρK` is continuous on all of `Sk n`. The only possible discontinuity of
+`|det (1 + X)|⁻¹` is at `det (1 + X) = 0`, which never occurs for skew `X`
+(`one_add_skew_isUnit`), so the inverse is continuous everywhere. -/
+lemma continuous_rhoK : Continuous (rhoK : Sk n → ℝ≥0∞) := by
+  unfold rhoK
+  refine ENNReal.continuous_ofReal.comp (Continuous.pow ?_ (n - 1))
+  refine Continuous.inv₀ ?_ (fun X => abs_ne_zero.mpr (one_add_skew_isUnit X).ne_zero)
+  exact ((continuous_const.add continuous_subtype_val).matrix_det).abs
+
+/-- `ρK` is measurable (it is even continuous). -/
+lemma measurable_rhoK : Measurable (rhoK : Sk n → ℝ≥0∞) :=
+  continuous_rhoK.measurable
+
+#print axioms continuous_rhoK
+#print axioms measurable_rhoK
 #print axioms abs_det_cayleyDerivOnSk
 #print axioms rhoK
 #print axioms ofReal_abs_det_cayleyDerivOnSk
