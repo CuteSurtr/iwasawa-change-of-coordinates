@@ -19,6 +19,7 @@ off, not hard-coded, and the constant matches the `SO(2)` value `2/(1+a²)`.
 -/
 
 import iwasawa_change_of_coords.IwasawaHaar
+import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 namespace IwasawaCoC
 
@@ -137,6 +138,24 @@ lemma continuous_rhoK : Continuous (rhoK : Sk n → ℝ≥0∞) := by
 lemma measurable_rhoK : Measurable (rhoK : Sk n → ℝ≥0∞) :=
   continuous_rhoK.measurable
 
+/-! ### B1c': the candidate invariant measure `nuK` -/
+
+/-- Lebesgue measure on `Sk n`, defined from the basis `skBasis` as the additive
+Haar measure giving the `skBasis`-parallelepiped measure one. (There is no
+ambient `volume` on the submodule `Sk n`, so we name the Lebesgue measure
+explicitly rather than rely on a `MeasureSpace` instance.) -/
+noncomputable def volSk : Measure (Sk n) := (skBasis (n := n)).addHaar
+
+/-- **B1c' object.** The candidate left invariant measure on the `SO(n)`
+(`det = +1`) component of `K n`, in Cayley coordinates: the density weighted
+Lebesgue measure `volSk.withDensity ρK` pushed forward through the Cayley chart
+`cayleyToK`. Left invariance under `SO(n)` (the genuine hard step, via the
+Möbius left translation `X ↦ cayleyInv (k₀ · cayley X)`) is not yet proven. -/
+noncomputable def nuK : Measure (K n) :=
+  Measure.map cayleyToK (volSk.withDensity rhoK)
+
+#print axioms volSk
+#print axioms nuK
 #print axioms continuous_rhoK
 #print axioms measurable_rhoK
 #print axioms abs_det_cayleyDerivOnSk
