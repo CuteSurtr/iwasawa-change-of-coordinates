@@ -154,8 +154,27 @@ Möbius left translation `X ↦ cayleyInv (k₀ · cayley X)`) is not yet proven
 noncomputable def nuK : Measure (K n) :=
   Measure.map cayleyToK (volSk.withDensity rhoK)
 
+/-- The Cayley chart `cayleyToK` is continuous (its underlying matrix map is
+`continuous_cayley_on_skew`). -/
+lemma continuous_cayleyToK : Continuous (cayleyToK : Sk n → K n) := by
+  apply Continuous.subtype_mk
+  exact continuous_cayley_on_skew
+
+/-- The Cayley chart `cayleyToK` is measurable, so `nuK` is a genuine
+pushforward (not the junk value of `Measure.map` on a non measurable map). -/
+lemma measurable_cayleyToK : Measurable (cayleyToK : Sk n → K n) :=
+  continuous_cayleyToK.measurable
+
+/-- Evaluation of `nuK` on a measurable set, via the change of variables for a
+pushforward: `nuK s = (volSk.withDensity ρK) (cayleyToK ⁻¹' s)`. -/
+lemma nuK_apply {s : Set (K n)} (hs : MeasurableSet s) :
+    nuK s = (volSk.withDensity rhoK) (cayleyToK ⁻¹' s) := by
+  rw [nuK, Measure.map_apply measurable_cayleyToK hs]
+
 #print axioms volSk
 #print axioms nuK
+#print axioms measurable_cayleyToK
+#print axioms nuK_apply
 #print axioms continuous_rhoK
 #print axioms measurable_rhoK
 #print axioms abs_det_cayleyDerivOnSk
