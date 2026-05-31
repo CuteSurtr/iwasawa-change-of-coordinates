@@ -269,6 +269,42 @@ lemma continuousOn_cayleyLeftTrans (k₀ : K n) :
   unfold cayleyInv
   exact hsub.mul hMatInv
 
+/-! ### B1c' step 2 (partial): clearing the Cayley denominator
+
+The chart domain condition `1 + k₀ · cayley X` invertible becomes, after clearing
+the `(1 + X)⁻¹` hidden in `cayley X`, the non-vanishing of `det ((1 + X) + k₀ ·
+(1 - X))`, which is a polynomial in the entries of `X` (the matrix is affine in
+`X`). This is the reduction that turns the chart miss set into the zero set of a
+polynomial. The two remaining step 2 facts (that this polynomial is not
+identically zero, and that a nonzero polynomial has Lebesgue null zero set) are
+NOT formalized here; the latter has no ready Mathlib lemma (see RouteAssessment). -/
+
+/-- Clearing the Cayley denominator:
+`(1 + k₀ · cayley X) · (1 + X) = (1 + X) + k₀ · (1 - X)`. -/
+lemma one_add_k_cayley_mul (k₀ : K n) (X : Sk n) :
+    (1 + k₀.1 * cayley X.1) * (1 + X.1) = (1 + X.1) + k₀.1 * (1 - X.1) := by
+  have h : cayley X.1 * (1 + X.1) = 1 - X.1 := by
+    unfold cayley
+    rw [Matrix.mul_assoc, Matrix.nonsing_inv_mul _ (one_add_skew_isUnit X), Matrix.mul_one]
+  rw [Matrix.add_mul, Matrix.one_mul, Matrix.mul_assoc, h]
+
+/-- Determinant form of the reduction:
+`det (1 + k₀ · cayley X) · det (1 + X) = det ((1 + X) + k₀ · (1 - X))`. -/
+lemma det_one_add_k_cayley (k₀ : K n) (X : Sk n) :
+    (1 + k₀.1 * cayley X.1).det * (1 + X.1).det
+      = ((1 + X.1) + k₀.1 * (1 - X.1)).det := by
+  rw [← Matrix.det_mul, one_add_k_cayley_mul]
+
+/-- **Step 2 reduction.** The chart domain is the non-vanishing locus of the
+polynomial `det ((1 + X) + k₀ · (1 - X))`: since `det (1 + X) ≠ 0` for skew `X`,
+`X ∈ cayleyLeftDom k₀ ↔ det ((1 + X) + k₀ · (1 - X)) ≠ 0`. -/
+lemma mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
+    X ∈ cayleyLeftDom k₀ ↔ ((1 + X.1) + k₀.1 * (1 - X.1)).det ≠ 0 := by
+  have hb : (1 + X.1).det ≠ 0 := (one_add_skew_isUnit X).ne_zero
+  rw [cayleyLeftDom, Set.mem_setOf_eq, isUnit_iff_ne_zero, ← det_one_add_k_cayley,
+      mul_ne_zero_iff]
+  exact ⟨fun h => ⟨h, hb⟩, fun h => h.1⟩
+
 #print axioms volSk
 #print axioms nuK
 #print axioms measurable_cayleyToK
@@ -277,6 +313,9 @@ lemma continuousOn_cayleyLeftTrans (k₀ : K n) :
 #print axioms cayleyToK_cayleyLeftTransSk
 #print axioms isOpen_cayleyLeftDom
 #print axioms continuousOn_cayleyLeftTrans
+#print axioms one_add_k_cayley_mul
+#print axioms det_one_add_k_cayley
+#print axioms mem_cayleyLeftDom_iff
 #print axioms continuous_rhoK
 #print axioms measurable_rhoK
 #print axioms abs_det_cayleyDerivOnSk
