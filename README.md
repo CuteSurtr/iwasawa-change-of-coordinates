@@ -64,19 +64,40 @@ standard Lean and Mathlib axioms `[propext, Classical.choice, Quot.sound]`:
   Iwasawa bases, at a general point of the chart domain
   (`detInIwasawaBases_fderiv_iwasawaCharted_general` and its absolute-value
   form), resting on the Sylvester-Franke identity
-  $`\det\bigl(\Lambda^2 B\bigr) = (\det B)^{\,n-1}`$ (`det_sandwichOnSkCLM`).
+  $`\det\bigl(\Lambda^2 B\bigr) = (\det B)^{\,n-1}`$ (`det_sandwichOnSkCLM`);
+- the **measure theory layer** (`IwasawaHaar.lean`): the abstract factor Haar
+  measures $`\mathrm{haar}_K, \mathrm{haar}_A, \mathrm{haar}_N, \mathrm{haar}_G`$;
+  the **unimodularity of $`GL_n(\mathbb{R})`$** (`modularCharacterFun_eq_one`); the
+  **conjugation crux** (`map_conjAut_haarN`: conjugation by $`a`$ scales $`\mathrm{haar}_N`$
+  by $`\delta(a) = \det(\mathrm{Ad}(a)|_{\mathfrak{n}})`$); and the coordinate Haar
+  identifications $`\nu_G = c\cdot\mathrm{haar}_G`$
+  (`nuG_eq_haarScalarFactor_smul_haarG`), $`\mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$
+  (`haarAExplicit_eq_haarScalarFactor_smul_haarA`), and $`\nu_U = c\cdot\mathrm{haar}_N`$
+  (`nuU_eq_haarScalarFactor_smul_haarN`);
+- the **$`K = O(n)`$ Cayley chart Haar density** (`IwasawaHaarK.lean`): the corrected
+  left invariant density $`\rho_K(X) = |\det(1 + X)|^{-(n-1)}`$ with its exponent
+  pinned by an honest determinant computation (`det_cayleyDerivOnSk`), the candidate
+  invariant measure $`\nu_K`$ (`nuK`), the Mobius left translation (`cayleyLeftTrans`),
+  and the reduction of the chart miss set to a polynomial zero locus
+  (`mem_cayleyLeftDom_iff`);
+- a **reusable measure theory lemma** (`PolynomialNullSet.lean`): the zero set of a
+  nonzero real polynomial in finitely many variables has Lebesgue measure zero
+  (`volume_setOf_eval_eq_zero`), a result that is absent from Mathlib and is the
+  analytic key to the $`K`$ chart Haar.
 
 A single consolidated file, `IwasawaComplete.lean`, restates every main result
 with a clean signature and prints its axiom dependencies. Every result in
 `iwasawa_change_of_coords/`, including `IwasawaBridge.lean`, reduces to the
 standard three axioms; there is no user declared axiom anywhere in the
-subtree. The genuine Haar measure pushforward identity, a downstream
-consequence used for the integration formula, is the one piece that is not
-yet formalized; it remains future work and is not backed by any placeholder
-axiom (see [Remaining Work](#remaining-work)).
+subtree. What is **not yet** formalized is the final assembly of the integration
+formula: the left invariance of $`\nu_K`$ under $`SO(n)`$ (a change of variables for
+the Mobius translation, with the polynomial null lemma handling the chart miss set),
+the second $`O(n)`$ component, the Haar uniqueness identification
+$`\nu_K = c\cdot\mathrm{haar}_K`$, and the global product change of variables. None of
+this is backed by any placeholder axiom (see [Remaining Work](#remaining-work)).
 
-Layered status (green is proved with the standard three axioms; yellow is
-the one layer that is future work, not yet formalized):
+Layered status (green is proved with the standard three axioms; yellow is the
+final assembly that is future work, not yet formalized):
 
 ```mermaid
 flowchart TD
@@ -86,14 +107,18 @@ flowchart TD
         S3["Smooth: manifold structures, full diffeomorphism"]
         S4["Differential: mfderiv at identity and general point"]
         S5["Jacobian: closed form determinant and absolute value, delta(a) = prod a_i/a_j"]
+        S6["Measure: factor Haar, GL_n unimodular, conjugation crux, nuG = c haarG, haarA and nuU identifications"]
+        S7["K Cayley density: rhoK proportional det(1+X)^-(n-1), nuK, Mobius translation, miss set reduction"]
+        S8["Reusable lemma: nonzero polynomial zero set is Lebesgue null"]
     end
     subgraph AX["Future work (not formalized, no axiom)"]
-        H["Haar pushforward / change of variables<br/>integration formula, future work"]
+        H["Final assembly: nuK left invariance + nuK = c haarK + global integration formula"]
     end
-    S1 --> S2 --> S3 --> S4 --> S5 --> H
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> H
+    S8 --> H
     classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef ax fill:#fff8c5,stroke:#bf8700,color:#111;
-    class S1,S2,S3,S4,S5 ok;
+    class S1,S2,S3,S4,S5,S6,S7,S8 ok;
     class H ax;
 ```
 
@@ -111,11 +136,23 @@ charts, and `iwasawaCharted` is the corresponding single-chart flat map
 (X, v, Z) \mapsto \mathrm{cayley}(X)\, \mathrm{diag}(e^{v})\, (Z + 1).
 ```
 
-The one remaining layer is the Haar measure pushforward itself: turning the
-pointwise Jacobian determinant into a measure-theoretic change-of-variables
-identity for product Haar measures. This is future work, described in
-[Remaining Work](#remaining-work); it is not formalized and is not backed by
-any axiom.
+On top of this, the measure theory layer (`IwasawaHaar.lean`) is now largely
+formalized: the abstract factor Haar measures, the unimodularity of
+$`GL_n(\mathbb{R})`$, the conjugation crux $`\mathrm{Ad}(a)`$ scaling of $`\mathrm{haar}_N`$,
+and the identifications $`\nu_G = c\cdot\mathrm{haar}_G`$,
+$`\mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$, $`\nu_U = c\cdot\mathrm{haar}_N`$. The
+$`K = O(n)`$ factor (`IwasawaHaarK.lean`) has the corrected Cayley chart density
+$`\rho_K`$ with its exponent pinned, the candidate measure $`\nu_K`$, and the Mobius
+left translation with its chart miss set reduced to a polynomial zero locus; and
+the supporting Mathlib gap (a nonzero polynomial has a Lebesgue null zero set) is
+closed in `PolynomialNullSet.lean`.
+
+What remains is the final assembly: the left invariance of $`\nu_K`$ under $`SO(n)`$
+(a change of variables for the Mobius translation), the Haar uniqueness step
+$`\nu_K = c\cdot\mathrm{haar}_K`$, and the global product change of variables that turns
+the pointwise Jacobian into the integration formula. This is future work, described
+in [Remaining Work](#remaining-work); it is not formalized and is not backed by any
+axiom.
 The positive-root product
 
 ```math
@@ -243,10 +280,14 @@ the product of these.
 This $`\mathrm{Ad}(a)`$ determinant is `adNN_det_eq_pair_product` in the project,
 and it is now a *factor* of the fully formalized pointwise Jacobian
 determinant of the charted Iwasawa map
-(`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). What is not yet
-formalized is the last step, integrating this density against Haar measure to
-obtain the displayed integration formula; that step is future work and is
-not formalized (and is not backed by any axiom).
+(`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). The measure theory needed
+to turn this density into the integration formula is now largely in place (see
+[The Haar measure layer](#the-haar-measure-layer-from-the-pointwise-jacobian-to-the-invariant-measure)):
+the factor Haar measures, the unimodularity of $`GL_n(\mathbb{R})`$, the conjugation crux,
+and the four factor identifications. What is not yet formalized is the final
+assembly, integrating against Haar measure across the change of variables to obtain
+the displayed integration formula; that step is future work and is not backed by any
+axiom.
 
 ### Why a *differential* isomorphism (not just a bijection)
 
@@ -757,16 +798,284 @@ factor $`\mathfrak{k} \times \mathfrak{a} \times \mathfrak{n}`$. It is the Lie a
 Iwasawa map at the identity, and the inverse map $`M \mapsto (K, A, N)`$
 gives the explicit formulas above.
 
+## The Haar measure layer: from the pointwise Jacobian to the invariant measure
+
+The Jacobian milestones produce a *pointwise* density. The Haar layer turns that
+density into *measures* and proves the invariance and identification statements
+that the integration formula needs. This is where the project crosses from
+differential topology into measure theory, and it is the substance of
+`IwasawaHaar.lean`, `IwasawaHaarK.lean`, and `PolynomialNullSet.lean`.
+
+```mermaid
+flowchart TD
+    HG["haar_G, haar_K, haar_A, haar_N (Mathlib Measure.haar)"]
+    UNI["modularCharacterFun_eq_one<br/>GL_n(R) is unimodular"]
+    CRUX["map_conjAut_haarN<br/>Ad(a) scales haar_N by delta(a)"]
+    NUG["nuG = c haar_G<br/>coordinate Haar = canonical Haar"]
+    AU["haarA_exp = c haar_A, nuU = c haar_N<br/>(factor identifications, Haar uniqueness)"]
+    RHO["rhoK proportional det(1+X)^-(n-1)<br/>det_cayleyDerivOnSk (Sylvester Franke reuse)"]
+    NUK["nuK = map cayleyToK (volSk.withDensity rhoK)"]
+    PSI["cayleyLeftTrans = Mobius translation<br/>cayley(Psi X) = k0 cayley X"]
+    MISS["mem_cayleyLeftDom_iff<br/>miss set = polynomial zero locus"]
+    POLY["volume_setOf_eval_eq_zero<br/>nonzero polynomial zero set is null"]
+    INV["nuK left invariant under SO(n)  (future work)"]
+    ID["nuK = c haar_K by uniqueness  (future work)"]
+    FORM["global integration formula  (future work)"]
+
+    HG --> UNI --> NUG
+    HG --> CRUX --> NUG
+    NUG --> AU
+    RHO --> NUK
+    NUK --> INV
+    PSI --> INV
+    MISS --> INV
+    POLY --> INV
+    INV --> ID --> FORM
+    AU --> FORM
+
+    classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
+    classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
+    class HG,UNI,CRUX,NUG,AU,RHO,NUK,PSI,MISS,POLY ok;
+    class INV,ID,FORM future;
+```
+
+### 10. Abstract Haar measures and the unimodularity of $`GL_n(\mathbb{R})`$
+
+Mathlib supplies a canonical (left) Haar measure on any locally compact second
+countable Hausdorff topological group through `MeasureTheory.Measure.haar`, with
+an `IsHaarMeasure` instance. We name the four we need
+$`\mathrm{haar}_K, \mathrm{haar}_A, \mathrm{haar}_N, \mathrm{haar}_G`$ on $`K, A, U, G`$
+(the file calls $`U`$'s Lie group $`\mathrm{haar}_N`$ for "nilpotent"). The product
+$`\mathrm{haar}_{KAU} = \mathrm{haar}_K \times \mathrm{haar}_A \times \mathrm{haar}_N`$ on
+$`K \times A \times U`$ is again Haar (`haarKAU`, `instIsHaarMeasureHaarKAU`).
+
+A group is **unimodular** when its left Haar measure is also right invariant,
+equivalently when its **modular character** $`\Delta : G \to \mathbb{R}^{+}`$ is constant
+equal to $`1`$. For $`G = GL_n(\mathbb{R})`$ this is classical, and we prove it as
+
+```math
+\texttt{modularCharacterFun\_eq\_one} : \quad \Delta_G \equiv 1 .
+```
+
+The proof routes through an explicit *coordinate* Haar measure on $`G`$. Identify
+$`G`$ with the open set $`\{\det \ne 0\} \subset \mathrm{Mat}_n(\mathbb{R}) \cong \mathbb{R}^{n^2}`$, and
+weight ambient Lebesgue measure by the density $`|\det g|^{-n}`$:
+
+```math
+\mathrm{haar}_G^{\mathrm{coord}} = \mathrm{volume}.\mathrm{withDensity}\bigl(g \mapsto |\det g|^{-n}\bigr).
+```
+
+Left translation $`g \mapsto g_0 g`$ is a *linear* map on $`\mathrm{Mat}_n(\mathbb{R})`$ with
+determinant $`(\det g_0)^{n}`$ (`det_leftMulMatLin`), so by
+`Measure.map_linearMap_addHaar_eq_smul_addHaar` it rescales ambient Lebesgue by a
+power of $`|\det g_0|`$; the density factor $`|\det g|^{-n}`$ is chosen exactly so
+that this rescaling cancels, leaving the coordinate measure left invariant
+(`map_leftMulCoord_haarGCoord`). The same computation for right translation
+(`map_rightMulCoord_haarGCoord`, determinant $`(\det g_0)^n`$ again) shows the
+coordinate measure is **both** left and right invariant, hence $`G`$ is
+unimodular. Pulling $`\mathrm{haar}_G^{\mathrm{coord}}`$ back to the subtype $`G`$ gives the
+measure $`\nu_G`$ (`nuG`), with `map_leftMul_nuG` and `map_rightMul_nuG`, and the
+instances `instIsHaarMeasure_nuG`, `instRegular_nuG`. Haar uniqueness on the
+second countable group $`G`$ then yields
+
+```math
+\texttt{nuG\_eq\_haarScalarFactor\_smul\_haarG} : \quad \nu_G = c \cdot \mathrm{haar}_G, \qquad c = \mathrm{haarScalarFactor}\,\nu_G\,\mathrm{haar}_G > 0 .
+```
+
+### 11. The conjugation crux: $`\mathrm{Ad}(a)`$ scales $`\mathrm{haar}_N`$ by $`\delta(a)`$
+
+The single most load bearing measure identity is how conjugation by a diagonal
+$`a \in A`$ acts on Haar measure of the unipotent group $`U`$. Write
+$`\mathrm{conj}_a(u) = a\,u\,a^{-1}`$; this is a group automorphism of $`U`$ (`conjAut`).
+The statement is
+
+```math
+\texttt{map\_conjAut\_haarN} : \quad (\mathrm{conj}_a)_{*}\,\mathrm{haar}_N = \delta(a)\,\mathrm{haar}_N, \qquad \delta(a) = \det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr) = \prod_{i \lt j} \frac{a_i}{a_j} > 0,
+```
+
+matching the Lean statement `map (conjAut a) haarN = (det (adNN a)).toNNReal • haarN`.
+The proof transports to the chart $`U \cong NN_n = \mathfrak{n}`$ (strictly upper triangular
+matrices) via $`u \mapsto u - 1`$, where conjugation becomes the *linear*
+automorphism $`Z \mapsto a Z a^{-1}`$ of $`\mathfrak{n}`$ whose determinant is $`\delta(a)`$
+(`det_adNN_pos`, `det_conjDiag`). Pushing the chart Lebesgue measure (the explicit
+measure $`\nu_U`$) through a linear automorphism rescales it by that determinant
+factor, and the bookkeeping yields exactly $`\delta(a)\,\mathrm{haar}_N`$; the abstract
+modular machinery `mulEquivHaarChar_conjAut` packages this as the Haar character of
+the automorphism $`\mathrm{conj}_a`$. This $`\delta(a)`$ is the **Iwasawa
+character**, the same one that appears in the pointwise Jacobian milestone, and it
+is the eventual weight in the integration formula.
+
+### 12. Explicit factor Haar measures and their identifications
+
+On the two flat factors the Haar measure is the pushforward of Lebesgue through
+a global chart, and we prove it left invariant directly:
+
+- **$`A`$ (abelian, log chart).** The logarithm chart
+  $`A \cong \mathbb{R}^n,\ D \mapsto (\log D_{ii})_i`$ is a group isomorphism from the
+  multiplicative group $`A`$ to the additive group $`\mathbb{R}^n`$
+  (`toFinNRHomeomorph_mul`). Pushing Lebesgue measure forward through its inverse
+  gives the explicit left invariant measure $`\mathrm{haar}_A^{\exp}`$ (`haarAExplicit`,
+  `instIsMulLeftInvariantHaarAExplicit`). By Haar uniqueness,
+  $`\texttt{haarAExplicit\_eq\_haarScalarFactor\_smul\_haarA} : \mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$.
+
+- **$`U`$ (unipotent, entry chart).** Left translation $`u \mapsto u_0 u`$ in the entry
+  chart $`U \cong NN_n`$ is the *affine* map $`Z \mapsto u_0 Z + (u_0 - 1)`$ with unit
+  linear part (`det_transLin`), so it preserves Lebesgue (`map_transLin_volume`),
+  making the pushforward $`\nu_U`$ left invariant (`instIsMulLeftInvariant_nuU`,
+  `instIsHaarMeasure_nuU`). Haar uniqueness gives
+  $`\texttt{nuU\_eq\_haarScalarFactor\_smul\_haarN} : \nu_U = c\cdot\mathrm{haar}_N`$.
+
+The contrast with $`K = O(n)`$ in the next section is the whole point: $`A`$ and $`U`$
+are *flat* groups (their group law linearizes in the chart), so flat Lebesgue is
+left invariant; $`O(n)`$ is *curved*, and flat Lebesgue is **not** invariant.
+
+### 13. The $`K = O(n)`$ Cayley chart Haar density (`IwasawaHaarK.lean`)
+
+This is the long pole of the integration formula and the most subtle part of the
+measure theory. The Cayley chart $`\mathrm{cayleyToK} : \mathrm{Sk}_n \to K_n`$ parametrizes the
+identity component $`SO(n)`$ (the locus where $`1 + Q`$ is invertible, which forces
+$`\det Q = +1`$). The naive guess, "push flat Lebesgue on $`\mathrm{Sk}_n`$ forward through
+the chart," is **wrong** for $`n \ge 2`$, because $`O(n)`$ is a curved group: left
+translation in Cayley coordinates is a Mobius type map with nonconstant Jacobian.
+
+**The correct density.** The left invariant density in Cayley coordinates is
+
+```math
+\boxed{\ \rho_K(X) = |\det(1 + X)|^{-(n-1)}\ } \qquad (X \in \mathrm{Sk}_n),
+```
+
+defined in Lean as `rhoK X = ENNReal.ofReal ((|(1 + X.1).det|⁻¹) ^ (n - 1))`. The
+exponent $`-(n-1)`$ is **not hard coded**: it is read off from an honest determinant
+computation, as follows.
+
+**Pinning the exponent (`det_cayleyDerivOnSk`).** The ambient Frechet derivative of
+the Cayley map at $`X`$ is $`\delta \mapsto -2\,(1+X)^{-1}\,\delta\,(1+X)^{-1}`$
+(`cayleyFDerivCLM`). This sends the tangent space $`\mathrm{Sk}_n`$ into
+$`T_{\mathrm{cayley}(X)}SO(n) = \mathrm{cayley}(X)\cdot \mathrm{Sk}_n`$, not back into $`\mathrm{Sk}_n`$.
+Translating the image back to the identity tangent space by left multiplication by
+$`\mathrm{cayley}(X)^{-1} = \mathrm{cayley}(X)^T`$ produces a genuine endomorphism of $`\mathrm{Sk}_n`$,
+
+```math
+\mathrm{cayleyDerivOnSk}(X) : \delta \mapsto -2\,(1 - X)^{-1}\,\delta\,(1 + X)^{-1}.
+```
+
+For skew $`X`$ one has $`((1+X)^{-1})^T = (1 - X)^{-1}`$, so this is **exactly**
+$`-2 \cdot \mathrm{sandwichOnSkCLM}((1+X)^{-1})`$, where $`\mathrm{sandwichOnSkCLM}(B) : \delta \mapsto B^T \delta B`$
+is the congruence whose determinant is the Sylvester, Franke value
+$`(\det B)^{n-1}`$ (`det_sandwichOnSkCLM`, Milestone 6). Therefore
+
+```math
+\texttt{det\_cayleyDerivOnSk} : \quad \det\bigl(\mathrm{cayleyDerivOnSk}(X)\bigr) = (-2)^{\,\binom{n}{2}}\,\bigl(\det(1 + X)\bigr)^{-(n-1)},
+```
+
+with $`\binom{n}{2} = \#\,\mathrm{nnIndex}\,n = \dim \mathrm{Sk}_n`$. Taking absolute values
+(`abs_det_cayleyDerivOnSk`) gives $`2^{\binom n 2}\,\rho_K(X)`$: the density is the
+absolute chart Jacobian, up to the positive constant $`2^{\binom n 2}`$ that Haar
+uniqueness later absorbs (`ofReal_abs_det_cayleyDerivOnSk`).
+
+**$`SO(2)`$ sanity check.** For $`n = 2`$, $`\mathrm{Sk}_2`$ is one dimensional
+($`\#\,\mathrm{nnIndex}\,2 = 1`$, `card_nnIndex_two`), and with
+$`X = \left(\begin{smallmatrix} 0 & a \\ -a & 0 \end{smallmatrix}\right)`$ one has
+$`\det(1+X) = 1 + a^2`$ and $`\mathrm{cayley}(X)`$ is rotation by $`2\arctan a`$. The Haar
+measure $`d\theta`$ pulls back to $`\tfrac{2}{1 + a^2}\,da`$, matching
+$`2\cdot\rho_K`$ exactly (`abs_det_cayleyDerivOnSk_two`). This is the concrete check
+that the exponent and constant are right.
+
+**The candidate invariant measure.** With $`\rho_K`$ continuous and measurable
+(`continuous_rhoK`, `measurable_rhoK`, using that $`\det(1+X) \ne 0`$ for skew $`X`$
+makes the inverse continuous everywhere) and $`\mathrm{volSk}`$ the Lebesgue measure on
+$`\mathrm{Sk}_n`$ from the basis `skBasis` (`volSk`), we set
+
+```math
+\nu_K = (\mathrm{cayleyToK})_{*}\bigl(\mathrm{volSk}.\mathrm{withDensity}\,\rho_K\bigr) \qquad (\texttt{nuK}),
+```
+
+a genuine pushforward since `cayleyToK` is measurable (`measurable_cayleyToK`,
+`nuK_apply`).
+
+**The Mobius left translation.** Left multiplication by $`k_0 \in SO(n)`$, read in
+Cayley coordinates, is the Mobius map
+
+```math
+\Psi_{k_0}(X) = \mathrm{cayleyInv}(k_0 \cdot \mathrm{cayley}(X)) \qquad (\texttt{cayleyLeftTrans}),
+```
+
+defined on the open domain $`\mathrm{cayleyLeftDom}\,k_0 = \{X \mid 1 + k_0\,\mathrm{cayley}(X)\text{ invertible}\}`$
+(`isOpen_cayleyLeftDom`, `continuousOn_cayleyLeftTrans`). Its defining identity is
+the geometric heart of left invariance:
+
+```math
+\texttt{cayley\_cayleyLeftTrans} : \quad \mathrm{cayley}(\Psi_{k_0}(X)) = k_0 \cdot \mathrm{cayley}(X),
+```
+
+equivalently $`\mathrm{cayleyToK}(\Psi_{k_0}(X)) = k_0 \cdot \mathrm{cayleyToK}(X)`$
+(`cayleyToK_cayleyLeftTransSk`): the Cayley chart **intertwines** the Mobius map with
+left multiplication by $`k_0`$ in the group $`K_n`$.
+
+**The chart miss set is a polynomial zero locus.** Clearing the Cayley denominator
+turns the domain condition into a polynomial non vanishing. From the identity
+$`(1 + k_0\,\mathrm{cayley}(X))(1 + X) = (1 + X) + k_0(1 - X)`$ (`one_add_k_cayley_mul`) and
+$`\det(1 + X) \ne 0`$,
+
+```math
+\texttt{mem\_cayleyLeftDom\_iff} : \quad X \in \mathrm{cayleyLeftDom}\,k_0 \iff \det\bigl((1 + X) + k_0(1 - X)\bigr) \ne 0,
+```
+
+and the right side is a polynomial in the entries of $`X`$ (the matrix is affine in
+$`X`$). So the chart miss set is the zero set of a polynomial, which the next section
+shows is Lebesgue null.
+
+### 14. A reusable Mathlib gap: nonzero polynomials have null zero sets (`PolynomialNullSet.lean`)
+
+The change of variables that will eventually prove $`\nu_K`$ left invariant lives on
+the open dense chart domain; to ignore the complement it must be Lebesgue null.
+Mathlib has the one variable fact (a nonzero polynomial has finitely many roots,
+`Polynomial.finite_setOf_isRoot`) and the Schwartz, Zippel counting bound over finite
+sets, but **not** the multivariate Lebesgue statement. We prove it from scratch as a
+self contained, upstreamable lemma:
+
+```math
+\texttt{volume\_setOf\_eval\_eq\_zero} : \quad p \ne 0 \implies \mathrm{volume}\,\{x \in \mathbb{R}^d \mid \mathrm{eval}\,x\,p = 0\} = 0 \qquad (p \in \mathbb{R}[X_1, \ldots, X_d]).
+```
+
+*Proof, by induction on the number of variables $`d`$.*
+
+- **Base $`d = 0`$** (`volume_setOf_eval_eq_zero_of_isEmpty`). With no variables
+  $`p = C(p_0)`$ is a constant; $`p \ne 0`$ forces $`p_0 \ne 0`$, so $`\mathrm{eval}\,x\,p = p_0 \ne 0`$
+  everywhere, and the zero locus is empty.
+
+- **Step $`d \to d+1`$.** View $`p`$ through `MvPolynomial.finSuccEquiv` as a one
+  variable polynomial $`q \in \bigl(\mathbb{R}[X_2, \ldots, X_{d+1}]\bigr)[X_1]`$ with
+  coefficients in $`d`$ variables; $`p \ne 0`$ gives $`q \ne 0`$, so its leading
+  coefficient $`c = q.\mathrm{leadingCoeff}`$ is a nonzero $`d`$ variable polynomial. By the
+  induction hypothesis the **base set** $`\{s \in \mathbb{R}^d \mid \mathrm{eval}\,s\,c = 0\}`$ is
+  null. Off that null base set, evaluating the coefficients at $`s`$ leaves a nonzero
+  one variable polynomial $`q.\mathrm{map}(\mathrm{eval}\,s)`$ (its top coefficient
+  $`\mathrm{eval}\,s\,c \ne 0`$, via `Polynomial.coeff_map`), so its root set is **finite**,
+  hence null (`Polynomial.finite_setOf_isRoot`, `Set.Finite.measure_zero`). By Fubini
+  for the product Lebesgue measure (`MeasureTheory.Measure.measure_prod_null`, over the
+  tail/head split `volume_preserving_piFinSuccAbove` composed with
+  `measurePreserving_swap`, with the slice identity `eval_eq_eval_mv_eval'`), a set
+  whose vertical slices are null over a co-null base is itself null. $`\square`$
+
+This lemma closes the gap that gated step 2 of the $`K`$ factor invariance. Applying
+it to $`\det((1 + X) + k_0(1 - X))`$ as a polynomial in the `skBasis` coordinates of
+$`X`$ (the application is itself future work, see [Remaining Work](#remaining-work))
+shows $`\mathrm{cayleyLeftDom}\,k_0`$ is co-null in $`\mathrm{Sk}_n`$.
+
 ## Milestones
 
-All entries below except the final Haar row (milestone 7) are proved with
+All entries below except the final assembly rows (milestone 8) are proved with
 no `sorry`, and the diagnostic files print their axiom dependencies as
-`[propext, Classical.choice, Quot.sound]`. Milestone 7, the Haar measure
-pushforward, is the single exception: it is future work, not yet formalized,
-and is no longer backed by any axiom (see [Remaining Work](#remaining-work)).
+`[propext, Classical.choice, Quot.sound]`. Milestones 1 through 7, including the
+measure theory layer (factor Haar, unimodularity, the conjugation crux, the factor
+identifications, the $`K`$ Cayley density, and the polynomial null lemma), are proved
+axiom clean. Milestone 8, the final invariance, uniqueness, and integration formula
+assembly, is the remaining future work, not yet formalized, and is not backed by any
+axiom (see [Remaining Work](#remaining-work)).
 
-How the milestones build up to the diffeomorphism, the derivative, and the
-Jacobian, ending at the single remaining Haar layer (green is proved axiom
+How the milestones build up to the diffeomorphism, the derivative, the Jacobian, and
+the measure layer, ending at the single remaining assembly (green is proved axiom
 clean, yellow is future work, not yet formalized):
 
 ```mermaid
@@ -782,7 +1091,10 @@ flowchart TD
     M6d["M6. mfderiv at general point (mfderiv_iwasawaMap_at_factored)"]
     M6p["M6. Positive root product (adNN_det_eq_pair_product)"]
     M6j["M6. Jacobian determinant, signed and absolute"]
-    M7["M7. Haar pushforward (future work, not formalized)"]
+    M7m["M7. Measure layer: GL_n unimodular, conjugation crux, nuG/haarA/nuU identifications"]
+    M7k["M7. K Cayley density rhoK, nuK, Mobius translation, miss set reduction"]
+    M7p["M7. Polynomial null lemma (volume_setOf_eval_eq_zero)"]
+    M8["M8. Assembly: nuK left invariance, nuK = c haarK, integration formula (future work)"]
 
     M1 --> M2
     M1b --> M2
@@ -796,13 +1108,16 @@ flowchart TD
     DIFF --> M6d
     M6d --> M6j
     M6p --> M6j
-    DIFF --> M7
-    M6j --> M7
+    M6j --> M7m
+    M6j --> M7k
+    M7m --> M8
+    M7k --> M8
+    M7p --> M8
 
     classDef proved fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
-    class M1,M1b,M2,M3g,M3k,DIFF,M4,M5,M6d,M6p,M6j proved;
-    class M7 future;
+    class M1,M1b,M2,M3g,M3k,DIFF,M4,M5,M6d,M6p,M6j,M7m,M7k,M7p proved;
+    class M8 future;
 ```
 
 | # | Goal | Status | Jorgenson and Lang reference |
@@ -840,7 +1155,14 @@ flowchart TD
 | 6   | `adNN_det_eq_pair_product`: $`\det(\mathrm{ad}_{\mathfrak{n}}\, a) = \prod_{i \lt j} a_i / a_j`$ | Proved   | §I.2, Eq. (3)           |
 | 6   | `detInIwasawaBases_fderiv_iwasawaCharted_general` (signed Jacobian determinant)  | Proved   | §I.2 Jacobian           |
 | 6   | `absDetInIwasawaBases_fderiv_iwasawaCharted_general` (absolute Jacobian determinant) | Proved | §I.2 Jacobian           |
-| 7   | Haar measure pushforward / change-of-variables identity                          | Future work (not formalized, no axiom) | §I.2, Prop. 2.1-2.4 |
+| 7   | `modularCharacterFun_eq_one`: $`GL_n(\mathbb{R})`$ is unimodular ($`\Delta_G \equiv 1`$)          | Proved   | §I.2, Haar              |
+| 7   | `map_conjAut_haarN`: conjugation crux, $`\mathrm{Ad}(a)`$ scales $`\mathrm{haar}_N`$ by $`\delta(a)`$ | Proved | §I.2, Eq. (1)-(3) |
+| 7   | `nuG_eq_haarScalarFactor_smul_haarG`: coordinate Haar $`\nu_G = c\,\mathrm{haar}_G`$              | Proved   | §I.2, Haar              |
+| 7   | `haarAExplicit_eq_..._haarA`, `nuU_eq_..._haarN`: explicit factor Haar identifications          | Proved   | §I.2, Haar              |
+| 7   | `det_cayleyDerivOnSk`: $`K`$ chart Jacobian $`(-2)^{\binom n 2}(\det(1+X))^{-(n-1)}`$, density `rhoK` | Proved | Cayley density       |
+| 7   | `nuK`, `cayleyLeftTrans`, `cayley_cayleyLeftTrans`, `mem_cayleyLeftDom_iff` ($`K`$ chart Haar, Mobius map, miss set) | Proved | §I.2, Haar |
+| 7   | `volume_setOf_eval_eq_zero`: nonzero polynomial zero set is Lebesgue null (reusable, absent from Mathlib) | Proved | measure theory   |
+| 8   | $`\nu_K`$ left invariance, $`\nu_K = c\,\mathrm{haar}_K`$, global integration formula              | Future work (not formalized, no axiom) | §I.2, Prop. 2.1-2.4 |
 
 ## Theorem statements
 
@@ -975,7 +1297,52 @@ theorem absDetInIwasawaBases_fderiv_iwasawaCharted_general
         |(expDiagA v).1.det| ^ n * |LinearMap.det (adNN (expDiagA v)).toLinearMap| *
         (|(1 + X.1).det|⁻¹) ^ (n - 1)
 
+/- Milestone 7: measure layer (namespace `IwasawaCoC.Complete`, `IwasawaHaar.lean`). -/
+
+/-- `GL_n(ℝ)` is unimodular: its modular character is identically 1. -/
+theorem modularCharacterFun_eq_one (g : G n) : Measure.modularCharacterFun g = 1
+
+/-- The conjugation crux: conjugation by `a ∈ A` scales `haarN` by
+`δ(a) = det (adNN a) = ∏_{i<j} a_i/a_j` (here as the `toNNReal` scalar). -/
+lemma map_conjAut_haarN (a : A n) :
+    Measure.map (conjAut a) (haarN (n := n))
+      = (LinearMap.det (adNN a).toLinearMap).toNNReal • haarN
+
+/-- Coordinate Haar equals canonical Haar up to a positive scalar (Haar uniqueness). -/
+lemma nuG_eq_haarScalarFactor_smul_haarG :
+    nuG (n := n) = Measure.haarScalarFactor (nuG (n := n)) haarG • haarG
+lemma haarAExplicit_eq_haarScalarFactor_smul_haarA :
+    haarAExplicit (n := n) = Measure.haarScalarFactor (haarAExplicit (n := n)) haarA • haarA
+lemma nuU_eq_haarScalarFactor_smul_haarN :
+    nuU (n := n) = Measure.haarScalarFactor (nuU (n := n)) haarN • haarN
+
+/- Milestone 7: the K Cayley chart Haar (namespace `IwasawaCoC.Complete`,
+`IwasawaHaarK.lean`). The exponent −(n−1) is read off `det_sandwichOnSkCLM`. -/
+
+/-- The intrinsic Cayley chart derivative on `Sk n`, equal to `-2 • sandwichOnSkCLM ((1+X)⁻¹)`. -/
+noncomputable def cayleyDerivOnSk (X : Sk n) : Sk n →L[ℝ] Sk n
+theorem det_cayleyDerivOnSk (X : Sk n) :
+    LinearMap.det (cayleyDerivOnSk X).toLinearMap
+      = (-2 : ℝ) ^ Fintype.card (nnIndex n) * ((1 + X.1).det)⁻¹ ^ (n - 1)
+
+/-- The corrected left invariant Cayley density and the candidate invariant measure. -/
+noncomputable def rhoK (X : Sk n) : ℝ≥0∞ := ENNReal.ofReal ((|(1 + X.1).det|⁻¹) ^ (n - 1))
+noncomputable def nuK : Measure (K n) := Measure.map cayleyToK (volSk.withDensity rhoK)
+
+/-- The Mobius left translation and the geometric heart of left invariance. -/
+noncomputable def cayleyLeftTrans (k₀ : K n) (X : Sk n) : Matrix (Fin n) (Fin n) ℝ
+theorem cayley_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom k₀) :
+    cayley (cayleyLeftTrans k₀ X) = k₀.1 * cayley X.1
+theorem mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
+    X ∈ cayleyLeftDom k₀ ↔ ((1 + X.1) + k₀.1 * (1 - X.1)).det ≠ 0
+
 end IwasawaCoC
+
+/-- Reusable measure theory lemma (`PolynomialNullSet.lean`, namespace `MvPolynomial`):
+the zero set of a nonzero real polynomial in finitely many variables is Lebesgue null. -/
+theorem MvPolynomial.volume_setOf_eval_eq_zero
+    {d : ℕ} (p : MvPolynomial (Fin d) ℝ) (hp : p ≠ 0) :
+    volume {x : Fin d → ℝ | eval x p = 0} = 0
 ```
 
 Here `Fintype.card (nnIndex n) = n(n-1)/2` is the number of strictly-upper
@@ -1001,7 +1368,13 @@ iwasawa_change_of_coords/
 ├── IwasawaComplete.lean         consolidated axiom-clean restatement,
 │                                Sylvester-Franke identity, general-point Jacobian
 ├── IwasawaBridge.lean           Haar bridge: positive root product, future work notes (no axiom)
-├── IwasawaHaar.lean             measure layer: product Haar on K, A, U and explicit Haar on A
+├── IwasawaHaar.lean             measure layer: factor Haar, GL_n unimodularity, the
+│                                conjugation crux, coordinate Haar nuG = c haarG, and the
+│                                haarA and nuU factor identifications
+├── IwasawaHaarK.lean            K = O(n) Cayley chart Haar: density rhoK with pinned
+│                                exponent (det_cayleyDerivOnSk), candidate measure nuK,
+│                                Mobius left translation, chart miss set reduction
+├── PolynomialNullSet.lean       reusable: nonzero polynomial zero set is Lebesgue null
 └── AxiomCheck*.lean             diagnostic files for axiom dependencies
 ```
 
@@ -1020,6 +1393,9 @@ flowchart TD
     JA["IwasawaJacobianAbstract<br/>Jacobian scaffolding"]
     CMP["IwasawaComplete<br/>consolidated axiom clean restatement"]
     BR["IwasawaBridge<br/>Haar bridge notes (no axiom)"]
+    HAAR["IwasawaHaar<br/>measure layer: unimodularity, crux, identifications"]
+    HAARK["IwasawaHaarK<br/>K Cayley chart Haar density, nuK, Mobius map"]
+    POLY["PolynomialNullSet<br/>nonzero polynomial zero set is null (Mathlib only)"]
 
     COC --> SK
     COC --> LIE
@@ -1032,6 +1408,9 @@ flowchart TD
     DG --> JA
     JE --> CMP
     JE --> BR
+    CMP --> HAAR
+    HAAR --> HAARK
+    POLY -.->|"future: K chart miss set is null"| HAARK
 ```
 
 The project shares the parent's Lake build (single `lakefile.toml`,
@@ -1064,15 +1443,153 @@ IwasawaCoC.Complete.iwasawaMfderivAtFactored
 IwasawaCoC.Complete.det_sandwichOnSkCLM
 IwasawaCoC.Complete.detInIwasawaBases_fderiv_iwasawaCharted_general
 IwasawaCoC.Complete.absDetInIwasawaBases_fderiv_iwasawaCharted_general
+IwasawaCoC.Complete.modularCharacterFun_eq_one              -- GL_n unimodular
+IwasawaCoC.Complete.nuG_eq_haarScalarFactor_smul_haarG      -- nuG = c haarG
+IwasawaCoC.Complete.det_cayleyDerivOnSk                     -- K chart Jacobian pin
+MvPolynomial.volume_setOf_eval_eq_zero                      -- polynomial null lemma
 ```
 
 each of which reports only `[propext, Classical.choice, Quot.sound]`. The
 core namespace is `IwasawaCoC`, and the consolidated restatements live in
 `IwasawaCoC.Complete`. `IwasawaBridge.lean` likewise ends with a `#print
-axioms` block confirming that it too is now axiom free. `IwasawaComplete.lean` also contains compile-time
+axioms` block confirming that it too is axiom free. `IwasawaHaar.lean`,
+`IwasawaHaarK.lean`, and `PolynomialNullSet.lean` each end with `#print axioms`
+blocks over every named result; all report the same three axioms.
+`IwasawaComplete.lean` also contains compile-time
 sanity checks: the scalar value $`\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}`$
-at $`n = 3`$, the edge cases $`n = 0`$ and $`n = 1`$, and the consistency of the
-general Jacobian at $`X = 0`$ with the chart-center value.
+at $`n = 3`$, the edge cases $`n = 0`$ and $`n = 1`$, the consistency of the
+general Jacobian at $`X = 0`$ with the chart-center value, and (in `IwasawaHaarK.lean`)
+the $`SO(2)`$ density check $`2 / (1 + a^2)`$.
+
+## How the proofs are trusted: formal verification methodology
+
+A formalization is only as trustworthy as the machinery that checks it. This
+section records the compiler and proof theoretic principles this project relies on,
+what is deliberately kept out of the trusted base, and which standard techniques
+were used, omitted, or merely available.
+
+### The de Bruijn criterion and the trusted computing base
+
+Lean 4 satisfies the **de Bruijn criterion**: every proof, however it was produced
+(by automation, by tactics, or by hand), is elaborated into a single **proof term**
+of the **Calculus of Inductive Constructions** (CIC), and that term is rechecked by
+a small, fixed **kernel**. Nothing downstream of the kernel needs to be trusted: not
+the tactic framework, not `simp`, not type class search, not the elaborator, not
+this README. If any of those produced a bad term, the kernel would reject it.
+
+The **trusted computing base** (TCB) of a Lean development is therefore just:
+
+1. the kernel type checker (a few thousand lines),
+2. the logical axioms the development actually invokes, and
+3. the hardware and operating system running the checker.
+
+```mermaid
+flowchart LR
+    SRC["Lean source<br/>tactics, terms, simp, decide, type classes"]
+    ELAB["Elaborator and tactics<br/>(NOT trusted)"]
+    TERM["CIC proof term<br/>fully explicit"]
+    KERNEL["Kernel type checker<br/>(trusted, small)"]
+    AX["Axioms used:<br/>propext, Classical.choice, Quot.sound"]
+    OK["Theorem certified"]
+    SRC --> ELAB --> TERM --> KERNEL --> OK
+    AX -.-> KERNEL
+    classDef trust fill:#e6ffed,stroke:#2da44e,color:#111;
+    classDef untrust fill:#ffebe9,stroke:#cf222e,color:#111;
+    class KERNEL,AX,OK trust;
+    class ELAB untrust;
+```
+
+**Propositions as types (Curry, Howard).** In CIC a proposition is a type and a
+proof is a term of that type: `h : P` literally means "`h` is a term of type `P`".
+Implication is the function type `P → Q`, universal quantification is the dependent
+product `∀ x, P x`. Checking a proof is therefore *type checking a term*, which is
+decidable and is exactly what the kernel does.
+
+### What `#print axioms` certifies
+
+The command `#print axioms foo` walks the entire dependency tree of `foo` and lists
+every `axiom` reaching it. When it prints
+
+```
+'foo' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+it certifies that `foo` uses **no** `sorry` (which is itself the axiom `sorryAx`),
+**no** project specific axiom, and **nothing** beyond the three standard logical
+axioms that Mathlib itself is built on. Every named result in this project is checked
+this way, and the build output is additionally scanned for the string `sorryAx` to
+guarantee no incomplete proof slipped through. This is the operational meaning of
+"axiom clean" throughout this README.
+
+The three standard axioms are conservative and well understood:
+
+- **`propext`** (propositional extensionality): logically equivalent propositions are
+  equal, $`(P \leftrightarrow Q) \to (P = Q)`$. Standard in classical mathematics.
+- **`Classical.choice`**: a nonempty type has a (noncomputable) inhabitant, the type
+  theoretic axiom of choice; with `propext` it yields excluded middle. Used for
+  nonconstructive existence, for example the Haar measure (`Measure.haar`) and the
+  basis `skBasis`.
+- **`Quot.sound`**: quotient types respect their defining relation. Needed because
+  the reals, measures, and many Mathlib structures are quotients.
+
+These three are exactly the axioms of classical higher order logic with quotients;
+they have set theoretic models, so they are consistent and add no unsound
+computational content.
+
+### Techniques used (feeding or inside the TCB)
+
+- **Tactic proofs elaborated to terms.** Every proof is written with tactics
+  (`rw`, `simp`, `exact`, `refine`, `induction`, `by_contra`), then compiled to an
+  explicit CIC term and rechecked. Tactics are convenience, not trust.
+- **Definitional equality (`rfl`, defeq).** The kernel identifies terms up to
+  computation (beta, delta, iota, eta). The project uses this repeatedly: for example
+  `cayleyDerivOnSk X` unfolds definitionally to `-2 • sandwichOnSkCLM (…)`, and
+  `consEquiv α ys` is defeq to `Fin.cons ys.1 ys.2` in the Fubini transport.
+- **Decidability and `decide`.** A `Decidable` proposition carries an algorithm the
+  kernel can run. `card_nnIndex_two : Fintype.card (nnIndex 2) = 1` is closed by
+  `decide`, which evaluates the decision procedure *inside the kernel*, keeping the
+  result in the TCB (contrast `native_decide`, below).
+- **Structural and well founded induction.** Inductive eliminators drive, for
+  instance, the induction on the number of variables in `volume_setOf_eval_eq_zero`
+  and the induction on `Fin n` in the Gram, Schmidt continuity proof.
+- **Type class inference.** Instances such as `MeasurableSpace`, `BorelSpace`,
+  `IsHaarMeasure`, `NoAtoms`, and the `Matrix.linftyOp*` normed structures are
+  resolved by the elaborator and then checked. Aligning them (reusing the existing
+  `MeasurableSpace (Sk n)` rather than introducing an instance diamond) is a real
+  part of the engineering.
+- **Classical reasoning.** `by_contra`, excluded middle, and noncomputable choice
+  are used freely; this is why `Classical.choice` appears in every axiom list.
+
+### Techniques deliberately omitted (kept out of the TCB)
+
+- **`sorry` / `admit`.** Never used. Any occurrence surfaces as `sorryAx` in
+  `#print axioms` and is treated as a hard failure.
+- **Project axioms.** None. An earlier Haar "bridge" placeholder axiom was found
+  redundant and removed; the subtree declares no `axiom`.
+- **`native_decide`.** Avoided. It runs a decision procedure as compiled native code
+  and trusts the Lean compiler and runtime, which *enlarges* the TCB. We use the
+  kernel level `decide`, accepting slower checking for a smaller trusted base.
+- **`unsafe`, `partial`, `@[implemented_by]`, `Float`.** None. These bypass the
+  termination checker or substitute unverified implementations.
+
+### Techniques useful but not required here
+
+- **Proof by reflection.** Encoding a problem as data and proving a checker correct
+  once (as `decide` does in miniature) scales to large finite computations; the
+  project's finite checks are small enough that ordinary `decide` suffices.
+- **Native compilation / `native_decide`.** Would speed up heavy finite checks at the
+  cost of trust; not needed at these sizes.
+- **External automation (SMT, resolution hammers).** Lean offers `omega`, `polyrith`,
+  and `aesop`, but the genuinely hard steps here (the Cayley determinant, the Mobius
+  intertwining, the Fubini null argument) are structural and were written by hand
+  against the relevant Mathlib API, not discharged by a hammer.
+- **Code extraction.** CIC developments can extract executable programs; this project
+  proves theorems about classical objects (Haar measure, manifolds), so there is
+  nothing to extract.
+
+The upshot: every theorem in this subtree is a CIC term accepted by the Lean kernel
+using only `propext`, `Classical.choice`, and `Quot.sound`. That is the strongest
+standard guarantee a Lean formalization can offer.
 
 ## Proof outlines
 
@@ -1286,35 +1803,74 @@ $`(X, Y, Z) \in \mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \mapsto X +
 This is the algebraic content of "the differential of the Iwasawa map
 at the identity is invertible," realized as a `LinearEquiv`.
 
+### Milestone 6: Jacobian determinant (Sylvester, Franke)
+
+`det_sandwichOnSkCLM` ($`\det(\mathrm{sandwich}(B)) = (\det B)^{n-1}`$ on $`\mathrm{Sk}_n`$) is
+the $`k = 2`$ case of the Sylvester, Franke identity
+$`\det(\Lambda^k B) = (\det B)^{\binom{n-1}{k-1}}`$, via the isomorphism
+$`\mathrm{Sk}_n \cong \Lambda^2(\mathbb{R}^n)`$. The proof reduces $`B`$ to a product of
+elementary matrices (`Matrix.TransvectionStruct`): the determinant is multiplicative
+in $`B`$ (`sandwichOnSkCLM_mul`), equals $`(\det D)^{n-1}`$ on diagonals
+(`det_sandwichOnSkCLM_diagonal`, where the operator is diagonal in the `skBasis`),
+and equals $`1`$ on transvections (`det_sandwichOnSkCLM_transvection`, unipotent). The
+general Jacobian `detInIwasawaBases_fderiv_iwasawaCharted_general` then assembles the
+three block determinants of the charted derivative (`sandwichOnSkCLM ((1+X)⁻¹)` on the
+$`K`$ block, the identity on $`A`$, and the unipotent `nnRightInvCLM` on $`U`$), giving
+$`2^{\binom n 2}(\det a)^n\det(\mathrm{Ad}(a)|_{\mathfrak{n}})\,(\det(1+X))^{-(n-1)}`$.
+
+### Milestone 7: the measure layer
+
+The unimodularity, the conjugation crux, the factor identifications, the $`K`$ Cayley
+chart density, and the polynomial null lemma are proved in detail in the
+[Haar measure layer](#the-haar-measure-layer-from-the-pointwise-jacobian-to-the-invariant-measure)
+section (subsections 10 to 14). In one line each:
+
+- `modularCharacterFun_eq_one`: the $`|\det g|^{-n}`$ weighted coordinate Haar is both
+  left and right invariant (each translation is linear with determinant
+  $`(\det g_0)^n`$, cancelled by the density), so $`GL_n(\mathbb{R})`$ is unimodular.
+- `map_conjAut_haarN`: in the entry chart, conjugation by $`a`$ is the linear
+  automorphism $`Z \mapsto a Z a^{-1}`$ of determinant $`\delta(a) > 0`$; pushing Haar
+  through it yields the factor $`\delta(a)`$, that is $`(\mathrm{conj}_a)_*\mathrm{haar}_N = \delta(a)\,\mathrm{haar}_N`$.
+- `det_cayleyDerivOnSk`: the left translated Cayley derivative on $`\mathrm{Sk}_n`$ is
+  $`-2\cdot\mathrm{sandwichOnSkCLM}((1+X)^{-1})`$, so its determinant is
+  $`(-2)^{\binom n 2}(\det(1+X))^{-(n-1)}`$ by `det_sandwichOnSkCLM`.
+- `volume_setOf_eval_eq_zero`: induction on the number of variables via `finSuccEquiv`,
+  with a null base set from the leading coefficient and finite one variable slices,
+  assembled by Fubini (`measure_prod_null`).
+
 ## Remaining Work
 
-The Jacobian-determinant layer is now complete: the determinant of the
-charted Iwasawa map in the Iwasawa bases is proved in closed form at a
-general point (`detInIwasawaBases_fderiv_iwasawaCharted_general` and its
-absolute-value form), with the canonical derivative object
-`iwasawaMatrixLeibnizCLM k a u`, the constant Cayley factor, the chart
-conventions for `A` and `UU`, and the positive-root product
-`adNN_det_eq_pair_product` all accounted for inside that formula.
+The Jacobian determinant layer is complete (closed form at a general point,
+signed and absolute), and the measure theory layer is now largely formalized:
+the factor Haar measures, the unimodularity of $`GL_n(\mathbb{R})`$, the conjugation
+crux, the coordinate Haar identification $`\nu_G = c\cdot\mathrm{haar}_G`$, the explicit
+factor identifications on $`A`$ and $`U`$, the $`K = O(n)`$ Cayley chart density
+$`\rho_K`$ with its pinned exponent, the candidate measure $`\nu_K`$, the Mobius left
+translation, and the reusable polynomial null lemma are all proved axiom clean.
 
-The single remaining mathematical layer is the Haar measure pushforward. A
-measure layer has been started in `IwasawaHaar.lean`:
+What remains is the **final assembly** of the integration formula, in four steps:
 
-1. Haar measures on $`K`$, $`A`$, $`U`$, and $`G = GL_n(\mathbb{R})`$ exist
-   abstractly (`haarK`, `haarA`, `haarN`, `haarG` in `IwasawaComplete.lean`,
-   each `Measure.haar` with an `IsHaarMeasure` instance). The product Haar
-   measure `haarKAU` on $`K \times A \times U`$ is built in `IwasawaHaar.lean`,
-   and an explicit left invariant Haar on $`A`$ (`haarAExplicit`, the
-   pushforward of Lebesgue through the log chart) is proved there. Still open:
-   the explicit chart densities for $`U`$ and for $`G`$ (the latter the
-   $`|\det g|^{-n}`$ form, which is absent from Mathlib).
-2. Combine the pointwise absolute Jacobian determinant
-   (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with a Mathlib
-   change of variables theorem to obtain the pushforward of the product Haar
-   measure under the Iwasawa map. This step is not started; it is the crux.
-3. Identify the resulting density with the Iwasawa character $`\delta(a)^{-1}`$
-   and the global constant, recovering the integration formula below.
-4. State and prove this measure theoretic identity. There is no placeholder
-   axiom to replace.
+1. **Left invariance of $`\nu_K`$ under $`SO(n)`$.** Prove
+   $`(\,k_0 \cdot\,)_{*}\,\nu_K = \nu_K`$ for $`k_0`$ in the identity component, by a
+   change of variables for the Mobius map $`\Psi_{k_0}`$. The pieces in place are the
+   intertwining identity `cayley_cayleyLeftTrans`, the chart domain openness and
+   continuity, and the reduction of the chart miss set to a polynomial zero locus
+   (`mem_cayleyLeftDom_iff`). The remaining work is: (a) the density transformation
+   $`\rho_K(\Psi X)\,|\det D\Psi_X| = \rho_K(X)`$, whose Jacobian factors through the
+   same `sandwichOnSkCLM` determinant as `det_cayleyDerivOnSk`; (b) applying
+   `volume_setOf_eval_eq_zero` to the `skBasis` coordinates to conclude the miss set
+   is $`\nu_K`$ null; and (c) assembling the Mathlib change of variables on the open
+   dense chart domain.
+2. **The second $`O(n)`$ component.** One Cayley chart covers $`SO(n)`$ only
+   (`det_cayley_skew` forces $`\det = +1`$); extend $`\nu_K`$ to the $`\det = -1`$
+   coset by a reflected copy.
+3. **Haar uniqueness.** Conclude $`\nu_K = c\cdot\mathrm{haar}_K`$ once $`\nu_K`$ is
+   established as a Haar measure ($`K`$ is compact, so inner regularity is free).
+4. **The product change of variables.** Combine the pointwise absolute Jacobian
+   (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with the four factor
+   identifications and a Mathlib change of variables theorem to obtain the
+   pushforward of the product Haar measure under the Iwasawa map, recovering the
+   integration formula.
 
 The target integration formula is
 
@@ -1322,11 +1878,12 @@ The target integration formula is
 \int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.
 ```
 
-`IwasawaBridge.lean` records the intended future Haar / change-of-variables
-endpoint. The whole project, including this file, is now reduced to
-`[propext, Classical.choice, Quot.sound]`: the former placeholder axiom was
-redundant and has been removed. The genuine measure-theoretic identity above
-is not yet formalized; it remains future work.
+The whole project, including every file above, reduces to
+`[propext, Classical.choice, Quot.sound]`: there is no placeholder axiom anywhere
+(an earlier Haar "bridge" axiom was found redundant and removed). The four steps
+above are genuine future work, not yet formalized, and are not backed by any axiom.
+The route, the available Mathlib API, and the precise status against each sub step
+are tracked in `RouteAssessment.md`.
 
 ## References
 
@@ -1347,6 +1904,12 @@ is not yet formalized; it remains future work.
 - [`Mathlib.Topology.Instances.Matrix`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/Instances/Matrix.html): continuity of matrix operations, including `continuousAt_matrix_inv` (used in `continuous_cayley_on_skew` and `continuous_cayleyInv_on_KOpen`).
 - [`Mathlib.Geometry.Manifold.IsManifold.Basic`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/IsManifold.Basic.html): `IsOpenEmbedding.isManifold_singleton`, `isManifold_of_contDiffOn`.
 - [`Mathlib.Geometry.Manifold.Diffeomorph`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/Diffeomorph.html): `Diffeomorph` structure.
+- [`Mathlib.MeasureTheory.Measure.Haar.Basic`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Haar/Basic.html) and `Mathlib.MeasureTheory.Measure.Haar.Unique`: canonical Haar measure `Measure.haar`, `haarScalarFactor`, and Haar uniqueness `isMulLeftInvariant_eq_smul_of_innerRegular` (the factor identifications $`\nu_G = c\,\mathrm{haar}_G`$, $`\mathrm{haar}_A^{\exp}`$, $`\nu_U`$).
+- `Mathlib.MeasureTheory.Group.ModularCharacter`: the modular character $`\Delta`$ (`modularCharacterFun`), used for `modularCharacterFun_eq_one`.
+- [`Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Lebesgue/EqHaar.html) and `Mathlib.MeasureTheory.Measure.Haar.OfBasis`: `Basis.addHaar` (the measure `volSk` on $`\mathrm{Sk}_n`$) and `map_linearMap_addHaar_eq_smul_addHaar` (linear maps scale additive Haar by the absolute determinant, used in the conjugation crux and unimodularity).
+- `Mathlib.MeasureTheory.Measure.Prod`: Fubini and the product null criterion `measure_prod_null`, `volume_preserving_piFinSuccAbove`, `measurePreserving_swap` (the assembly of `volume_setOf_eval_eq_zero`).
+- `Mathlib.Algebra.MvPolynomial.Equiv`: `finSuccEquiv` and `eval_eq_eval_mv_eval'` (the inductive step of the polynomial null lemma).
+- [`Mathlib.Algebra.Polynomial.Roots`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Polynomial/Roots.html): `finite_setOf_isRoot` (a nonzero one variable polynomial has finitely many roots, the finite slices).
 
 ## License
 
