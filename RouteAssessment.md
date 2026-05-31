@@ -110,22 +110,41 @@ coordinates is `proportional to det(1+X)^{-(n-1)}` (consistent with the `cayleyF
 and the `SO(2)` value `2/(1+a^2)`). Also `det_cayley_skew = 1` means one Cayley chart covers only the
 `SO(n)` (det +1) component, so `O(n) = SO(n) sqcup (det -1)` needs a second chart.
 
-Corrected Level 1 sub steps (not yet implemented; the long pole):
+Corrected Level 1 sub steps (file `IwasawaHaarK.lean`, branch `haar-cayleyk`, axiom clean):
 - B1a [available, reuse] the Cayley chart `cayleyHomeomorph` / `cayleyOpenChartAt` and
   `cayleyFDerivCLM` already exist; no rebuild needed.
-- B1b' define the Cayley density `rhoK : Sk n -> R>=0 inf`, `rhoK X = ENNReal.ofReal (|det (1+X.1)|^{-(n-1)})`
-  (or derive the exact constant from `LinearMap.det` of the `cayleyFDerivCLM` sandwich restricted to `Sk`).
-- B1c' `nuK := map cayleyToK (volume.withDensity rhoK)` on the `SO(n)` component (and a reflected
-  copy on the det -1 component). Prove `nuK` left invariant: this needs the density transformation
-  under left translation `X |-> cayleyInv (k0 . cayley X)` (a Mobius map), the genuine hard step.
-  No flat Lebesgue shortcut. The Riemannian submanifold volume from `O(n) subset Matrix` (Frobenius)
-  is the alternative source of `rhoK`; Mathlib support for it is thin, so the direct density
-  transformation is likely still required.
-- B1d `nuK_eq_smul_haarK : nuK = c_K . haarK` by uniqueness (`K` compact). `InnerRegular haarK` is
-  free (compact space instance). Off chart complement is null.
+- B1b' [DONE] density `rhoK X = ENNReal.ofReal (|det (1+X.1)|^{-(n-1)})` defined (`rhoK`), with the
+  exponent PINNED (not hard-coded) by an honest determinant computation:
+  `cayleyDerivOnSk X = -2 . sandwichOnSkCLM ((1+X)^{-1})` is the intrinsic chart derivative on `Sk n`
+  (the ambient `cayleyFDerivCLM X` left translated by `(cayley X)^T` back to the identity tangent
+  space), and `det_cayleyDerivOnSk` gives
+  `det (cayleyDerivOnSk X) = (-2)^{card nnIndex} . (det (1+X))^{-(n-1)}` reusing the existing
+  `det_sandwichOnSkCLM`. `abs_det_cayleyDerivOnSk` and `ofReal_abs_det_cayleyDerivOnSk` tie `rhoK` to
+  the absolute Jacobian (up to the positive constant `2^{card nnIndex}`, absorbed by uniqueness).
+  SO(2) check: `card_nnIndex_two : card (nnIndex 2) = 1` and `abs_det_cayleyDerivOnSk_two` recover the
+  classical `2 / (1+a^2)`. Density continuity / measurability: `continuous_rhoK`, `measurable_rhoK`.
+- B1c' [PARTIAL] `volSk := skBasis.addHaar` is Lebesgue on `Sk n` (no ambient `volume` on the
+  submodule, so named explicitly), and `nuK := map cayleyToK (volSk.withDensity rhoK)` is the candidate
+  measure on the `SO(n)` (det +1) component. `continuous_cayleyToK` / `measurable_cayleyToK` (from
+  `continuous_cayley_on_skew`) make `nuK` a genuine pushforward; `nuK_apply` evaluates it on
+  measurable sets.
+  REMAINING (the long pole): left invariance `map (leftMul k0) nuK = nuK` for `k0` in `SO(n)`. Route:
+  change of variables for the Mobius left translation `Psi k0 X = cayleyInv (k0 . cayley X)`, needing
+  (i) the density transformation `rhoK (Psi X) . |det D Psi X| = rhoK X` (its Jacobian factors through
+  the same `sandwichOnSkCLM` determinant as B1b'), and (ii) that the chart miss set
+  `{X : 1 + k0 . cayley X not invertible}` is `volSk` null (a proper real analytic subvariety: at
+  `cayley X = k0^{-1}` the matrix `1 + k0 . cayley X = 2` is invertible, so the defining analytic
+  function is not identically zero). No flat Lebesgue shortcut; no Riemannian volume form.
+- det = -1 component: one Cayley chart covers `SO(n)` only (`det_cayley_skew = 1`); the `det -1` coset
+  needs a reflected copy. Deferred until the `SO(n)` component is closed.
+- B1d [not started] `nuK = c_K . haarK` by Haar uniqueness (`K` compact, `InnerRegular haarK` free).
+  Requires `nuK` first established as a Haar measure (needs the B1c' invariance, plus finiteness and
+  open positivity of `nuK`).
 
-Status: flat Lebesgue approach retired as incorrect; correct density `rhoK` identified; left
-invariance of the density weighted `nuK` under the Mobius left translation is the next concrete step.
+Status: B1b' complete and axiom clean; the B1c' candidate measure `nuK` is built and is a genuine
+pushforward. The open problem is the left invariance of `nuK` under the Mobius left translation (with
+the null chart miss set), the documented long pole; `nuK = c . haarK` (B1d) follows once that and the
+Haar measure instances on `nuK` are in place.
 
 Level 2 (the change of variables on the full chart):
 - B2a `haarG_integral_eq_coord : integral over G of f d haarG = (scalar) . integral over the

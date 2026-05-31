@@ -10,12 +10,20 @@ matrices. Because `O(n)` is a curved group, flat Lebesgue measure on the chart
 is NOT left invariant; the correct left invariant density is the Cayley
 Jacobian density `ρK X ∝ |det (1 + X)|^{-(n-1)}`.
 
-This first section (B1b') defines that density and PINS its exponent by an
-honest determinant computation: the intrinsic derivative of the Cayley chart,
+B1b' (done) defines that density and PINS its exponent by an honest
+determinant computation: the intrinsic derivative of the Cayley chart,
 expressed as an endomorphism of the identity tangent space `Sk n`, is
 `-2 • sandwichOnSkCLM ((1 + X)⁻¹)`, whose determinant is computed by the
 already-proven `det_sandwichOnSkCLM`. The resulting exponent `-(n-1)` is read
 off, not hard-coded, and the constant matches the `SO(2)` value `2/(1+a²)`.
+
+B1c' (in progress) builds the candidate left invariant measure
+`nuK = map cayleyToK (volSk.withDensity ρK)` on the `SO(n)` component, with
+`volSk` the Lebesgue measure on `Sk n` from `skBasis`, together with the
+measurability facts (`measurable_rhoK`, `measurable_cayleyToK`) that make `nuK`
+a genuine pushforward. The remaining step, left invariance of `nuK` under the
+Möbius left translation `X ↦ cayleyInv (k₀ · cayley X)` (and then `nuK = c • haarK`
+by Haar uniqueness, B1d), is not yet formalized.
 -/
 
 import iwasawa_change_of_coords.IwasawaHaar
