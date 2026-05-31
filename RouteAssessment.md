@@ -123,28 +123,44 @@ Corrected Level 1 sub steps (file `IwasawaHaarK.lean`, branch `haar-cayleyk`, ax
   the absolute Jacobian (up to the positive constant `2^{card nnIndex}`, absorbed by uniqueness).
   SO(2) check: `card_nnIndex_two : card (nnIndex 2) = 1` and `abs_det_cayleyDerivOnSk_two` recover the
   classical `2 / (1+a^2)`. Density continuity / measurability: `continuous_rhoK`, `measurable_rhoK`.
-- B1c' [PARTIAL] `volSk := skBasis.addHaar` is Lebesgue on `Sk n` (no ambient `volume` on the
-  submodule, so named explicitly), and `nuK := map cayleyToK (volSk.withDensity rhoK)` is the candidate
-  measure on the `SO(n)` (det +1) component. `continuous_cayleyToK` / `measurable_cayleyToK` (from
-  `continuous_cayley_on_skew`) make `nuK` a genuine pushforward; `nuK_apply` evaluates it on
-  measurable sets.
-  REMAINING (the long pole): left invariance `map (leftMul k0) nuK = nuK` for `k0` in `SO(n)`. Route:
-  change of variables for the Mobius left translation `Psi k0 X = cayleyInv (k0 . cayley X)`, needing
-  (i) the density transformation `rhoK (Psi X) . |det D Psi X| = rhoK X` (its Jacobian factors through
-  the same `sandwichOnSkCLM` determinant as B1b'), and (ii) that the chart miss set
-  `{X : 1 + k0 . cayley X not invertible}` is `volSk` null (a proper real analytic subvariety: at
-  `cayley X = k0^{-1}` the matrix `1 + k0 . cayley X = 2` is invertible, so the defining analytic
-  function is not identically zero). No flat Lebesgue shortcut; no Riemannian volume form.
+- B1c' [PARTIAL] infrastructure: `volSk := skBasis.addHaar` (Lebesgue on `Sk n`),
+  `nuK := map cayleyToK (volSk.withDensity rhoK)` (candidate measure on the `SO(n)` component),
+  `continuous_cayleyToK` / `measurable_cayleyToK` / `nuK_apply`. Goal: left invariance
+  `map (fun k => k0 * k) nuK = nuK` for `k0` in `SO(n)`, via change of variables for the Mobius left
+  translation `Psi k0 X = cayleyInv (k0 * cayley X)`. Progress against the five sub steps:
+  - step 1 [DONE] `cayleyLeftDom k0` (the domain, `{X | 1 + k0 * cayley X invertible}`),
+    `cayleyLeftTrans` (= `Psi k0`), `cayleyLeftTrans_isSkew`, `cayley_cayleyLeftTrans`
+    (`cayley (Psi k0 X) = k0 * cayley X`, the geometric heart), `cayleyToK_cayleyLeftTransSk`
+    (`cayleyToK (Psi k0 X) = k0 * cayleyToK X`, the chart intertwines `Psi k0` with left mult by `k0`),
+    `isOpen_cayleyLeftDom`, `continuousOn_cayleyLeftTrans`. (C^1 smoothness of `Psi` not yet done.)
+  - step 2 [PARTIAL] reduction `one_add_k_cayley_mul`: `(1 + k0 * cayley X) * (1 + X) = (1 + X) +
+    k0 * (1 - X)`, hence `det_one_add_k_cayley` and `mem_cayleyLeftDom_iff`: `X in cayleyLeftDom k0 iff
+    det ((1 + X) + k0 * (1 - X)) != 0`, the non-vanishing locus of a polynomial in the entries of `X`.
+    BLOCKED REMAINDER: (a) that polynomial is not identically zero (needs a domain point, entangled with
+    `K_open` density), and (b) the zero set of a nonzero multivariate polynomial is Lebesgue null. No
+    ready Mathlib lemma for (b): Mathlib has the 1-variable `Polynomial.finite_setOf_isRoot` (so the
+    `n = 2` case, `Sk 2` one dimensional, is reachable) and the analytic identity theorem
+    `eqOn_zero_or_eventually_ne_zero_of_preconnected` (isolated zeros, 1 dimensional only), but no
+    multivariate zero-set-null result; it would need a from-scratch `MvPolynomial` Fubini induction.
+  - step 3 [not started] Jacobian `|det D Psi X|` via `det_cayleyDerivOnSk`. `Psi = cayleyInv o (left
+    mult k0) o cayley`, and since `cayleyInv` and `cayley` are the SAME formula, `D cayleyInv` reuses
+    `cayleyFDerivCLM`; needs the tangent-space / left-translation bookkeeping to give
+    `|det D Psi X| = |det cayleyDerivOnSk X| / |det cayleyDerivOnSk (Psi X)|`.
+  - step 4 [not started] density transformation `rhoK (Psi X) * |det D Psi X| = rhoK X`, pure algebra
+    from step 3 and `ofReal_abs_det_cayleyDerivOnSk` once step 3 lands.
+  - step 5 [not started] assemble left invariance via Mathlib change of variables, the density
+    transformation (step 4), and the null complement (step 2 remainder). Gated by steps 2(b), 3, 4.
 - det = -1 component: one Cayley chart covers `SO(n)` only (`det_cayley_skew = 1`); the `det -1` coset
-  needs a reflected copy. Deferred until the `SO(n)` component is closed.
+  needs a reflected copy. Deferred.
 - B1d [not started] `nuK = c_K . haarK` by Haar uniqueness (`K` compact, `InnerRegular haarK` free).
-  Requires `nuK` first established as a Haar measure (needs the B1c' invariance, plus finiteness and
-  open positivity of `nuK`).
+  Requires `nuK` first established as a Haar measure (needs B1c' invariance, finiteness, open positivity).
 
-Status: B1b' complete and axiom clean; the B1c' candidate measure `nuK` is built and is a genuine
-pushforward. The open problem is the left invariance of `nuK` under the Mobius left translation (with
-the null chart miss set), the documented long pole; `nuK = c . haarK` (B1d) follows once that and the
-Haar measure instances on `nuK` are in place.
+Status: B1b' complete. B1c' step 1 (the Mobius map, its defining identity, domain openness, continuity)
+DONE and axiom clean; step 2 reduction (domain = polynomial non-vanishing locus) DONE. The blocker is
+step 2(b), the measure-zero of a nonzero multivariate polynomial zero set, which has no ready Mathlib
+lemma (1-variable and analytic-identity versions exist; the multivariate Lebesgue-null version does
+not), plus the step 3 Jacobian bookkeeping. No flat Lebesgue shortcut; no Riemannian volume form; no
+statement weakened.
 
 Level 2 (the change of variables on the full chart):
 - B2a `haarG_integral_eq_coord : integral over G of f d haarG = (scalar) . integral over the
