@@ -136,12 +136,17 @@ Corrected Level 1 sub steps (file `IwasawaHaarK.lean`, branch `haar-cayleyk`, ax
   - step 2 [PARTIAL] reduction `one_add_k_cayley_mul`: `(1 + k0 * cayley X) * (1 + X) = (1 + X) +
     k0 * (1 - X)`, hence `det_one_add_k_cayley` and `mem_cayleyLeftDom_iff`: `X in cayleyLeftDom k0 iff
     det ((1 + X) + k0 * (1 - X)) != 0`, the non-vanishing locus of a polynomial in the entries of `X`.
-    BLOCKED REMAINDER: (a) that polynomial is not identically zero (needs a domain point, entangled with
-    `K_open` density), and (b) the zero set of a nonzero multivariate polynomial is Lebesgue null. No
-    ready Mathlib lemma for (b): Mathlib has the 1-variable `Polynomial.finite_setOf_isRoot` (so the
-    `n = 2` case, `Sk 2` one dimensional, is reachable) and the analytic identity theorem
-    `eqOn_zero_or_eventually_ne_zero_of_preconnected` (isolated zeros, 1 dimensional only), but no
-    multivariate zero-set-null result; it would need a from-scratch `MvPolynomial` Fubini induction.
+    REMAINDER: (a) that polynomial is not identically zero (needs a domain point, entangled with
+    `K_open` density), and (b) the zero set of a nonzero multivariate polynomial is Lebesgue null.
+    Part (b) is now DONE: the general lemma `MvPolynomial.volume_setOf_eval_eq_zero` (for nonzero
+    `p : MvPolynomial (Fin d) R`, `volume {x | eval x p = 0} = 0`) is proven and axiom clean in the new
+    self contained file `PolynomialNullSet.lean` (induction via `finSuccEquiv`: leading coefficient null
+    base set by IH, `Polynomial.finite_setOf_isRoot` finite slices, Fubini `measure_prod_null`). This
+    closes the Mathlib gap. The APPLICATION to `cayleyLeftDom` (PHASE 2) is not yet done: it needs
+    (i) `det ((1 + X) + k0 (1 - X))` as the eval of an explicit `MvPolynomial` in the `skBasis`
+    coordinates (a matrix of affine entry polynomials plus `RingHom.map_det`), (ii) transport of null
+    sets through `skBasis.equivFun` (`volSk` to Lebesgue, via the `addHaar`/`equivFun` relationship),
+    and (iii) the non-vanishing (a), the chart domain nonempty for every `k0`.
   - step 3 [not started] Jacobian `|det D Psi X|` via `det_cayleyDerivOnSk`. `Psi = cayleyInv o (left
     mult k0) o cayley`, and since `cayleyInv` and `cayley` are the SAME formula, `D cayleyInv` reuses
     `cayleyFDerivCLM`; needs the tangent-space / left-translation bookkeeping to give
@@ -155,12 +160,14 @@ Corrected Level 1 sub steps (file `IwasawaHaarK.lean`, branch `haar-cayleyk`, ax
 - B1d [not started] `nuK = c_K . haarK` by Haar uniqueness (`K` compact, `InnerRegular haarK` free).
   Requires `nuK` first established as a Haar measure (needs B1c' invariance, finiteness, open positivity).
 
-Status: B1b' complete. B1c' step 1 (the Mobius map, its defining identity, domain openness, continuity)
-DONE and axiom clean; step 2 reduction (domain = polynomial non-vanishing locus) DONE. The blocker is
-step 2(b), the measure-zero of a nonzero multivariate polynomial zero set, which has no ready Mathlib
-lemma (1-variable and analytic-identity versions exist; the multivariate Lebesgue-null version does
-not), plus the step 3 Jacobian bookkeeping. No flat Lebesgue shortcut; no Riemannian volume form; no
-statement weakened.
+Status: B1b' complete. B1c' step 1 (the Mobius map, defining identity, domain openness, continuity)
+DONE; step 2 reduction (domain = polynomial non-vanishing locus) DONE. Step 2(b), the measure-zero of a
+nonzero multivariate polynomial zero set, is now DONE as the standalone axiom clean lemma
+`MvPolynomial.volume_setOf_eval_eq_zero` in `PolynomialNullSet.lean` (the Mathlib gap is closed). What
+remains for step 2: the application (PHASE 2) wiring that lemma to `cayleyLeftDom` through `skBasis`
+(det as `MvPolynomial` in coordinates, null transport, non-vanishing); then the step 3 Jacobian
+bookkeeping, steps 4 and 5. No flat Lebesgue shortcut; no Riemannian volume form; no statement weakened;
+no sorry or axiom.
 
 Level 2 (the change of variables on the full chart):
 - B2a `haarG_integral_eq_coord : integral over G of f d haarG = (scalar) . integral over the
