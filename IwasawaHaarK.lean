@@ -179,10 +179,64 @@ lemma nuK_apply {s : Set (K n)} (hs : MeasurableSet s) :
     nuK s = (volSk.withDensity rhoK) (cayleyToK ⁻¹' s) := by
   rw [nuK, Measure.map_apply measurable_cayleyToK hs]
 
+/-! ### B1c' step 1: the Möbius left translation `Ψ k₀`
+
+Left multiplication by `k₀ ∈ SO(n)`, read in Cayley coordinates, is the Möbius
+map `Ψ k₀ X = cayleyInv (k₀ · cayley X)`. It is defined wherever the left
+translate `k₀ · cayley X` stays in the Cayley image, i.e. on
+`cayleyLeftDom k₀ = {X | 1 + k₀ · cayley X invertible}`. The defining identity
+`cayley (Ψ k₀ X) = k₀ · cayley X` makes the Cayley chart intertwine `Ψ k₀` with
+left multiplication by `k₀`; this is the geometric heart of the left invariance
+of `nuK`. -/
+
+/-- The chart domain for left translation by `k₀`: skew `X` whose left translate
+`k₀ · cayley X` is still in the Cayley image (`1 + k₀ · cayley X` invertible). -/
+def cayleyLeftDom (k₀ : K n) : Set (Sk n) :=
+  {X | IsUnit (1 + k₀.1 * cayley X.1).det}
+
+/-- `k₀ · cayley X` is orthogonal, a product of orthogonal matrices. -/
+lemma isOrthogonal_k_mul_cayley (k₀ : K n) (X : Sk n) :
+    IsOrthogonal (k₀.1 * cayley X.1) :=
+  IsOrthogonal.mul k₀.2 (cayley_isOrthogonal X)
+
+/-- The Möbius left translation `Ψ k₀ X = cayleyInv (k₀ · cayley X)` (matrix
+valued; it is skew on `cayleyLeftDom k₀`). -/
+noncomputable def cayleyLeftTrans (k₀ : K n) (X : Sk n) : Matrix (Fin n) (Fin n) ℝ :=
+  cayleyInv (k₀.1 * cayley X.1)
+
+/-- On the domain, the Möbius translate is skew symmetric. -/
+lemma cayleyLeftTrans_isSkew (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom k₀) :
+    (cayleyLeftTrans k₀ X).transpose = -(cayleyLeftTrans k₀ X) :=
+  cayleyInv_isSkew _ (isOrthogonal_k_mul_cayley k₀ X) hX
+
+/-- **Defining identity (geometric heart of left invariance).** On the domain,
+the Cayley chart sends the Möbius translate to the left translate:
+`cayley (Ψ k₀ X) = k₀ · cayley X`. -/
+lemma cayley_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom k₀) :
+    cayley (cayleyLeftTrans k₀ X) = k₀.1 * cayley X.1 :=
+  cayley_cayleyInv _ hX
+
+/-- The Möbius translate packaged as an element of `Sk n` (valid on the domain). -/
+noncomputable def cayleyLeftTransSk (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom k₀) :
+    Sk n :=
+  ⟨cayleyLeftTrans k₀ X, cayleyLeftTrans_isSkew k₀ hX⟩
+
+/-- **Left translation in chart coordinates.** On the domain,
+`cayleyToK (Ψ k₀ X) = k₀ * cayleyToK X` in the group `K n`: the Cayley chart
+intertwines the Möbius map `Ψ k₀` with left multiplication by `k₀`. -/
+lemma cayleyToK_cayleyLeftTransSk (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom k₀) :
+    cayleyToK (cayleyLeftTransSk k₀ hX) = k₀ * cayleyToK X := by
+  apply Subtype.ext
+  rw [K_coe_mul]
+  show cayley (cayleyLeftTrans k₀ X) = k₀.1 * cayley X.1
+  exact cayley_cayleyLeftTrans k₀ hX
+
 #print axioms volSk
 #print axioms nuK
 #print axioms measurable_cayleyToK
 #print axioms nuK_apply
+#print axioms cayley_cayleyLeftTrans
+#print axioms cayleyToK_cayleyLeftTransSk
 #print axioms continuous_rhoK
 #print axioms measurable_rhoK
 #print axioms abs_det_cayleyDerivOnSk
