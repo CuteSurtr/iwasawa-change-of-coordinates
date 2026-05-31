@@ -1425,10 +1425,18 @@ From the workspace root (the directory containing `lakefile.toml`):
 lake build
 lake build iwasawa_change_of_coords.AxiomCheckDiffeomorph
 lake build iwasawa_change_of_coords.AxiomCheckMFDerivAtOne
+lake build iwasawa_change_of_coords.AxiomCheckMFDeriv
+lake build iwasawa_change_of_coords.AxiomCheckHaar
+lake build iwasawa_change_of_coords.AxiomCheckHaarK
+lake build iwasawa_change_of_coords.AxiomCheckPolynomialNullSet
 ```
 
 The first build will compile the parent project's `project.Iwasawa`
-as a dependency.
+as a dependency. The `AxiomCheckHaar`, `AxiomCheckHaarK`, and
+`AxiomCheckPolynomialNullSet` files print the axiom dependencies of every measure
+layer, K Cayley chart, and polynomial null declaration claimed in this README, and
+`AxiomCheckMFDeriv` covers the general-point differential; each reports only
+`[propext, Classical.choice, Quot.sound]`.
 
 ## Verifying the result
 
@@ -1454,7 +1462,12 @@ core namespace is `IwasawaCoC`, and the consolidated restatements live in
 `IwasawaCoC.Complete`. `IwasawaBridge.lean` likewise ends with a `#print
 axioms` block confirming that it too is axiom free. `IwasawaHaar.lean`,
 `IwasawaHaarK.lean`, and `PolynomialNullSet.lean` each end with `#print axioms`
-blocks over every named result; all report the same three axioms.
+blocks over every named result; all report the same three axioms. In addition, the
+dedicated diagnostic files `AxiomCheckHaar.lean`, `AxiomCheckHaarK.lean`,
+`AxiomCheckPolynomialNullSet.lean`, and `AxiomCheckMFDeriv.lean` re-print the axioms
+of every measure layer, K Cayley chart, polynomial null, and general-point
+differential declaration claimed in this README, so each surfaces here is backed by a
+captured `#print axioms` result.
 `IwasawaComplete.lean` also contains compile-time
 sanity checks: the scalar value $`\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}`$
 at $`n = 3`$, the edge cases $`n = 0`$ and $`n = 1`$, the consistency of the
