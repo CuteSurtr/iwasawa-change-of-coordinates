@@ -80,6 +80,53 @@ theorem det_cayleyDerivOnSk (X : Sk n) :
 
 #print axioms det_cayleyDerivOnSk
 
+/-- **Absolute Jacobian of the Cayley chart.** Taking absolute values in
+`det_cayleyDerivOnSk`: the chart Jacobian is `2 ^ card (nnIndex n)` times the
+density `|det (1+X)|^{-(n-1)}`. The positive constant `2 ^ card (nnIndex n)` is
+absorbed by Haar uniqueness and does not affect the eventual identification
+with `haarK`. -/
+lemma abs_det_cayleyDerivOnSk (X : Sk n) :
+    |LinearMap.det (cayleyDerivOnSk X).toLinearMap|
+      = 2 ^ Fintype.card (nnIndex n) * (|(1 + X.1).det|⁻¹) ^ (n - 1) := by
+  rw [det_cayleyDerivOnSk, abs_mul, abs_pow, abs_pow, abs_inv]
+  norm_num
+
+/-- **The Cayley Haar density on `Sk n`.** `ρK X = |det (1 + X)|^{-(n-1)}`,
+written as the natural power of the inverse. By `abs_det_cayleyDerivOnSk` this
+is exactly the absolute Cayley chart Jacobian `|det (cayleyDerivOnSk X)|`
+divided by the positive constant `2 ^ card (nnIndex n)`. It is the left
+invariant density in Cayley coordinates; flat Lebesgue is NOT invariant for
+`n ≥ 2`. -/
+noncomputable def rhoK (X : Sk n) : ℝ≥0∞ :=
+  ENNReal.ofReal ((|(1 + X.1).det|⁻¹) ^ (n - 1))
+
+/-- `ENNReal.ofReal` of the absolute Cayley Jacobian equals `ρK` scaled by the
+constant `2 ^ card (nnIndex n)`. -/
+lemma ofReal_abs_det_cayleyDerivOnSk (X : Sk n) :
+    ENNReal.ofReal |LinearMap.det (cayleyDerivOnSk X).toLinearMap|
+      = (2 : ℝ≥0∞) ^ Fintype.card (nnIndex n) * rhoK X := by
+  rw [abs_det_cayleyDerivOnSk, ENNReal.ofReal_mul (by positivity),
+      ENNReal.ofReal_pow (by norm_num : (0 : ℝ) ≤ 2), ENNReal.ofReal_ofNat, rhoK]
+
+/-! ### SO(2) sanity check -/
+
+/-- For `n = 2` the skew space `Sk 2` is one dimensional: `card (nnIndex 2) = 1`. -/
+lemma card_nnIndex_two : Fintype.card (nnIndex 2) = 1 := by decide
+
+/-- **SO(2) density check.** For `n = 2` the absolute Cayley Jacobian is
+`2 · |det (1 + X)|⁻¹`. With `X = ![![0, a], ![-a, 0]]` one computes
+`det (1 + X) = 1 + a²`, recovering the classical `SO(2)` Haar density
+`2 / (1 + a²)` in the Cayley parameter `a`. This pins the `n = 2` constant to
+`2 = 2 ^ card (nnIndex 2)`. -/
+lemma abs_det_cayleyDerivOnSk_two (X : Sk 2) :
+    |LinearMap.det (cayleyDerivOnSk X).toLinearMap| = 2 * |(1 + X.1).det|⁻¹ := by
+  rw [abs_det_cayleyDerivOnSk, card_nnIndex_two, pow_one, pow_one]
+
+#print axioms abs_det_cayleyDerivOnSk
+#print axioms rhoK
+#print axioms ofReal_abs_det_cayleyDerivOnSk
+#print axioms abs_det_cayleyDerivOnSk_two
+
 end Complete
 
 end IwasawaCoC
