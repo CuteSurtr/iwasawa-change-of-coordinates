@@ -305,6 +305,28 @@ lemma mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
       mul_ne_zero_iff]
   exact ⟨fun h => ⟨h, hb⟩, fun h => h.1⟩
 
+/-! ### B1d (reduction): Haar uniqueness on the compact group `K n`
+
+`K n = O(n)` is compact (`instCompactSpaceK`), so its Haar measure is unique up to a
+positive scalar. Hence the Cayley chart measure `nuK` equals `haarK` up to a scalar
+ONCE `nuK` is known to be left invariant, finite on compacts, and inner regular. The
+lemma below discharges the uniqueness step from `Mathlib`, isolating the remaining
+work to exactly those three instances on `nuK`. The crux among them is
+`IsMulLeftInvariant nuK`, which needs the change of variables for the Mobius left
+translation `cayleyLeftTrans` (its density transformation and the null chart miss set
+via `MvPolynomial.volume_setOf_eval_eq_zero`); see RouteAssessment. -/
+
+/-- **B1d, reduction to invariance + regularity.** Given that the Cayley chart measure
+`nuK` is left invariant, finite on compacts, and inner regular, Haar uniqueness on the
+compact group `K n` identifies it with `haarK` up to the positive scalar
+`haarScalarFactor nuK haarK`. -/
+theorem nuK_eq_smul_haarK_of_invariant
+    [IsFiniteMeasureOnCompacts (nuK (n := n))] [Measure.IsMulLeftInvariant (nuK (n := n))]
+    [Measure.InnerRegular (nuK (n := n))] :
+    (nuK (n := n)) = Measure.haarScalarFactor (nuK (n := n)) (haarK (n := n)) • (haarK (n := n)) :=
+  Measure.isMulLeftInvariant_eq_smul_of_innerRegular (nuK (n := n)) (haarK (n := n))
+
+#print axioms nuK_eq_smul_haarK_of_invariant
 #print axioms volSk
 #print axioms nuK
 #print axioms measurable_cayleyToK

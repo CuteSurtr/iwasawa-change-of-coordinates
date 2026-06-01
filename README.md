@@ -1336,6 +1336,13 @@ theorem cayley_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom
 theorem mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
     X ∈ cayleyLeftDom k₀ ↔ ((1 + X.1) + k₀.1 * (1 - X.1)).det ≠ 0
 
+/-- B1d, the Haar uniqueness reduction on the compact group `K n`: the unconditional
+`nuK = c • haarK` reduces to discharging the three instances below on `nuK`. -/
+theorem nuK_eq_smul_haarK_of_invariant
+    [IsFiniteMeasureOnCompacts (nuK (n := n))] [Measure.IsMulLeftInvariant (nuK (n := n))]
+    [Measure.InnerRegular (nuK (n := n))] :
+    nuK = Measure.haarScalarFactor (nuK (n := n)) haarK • haarK
+
 end IwasawaCoC
 
 /-- Reusable measure theory lemma (`PolynomialNullSet.lean`, namespace `MvPolynomial`):
@@ -1877,8 +1884,16 @@ What remains is the **final assembly** of the integration formula, in four steps
 2. **The second $`O(n)`$ component.** One Cayley chart covers $`SO(n)`$ only
    (`det_cayley_skew` forces $`\det = +1`$); extend $`\nu_K`$ to the $`\det = -1`$
    coset by a reflected copy.
-3. **Haar uniqueness.** Conclude $`\nu_K = c\cdot\mathrm{haar}_K`$ once $`\nu_K`$ is
-   established as a Haar measure ($`K`$ is compact, so inner regularity is free).
+3. **Haar uniqueness (reduction proved).** The uniqueness step is now formalized:
+   `nuK_eq_smul_haarK_of_invariant` proves $`\nu_K = c\cdot\mathrm{haar}_K`$ (with
+   $`c = \mathrm{haarScalarFactor}\,\nu_K\,\mathrm{haar}_K`$) from Mathlib's
+   `isMulLeftInvariant_eq_smul_of_innerRegular` on the compact group $`K`$, ASSUMING the
+   three instances `IsFiniteMeasureOnCompacts nuK`, `IsMulLeftInvariant nuK`, and
+   `InnerRegular nuK`. So the whole `B1d` goal reduces to discharging those three on
+   $`\nu_K`$: left invariance (step 1, the crux) yields `IsMulLeftInvariant`; finiteness
+   of $`\int \rho_K\,d\,\mathrm{volSk}`$ yields `IsFiniteMeasureOnCompacts`; inner
+   regularity then follows on the compact space. This is the only step where a
+   `Mathlib` lemma was available off the shelf.
 4. **The product change of variables.** Combine the pointwise absolute Jacobian
    (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with the four factor
    identifications and a Mathlib change of variables theorem to obtain the
