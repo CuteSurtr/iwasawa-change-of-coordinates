@@ -1874,13 +1874,23 @@ What remains is the **final assembly** of the integration formula, in four steps
    $`(\,k_0 \cdot\,)_{*}\,\nu_K = \nu_K`$ for $`k_0`$ in the identity component, by a
    change of variables for the Mobius map $`\Psi_{k_0}`$. The pieces in place are the
    intertwining identity `cayley_cayleyLeftTrans`, the chart domain openness and
-   continuity, and the reduction of the chart miss set to a polynomial zero locus
-   (`mem_cayleyLeftDom_iff`). The remaining work is: (a) the density transformation
-   $`\rho_K(\Psi X)\,|\det D\Psi_X| = \rho_K(X)`$, whose Jacobian factors through the
-   same `sandwichOnSkCLM` determinant as `det_cayleyDerivOnSk`; (b) applying
-   `volume_setOf_eval_eq_zero` to the `skBasis` coordinates to conclude the miss set
-   is $`\nu_K`$ null; and (c) assembling the Mathlib change of variables on the open
-   dense chart domain.
+   continuity, the reduction of the chart miss set to a polynomial zero locus
+   (`mem_cayleyLeftDom_iff`), and now the **ambient Fréchet derivative of $`\Psi_{k_0}`$**:
+   `hasFDerivAt_cayleyLeftTrans` gives $`D\Psi_X`$ as the explicit composite
+   $`D\,\mathrm{cayleyInv} \circ (k_0 \cdot) \circ D\,\mathrm{cayley}`$ (both `cayleyInv`
+   and `cayley` reuse `hasFDerivAt_cayley_matrix`), with `differentiableOn_cayleyLeftTrans`
+   the regularity corollary. The remaining work is: (a) the **Sk restricted Jacobian
+   determinant** $`|\det D\Psi_X| = (|\det(1+\Psi X)|/|\det(1+X)|)^{n-1}`$, via the
+   structural identity $`\mathrm{cayleyDerivOnSk}(\Psi X) \circ D\Psi_X = \mathrm{cayleyDerivOnSk}(X)`$
+   (verified on paper from the Cayley product identities $`(1+\mathrm{cayley}\,Z)(1+Z)=2`$;
+   this is where the `cayleyInv`/`cayley` codomain restriction to `Sk` and the private
+   `one_add_cayley_mul`/`one_sub_cayley_mul` re-derivation are needed); (b) the density
+   transformation $`\rho_K(\Psi X)\,|\det D\Psi_X| = \rho_K(X)`$, then pure algebra from
+   `ofReal_abs_det_cayleyDerivOnSk`; (c) applying `volume_setOf_eval_eq_zero` to the
+   `skBasis` coordinates to conclude the miss set is $`\nu_K`$ null; and (d) assembling
+   the Mathlib change of variables on the open dense chart domain. The current boundary
+   is sub step (a): the ambient derivative is banked, the `Sk` restricted determinant is
+   the next obligation.
 2. **The second $`O(n)`$ component.** One Cayley chart covers $`SO(n)`$ only
    (`det_cayley_skew` forces $`\det = +1`$); extend $`\nu_K`$ to the $`\det = -1`$
    coset by a reflected copy.

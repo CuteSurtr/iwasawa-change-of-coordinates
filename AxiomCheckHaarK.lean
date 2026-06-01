@@ -28,4 +28,6 @@ import iwasawa_change_of_coords.IwasawaHaarK
 #print axioms IwasawaCoC.Complete.one_add_k_cayley_mul
 #print axioms IwasawaCoC.Complete.det_one_add_k_cayley
 #print axioms IwasawaCoC.Complete.mem_cayleyLeftDom_iff
+#print axioms IwasawaCoC.Complete.hasFDerivAt_cayleyLeftTrans
+#print axioms IwasawaCoC.Complete.differentiableOn_cayleyLeftTrans
 #print axioms IwasawaCoC.Complete.nuK_eq_smul_haarK_of_invariant

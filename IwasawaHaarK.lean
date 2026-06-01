@@ -269,6 +269,42 @@ lemma continuousOn_cayleyLeftTrans (k₀ : K n) :
   unfold cayleyInv
   exact hsub.mul hMatInv
 
+/-! ### B1c' step 1 (continued): the Fréchet derivative of `Ψ k₀`
+
+The Mobius left translation `Ψ k₀ X = cayleyInv (k₀ · cayley X)` is the chain
+`cayleyInv ∘ (k₀ · _) ∘ cayley ∘ (·).1`. Each factor is differentiable on the
+domain (`cayleyInv` and `cayley` are the SAME formula, so both reuse
+`hasFDerivAt_cayley_matrix`), so the chain rule gives the ambient Fréchet
+derivative as an explicit continuous linear map. -/
+
+/-- **Ambient Fréchet derivative of `Ψ k₀`.** At a domain point `X`, the matrix
+valued Mobius translation has Fréchet derivative the composite of the three chart
+derivatives (with left multiplication by `k₀` in the middle). -/
+lemma hasFDerivAt_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom k₀) :
+    HasFDerivAt (fun Y : Sk n => cayleyLeftTrans k₀ Y)
+      ((cayleyFDerivCLM (k₀.1 * cayley X.1)).comp
+        ((ContinuousLinearMap.mul ℝ (Matrix (Fin n) (Fin n) ℝ) k₀.1).comp
+          ((cayleyFDerivCLM X.1).comp (Sk n).subtypeL))) X := by
+  have h1 : HasFDerivAt (fun Y : Sk n => (Y : Matrix (Fin n) (Fin n) ℝ))
+      (Sk n).subtypeL X := (Sk n).subtypeL.hasFDerivAt
+  have h2 : HasFDerivAt cayley (cayleyFDerivCLM X.1) X.1 :=
+    hasFDerivAt_cayley_matrix X.1 (one_add_skew_isUnit X)
+  have h3 : HasFDerivAt (fun M : Matrix (Fin n) (Fin n) ℝ => k₀.1 * M)
+      (ContinuousLinearMap.mul ℝ (Matrix (Fin n) (Fin n) ℝ) k₀.1) (cayley X.1) :=
+    (ContinuousLinearMap.mul ℝ (Matrix (Fin n) (Fin n) ℝ) k₀.1).hasFDerivAt
+  have h4 : HasFDerivAt cayleyInv (cayleyFDerivCLM (k₀.1 * cayley X.1)) (k₀.1 * cayley X.1) :=
+    hasFDerivAt_cayley_matrix (k₀.1 * cayley X.1) hX
+  exact h4.comp X (h3.comp X (h2.comp X h1))
+
+/-- `Ψ k₀` is differentiable on its domain (a regularity ingredient for the change
+of variables in step 3). -/
+lemma differentiableOn_cayleyLeftTrans (k₀ : K n) :
+    DifferentiableOn ℝ (fun Y : Sk n => cayleyLeftTrans k₀ Y) (cayleyLeftDom k₀) :=
+  fun X hX => (hasFDerivAt_cayleyLeftTrans k₀ hX).differentiableAt.differentiableWithinAt
+
+#print axioms hasFDerivAt_cayleyLeftTrans
+#print axioms differentiableOn_cayleyLeftTrans
+
 /-! ### B1c' step 2 (partial): clearing the Cayley denominator
 
 The chart domain condition `1 + k₀ · cayley X` invertible becomes, after clearing
