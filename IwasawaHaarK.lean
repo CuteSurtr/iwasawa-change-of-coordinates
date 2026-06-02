@@ -512,6 +512,22 @@ theorem cayleyLeftDom_compl_null (k₀ : K n) (hne : (cayleyLeftDom k₀).Nonemp
     exact hne0 rfl
   exact MvPolynomial.volume_setOf_eval_eq_zero (cayleyDomPoly k₀) hp
 
+/-- **Domain nonemptiness, generic case.** When `1 + k₀` is invertible (i.e. `-1` is not an
+eigenvalue of `k₀`), the origin `X = 0` lies in `cayleyLeftDom k₀` (there `cayley 0 = 1`, so the
+domain condition is `1 + k₀` invertible). This discharges the nonemptiness hypothesis of
+`cayleyLeftDom_compl_null` for all such `k₀`. The remaining case (`k₀ ∈ SO(n)` with `-1 ∈ spec k₀`,
+e.g. `k₀ = -1` in even dimension) needs density of the Cayley image, not formalized here. -/
+lemma cayleyLeftDom_nonempty_of_one_add_unit (k₀ : K n) (h : IsUnit (1 + k₀.1).det) :
+    (cayleyLeftDom k₀).Nonempty :=
+  ⟨0, by rw [mem_cayleyLeftDom_iff]; simpa using h.ne_zero⟩
+
+/-- **Chart-miss set null, generic case.** Combines `cayleyLeftDom_compl_null` with the generic
+nonemptiness `cayleyLeftDom_nonempty_of_one_add_unit`: whenever `1 + k₀` is invertible, the
+chart-miss set is `volSk`-null. -/
+theorem cayleyLeftDom_compl_null_of_one_add_unit (k₀ : K n) (h : IsUnit (1 + k₀.1).det) :
+    volSk (cayleyLeftDom k₀)ᶜ = 0 :=
+  cayleyLeftDom_compl_null k₀ (cayleyLeftDom_nonempty_of_one_add_unit k₀ h)
+
 /-! ### B1d (reduction): Haar uniqueness on the compact group `K n`
 
 `K n = O(n)` is compact (`instCompactSpaceK`), so its Haar measure is unique up to a
