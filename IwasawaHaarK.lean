@@ -27,11 +27,12 @@ by Haar uniqueness, B1d), is not yet formalized.
 -/
 
 import iwasawa_change_of_coords.IwasawaHaar
+import iwasawa_change_of_coords.PolynomialNullSet
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 namespace IwasawaCoC
 
-open Matrix Iwasawa MeasureTheory
+open Matrix Iwasawa MeasureTheory Module
 open scoped ENNReal NNReal
 
 set_option linter.unusedSectionVars false
@@ -340,6 +341,176 @@ lemma mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
   rw [cayleyLeftDom, Set.mem_setOf_eq, isUnit_iff_ne_zero, ← det_one_add_k_cayley,
       mul_ne_zero_iff]
   exact ⟨fun h => ⟨h, hb⟩, fun h => h.1⟩
+
+/-! ### B1c' step 2 (PHASE 2): the chart-miss set `(cayleyLeftDom k₀)ᶜ` is `volSk`-null
+
+By `mem_cayleyLeftDom_iff`, `(cayleyLeftDom k₀)ᶜ = {X | det ((1+X) + k₀ (1-X)) = 0}`,
+the zero set of the polynomial `X ↦ det ((1+X) + k₀ (1-X))` in the `skBasis`
+coordinates. We transport this set through the linear coordinate equivalence
+`skBasis.equivFun` (reindexed to `Fin (card (nnIndex n))`) to `Fin d → ℝ`, exhibit
+it as the zero set of an explicit `MvPolynomial`, and invoke
+`MvPolynomial.volume_setOf_eval_eq_zero` — provided the polynomial is not
+identically zero, i.e. the domain is nonempty. -/
+
+/-- The coordinate equivalence `Sk n ≃L[ℝ] (Fin (card (nnIndex n)) → ℝ)` obtained by
+reindexing `skBasis` along `Fintype.equivFin` and taking `equivFunL`. It identifies
+`volSk` with the Lebesgue `volume` on `Fin (card (nnIndex n)) → ℝ`
+(`map_skCoordEquiv_volSk`). -/
+noncomputable def skCoordEquiv :
+    Sk n ≃L[ℝ] (Fin (Fintype.card (nnIndex n)) → ℝ) :=
+  (skBasis.reindex (Fintype.equivFin (nnIndex n))).equivFunL
+
+/-- `(Pi.basisFun ℝ ι).addHaar` is the Pi–Lebesgue `volume` on `ι → ℝ`. -/
+private lemma basisFun_addHaar_eq_volume (ι : Type*) [Fintype ι] :
+    (Pi.basisFun ℝ ι).addHaar = (volume : Measure (ι → ℝ)) := by
+  rw [Basis.addHaar_def, Basis.parallelepiped_basisFun]
+  exact addHaarMeasure_eq_volume_pi ι
+
+/-- **Coordinate transport.** The coordinate equivalence pushes `volSk` forward to
+the Lebesgue `volume` on `Fin (card (nnIndex n)) → ℝ`. (`volSk` is the additive Haar
+of `skBasis`, which reindexing does not change, and `equivFunL` carries that basis to
+the standard basis whose `addHaar` is `volume`.) -/
+lemma map_skCoordEquiv_volSk :
+    Measure.map (skCoordEquiv (n := n)) volSk = volume := by
+  set σ := Fintype.equivFin (nnIndex n)
+  set b' : Basis (Fin (Fintype.card (nnIndex n))) ℝ (Sk n) := skBasis.reindex σ with hb'
+  have hvol : volSk (n := n) = b'.addHaar := by
+    rw [volSk, hb', Basis.addHaar_reindex]
+  rw [skCoordEquiv, ← hb', hvol, Basis.map_addHaar b' b'.equivFunL]
+  have hbasis : b'.map b'.equivFunL.toLinearEquiv = Pi.basisFun ℝ (Fin (Fintype.card (nnIndex n))) := by
+    apply Basis.eq_of_apply_eq
+    intro i
+    funext j
+    rw [Basis.map_apply]
+    show b'.equivFun (b' i) j = _
+    rw [Basis.equivFun_apply, Basis.repr_self, Finsupp.single_apply, Pi.basisFun_apply,
+        Pi.single_apply]
+    by_cases h : i = j <;> simp [h, eq_comm]
+  rw [hbasis, basisFun_addHaar_eq_volume]
+
+/-- The polynomial (in the `skBasis` coordinates `Fin (card (nnIndex n)) → ℝ`)
+representing the `(l, m)` entry of a generic skew matrix `skOfUpper`: the variable
+`X_{(l,m)}` above the diagonal, its negative below, and `0` on the diagonal. -/
+noncomputable def skEntryPoly (l m : Fin n) :
+    MvPolynomial (Fin (Fintype.card (nnIndex n))) ℝ :=
+  if hlm : l < m then MvPolynomial.X (Fintype.equivFin (nnIndex n) ⟨(l, m), hlm⟩)
+  else if hml : m < l then - MvPolynomial.X (Fintype.equivFin (nnIndex n) ⟨(m, l), hml⟩)
+  else 0
+
+/-- Evaluating `skEntryPoly l m` at coordinates `c` recovers the `(l, m)` entry of the
+skew matrix `skOfUpper (c ∘ Fintype.equivFin)`. -/
+lemma eval_skEntryPoly (c : Fin (Fintype.card (nnIndex n)) → ℝ) (l m : Fin n) :
+    MvPolynomial.eval c (skEntryPoly l m)
+      = (skOfUpper (fun ij => c (Fintype.equivFin (nnIndex n) ij)) : Matrix (Fin n) (Fin n) ℝ) l m := by
+  rw [skEntryPoly]
+  rcases lt_trichotomy l m with hlm | heq | hml
+  · rw [dif_pos hlm, MvPolynomial.eval_X, skOfUpper_apply_upper _ hlm]
+  · subst heq
+    rw [dif_neg (lt_irrefl _), dif_neg (lt_irrefl _), map_zero, skOfUpper_apply_diag]
+  · rw [dif_neg (not_lt_of_gt hml), dif_pos hml, map_neg, MvPolynomial.eval_X,
+        skOfUpper_apply_lower _ hml]
+
+/-- The inverse coordinate map is `skOfUpper` (reindexed): `skCoordEquiv.symm c` is the
+skew matrix whose strict-upper entries are read off from `c` through `Fintype.equivFin`. -/
+lemma skCoordEquiv_symm_apply (c : Fin (Fintype.card (nnIndex n)) → ℝ) :
+    (skCoordEquiv (n := n)).symm c
+      = skOfUpper (fun ij => c (Fintype.equivFin (nnIndex n) ij)) := by
+  rw [skCoordEquiv, ContinuousLinearEquiv.symm_apply_eq]
+  funext i
+  show c i = (skBasis.reindex (Fintype.equivFin (nnIndex n))).equivFun
+      (skOfUpper (fun ij => c (Fintype.equivFin (nnIndex n) ij))) i
+  rw [Basis.equivFun_apply, Basis.repr_reindex_apply, skBasis_repr_apply,
+      skOfUpper_apply_upper _ (((Fintype.equivFin (nnIndex n)).symm i).2)]
+  have hidx : (⟨(((Fintype.equivFin (nnIndex n)).symm i).1.1,
+        ((Fintype.equivFin (nnIndex n)).symm i).1.2),
+        ((Fintype.equivFin (nnIndex n)).symm i).2⟩ : nnIndex n)
+      = (Fintype.equivFin (nnIndex n)).symm i := Subtype.ext rfl
+  simp only [hidx, Equiv.apply_symm_apply]
+
+/-- The generic-skew-matrix polynomial matrix: entry `(l, m)` is `skEntryPoly l m`. -/
+noncomputable def skMatPoly :
+    Matrix (Fin n) (Fin n) (MvPolynomial (Fin (Fintype.card (nnIndex n))) ℝ) :=
+  Matrix.of (fun l m => skEntryPoly l m)
+
+/-- The polynomial whose zero set (in `skBasis` coordinates) is exactly the
+chart-miss set: `det ((1 + k₀) + (1 - k₀) · X_generic)`. By `eval_cayleyDomPoly` it
+evaluates to `det ((1+X) + k₀ (1-X))`. -/
+noncomputable def cayleyDomPoly (k₀ : K n) :
+    MvPolynomial (Fin (Fintype.card (nnIndex n))) ℝ :=
+  ((1 + k₀.1).map MvPolynomial.C + (1 - k₀.1).map MvPolynomial.C * skMatPoly).det
+
+/-- **The det polynomial evaluates to the chart-miss determinant.** For every
+coordinate vector `c`, with `X := skCoordEquiv.symm c`,
+`eval c (cayleyDomPoly k₀) = det ((1 + X) + k₀ (1 - X))`. -/
+lemma eval_cayleyDomPoly (k₀ : K n) (c : Fin (Fintype.card (nnIndex n)) → ℝ) :
+    MvPolynomial.eval c (cayleyDomPoly k₀)
+      = ((1 + ((skCoordEquiv (n := n)).symm c : Matrix (Fin n) (Fin n) ℝ))
+          + k₀.1 * (1 - ((skCoordEquiv (n := n)).symm c : Matrix (Fin n) (Fin n) ℝ))).det := by
+  rw [cayleyDomPoly, RingHom.map_det, skCoordEquiv_symm_apply]
+  congr 1
+  set Y : Matrix (Fin n) (Fin n) ℝ :=
+    (skOfUpper (fun ij => c (Fintype.equivFin (nnIndex n) ij)) : Matrix (Fin n) (Fin n) ℝ) with hY
+  have halg : (1 + k₀.1) + (1 - k₀.1) * Y = (1 + Y) + k₀.1 * (1 - Y) := by noncomm_ring
+  rw [← halg]
+  ext i j
+  simp only [RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.add_apply, Matrix.mul_apply,
+    map_add, map_sum, map_mul, MvPolynomial.eval_C, skMatPoly, Matrix.of_apply, eval_skEntryPoly, hY]
+
+/-- **Coordinate transport for sets.** A measurable `B ⊆ Sk n` has `volSk B` equal to
+the Lebesgue measure of its coordinate image. -/
+lemma volSk_eq_volume_image {B : Set (Sk n)} (hB : MeasurableSet B) :
+    volSk B = volume ((skCoordEquiv (n := n)) '' B) := by
+  have hemb : MeasurableEmbedding (skCoordEquiv (n := n)) := by
+    have h := (skCoordEquiv (n := n)).toHomeomorph.measurableEmbedding
+    rwa [ContinuousLinearEquiv.coe_toHomeomorph] at h
+  have himg : MeasurableSet ((skCoordEquiv (n := n)) '' B) := hemb.measurableSet_image.mpr hB
+  conv_lhs => rw [← Set.preimage_image_eq B hemb.injective]
+  rw [← Measure.map_apply hemb.measurable himg, map_skCoordEquiv_volSk]
+
+/-- **B1c' step 2 (PHASE 2).** If the chart domain `cayleyLeftDom k₀` is nonempty (so the
+determinant polynomial is not identically zero), then its complement — the chart-miss set —
+is `volSk`-null. This is the measure-theoretic core: the chart-miss set is the zero locus of
+the nonzero polynomial `cayleyDomPoly k₀`, transported to `Fin (card (nnIndex n)) → ℝ`, where
+`MvPolynomial.volume_setOf_eval_eq_zero` applies.
+
+The nonemptiness hypothesis is necessary: for `k₀` in the `det = -1` component of `O(n)` the
+domain is genuinely empty (`cayley X ∈ SO(n)` always, and `1 + (det -1 orthogonal)` is always
+singular), and there the conclusion fails. For `k₀ ∈ SO(n)` the domain is nonempty (the Cayley
+image is dense), discharging the hypothesis; that density is not yet formalized here. -/
+theorem cayleyLeftDom_compl_null (k₀ : K n) (hne : (cayleyLeftDom k₀).Nonempty) :
+    volSk (cayleyLeftDom k₀)ᶜ = 0 := by
+  have hBset : (cayleyLeftDom k₀)ᶜ
+      = {X : Sk n | ((1 + X.1) + k₀.1 * (1 - X.1)).det = 0} := by
+    ext X
+    simp only [Set.mem_compl_iff, mem_cayleyLeftDom_iff, Set.mem_setOf_eq, not_not]
+  have hcont : Continuous fun X : Sk n => ((1 + X.1) + k₀.1 * (1 - X.1)).det :=
+    ((continuous_const.add continuous_subtype_val).add
+      (continuous_const.matrix_mul (continuous_const.sub continuous_subtype_val))).matrix_det
+  have hmeasB : MeasurableSet {X : Sk n | ((1 + X.1) + k₀.1 * (1 - X.1)).det = 0} :=
+    (isClosed_eq hcont continuous_const).measurableSet
+  rw [hBset, volSk_eq_volume_image hmeasB]
+  have hset : (skCoordEquiv (n := n)) '' {X : Sk n | ((1 + X.1) + k₀.1 * (1 - X.1)).det = 0}
+      = {c | MvPolynomial.eval c (cayleyDomPoly k₀) = 0} := by
+    ext c
+    simp only [Set.mem_image, Set.mem_setOf_eq]
+    constructor
+    · rintro ⟨X, hX, rfl⟩
+      rw [eval_cayleyDomPoly, ContinuousLinearEquiv.symm_apply_apply]
+      exact hX
+    · intro hc
+      refine ⟨(skCoordEquiv (n := n)).symm c, ?_, (skCoordEquiv (n := n)).apply_symm_apply c⟩
+      rw [← eval_cayleyDomPoly]
+      exact hc
+  rw [hset]
+  obtain ⟨X₀, hX₀⟩ := hne
+  have hp : cayleyDomPoly k₀ ≠ 0 := by
+    intro h0
+    have hne0 : MvPolynomial.eval ((skCoordEquiv (n := n)) X₀) (cayleyDomPoly k₀) ≠ 0 := by
+      rw [eval_cayleyDomPoly, ContinuousLinearEquiv.symm_apply_apply]
+      exact (mem_cayleyLeftDom_iff k₀ X₀).mp hX₀
+    rw [h0, map_zero] at hne0
+    exact hne0 rfl
+  exact MvPolynomial.volume_setOf_eval_eq_zero (cayleyDomPoly k₀) hp
 
 /-! ### B1d (reduction): Haar uniqueness on the compact group `K n`
 
