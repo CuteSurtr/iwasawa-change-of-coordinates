@@ -1,4 +1,4 @@
-# Iwasawa integration formula: route assessment (branch `haar-assembly`)
+# Iwasawa integration formula: route assessment (branch `haar-polynull`, namespace `IwasawaCoC.Complete`)
 
 Goal of the assembly (NOT started here): the Iwasawa integration formula on
 `G n = GL_n(R)`, relating `haarG` to the factor Haar measures through
@@ -133,20 +133,36 @@ Corrected Level 1 sub steps (file `IwasawaHaarK.lean`, branch `haar-cayleyk`, ax
     (`cayley (Psi k0 X) = k0 * cayley X`, the geometric heart), `cayleyToK_cayleyLeftTransSk`
     (`cayleyToK (Psi k0 X) = k0 * cayleyToK X`, the chart intertwines `Psi k0` with left mult by `k0`),
     `isOpen_cayleyLeftDom`, `continuousOn_cayleyLeftTrans`. (C^1 smoothness of `Psi` not yet done.)
-  - step 2 [PARTIAL] reduction `one_add_k_cayley_mul`: `(1 + k0 * cayley X) * (1 + X) = (1 + X) +
-    k0 * (1 - X)`, hence `det_one_add_k_cayley` and `mem_cayleyLeftDom_iff`: `X in cayleyLeftDom k0 iff
-    det ((1 + X) + k0 * (1 - X)) != 0`, the non-vanishing locus of a polynomial in the entries of `X`.
-    REMAINDER: (a) that polynomial is not identically zero (needs a domain point, entangled with
-    `K_open` density), and (b) the zero set of a nonzero multivariate polynomial is Lebesgue null.
-    Part (b) is now DONE: the general lemma `MvPolynomial.volume_setOf_eval_eq_zero` (for nonzero
+  - step 2 [MEASURE CORE DONE; nonemptiness/density open] reduction `one_add_k_cayley_mul`:
+    `(1 + k0 * cayley X) * (1 + X) = (1 + X) + k0 * (1 - X)`, hence `det_one_add_k_cayley` and
+    `mem_cayleyLeftDom_iff`: `X in cayleyLeftDom k0 iff det ((1 + X) + k0 * (1 - X)) != 0`, the
+    non-vanishing locus of a polynomial in the entries of `X`. The split is into (a) that polynomial is
+    not identically zero (a domain point, i.e. `cayleyLeftDom k0` nonempty) and (b) the zero set of a
+    nonzero multivariate polynomial is Lebesgue null.
+    Part (b) is DONE: the general lemma `MvPolynomial.volume_setOf_eval_eq_zero` (for nonzero
     `p : MvPolynomial (Fin d) R`, `volume {x | eval x p = 0} = 0`) is proven and axiom clean in the new
     self contained file `PolynomialNullSet.lean` (induction via `finSuccEquiv`: leading coefficient null
     base set by IH, `Polynomial.finite_setOf_isRoot` finite slices, Fubini `measure_prod_null`). This
-    closes the Mathlib gap. The APPLICATION to `cayleyLeftDom` (PHASE 2) is not yet done: it needs
-    (i) `det ((1 + X) + k0 (1 - X))` as the eval of an explicit `MvPolynomial` in the `skBasis`
-    coordinates (a matrix of affine entry polynomials plus `RingHom.map_det`), (ii) transport of null
-    sets through `skBasis.equivFun` (`volSk` to Lebesgue, via the `addHaar`/`equivFun` relationship),
-    and (iii) the non-vanishing (a), the chart domain nonempty for every `k0`.
+    closes the Mathlib gap.
+    The PHASE 2 APPLICATION to `cayleyLeftDom` is now DONE and axiom clean in `IwasawaHaarK.lean`:
+    `cayleyLeftDom_compl_null` proves that if `cayleyLeftDom k0` is nonempty then its complement
+    (the set the chart misses) has `volSk` measure zero. The wiring runs `MvPolynomial.volume_setOf_eval_eq_zero`
+    through an explicit coordinate transport: `skCoordEquiv` (the reindexed coordinate equiv
+    `Sk n` to `Fin (card nnIndex) -> R`), `map_skCoordEquiv_volSk` (pushes `volSk` to Lebesgue
+    `volume`), the determinant polynomial `cayleyDomPoly` with `eval_cayleyDomPoly`
+    (`eval c cayleyDomPoly = det ((1 + X) + k0 (1 - X))` at `X = skCoordEquiv.symm c`),
+    `volSk_eq_volume_image`, plus `skEntryPoly` / `eval_skEntryPoly` / `skCoordEquiv_symm_apply`
+    / `skMatPoly`. So parts (i) det as an `MvPolynomial` in coordinates and (ii) null transport from
+    `volSk` to Lebesgue are both closed.
+    REMAINDER, part (a) the nonemptiness: this hypothesis is REQUIRED and is the real remaining
+    sub step. CORRECTNESS NOTE: the earlier "for every `k0 : K n`" target is FALSE. Since
+    `det (cayley X) = 1` always (`det_cayley_skew`), `cayleyLeftDom k0` is EMPTY when `det k0 = -1`,
+    so the honest statement is conditional on nonemptiness, which holds on `SO(n)` (det +1). The
+    generic case is discharged: `cayleyLeftDom_nonempty_of_one_add_unit` (take `X = 0` when `1 + k0`
+    is invertible) and `cayleyLeftDom_compl_null_of_one_add_unit`. The hard remaining case
+    (`k0` in `SO(n)` with `-1` in its spectrum, e.g. `-I`) needs density of the Cayley image in
+    `SO(n)`; see `KDensityPlan.md` (Mathlib lacks connectedness of the orthogonal group and
+    exp/Cayley surjectivity onto `SO(n)`).
   - step 3 [not started] Jacobian `|det D Psi X|` via `det_cayleyDerivOnSk`. `Psi = cayleyInv o (left
     mult k0) o cayley`, and since `cayleyInv` and `cayley` are the SAME formula, `D cayleyInv` reuses
     `cayleyFDerivCLM`; needs the tangent-space / left-translation bookkeeping to give
@@ -162,22 +178,36 @@ Corrected Level 1 sub steps (file `IwasawaHaarK.lean`, branch `haar-cayleyk`, ax
 
 Status: B1b' complete. B1c' step 1 (the Mobius map, defining identity, domain openness, continuity)
 DONE; step 2 reduction (domain = polynomial non-vanishing locus) DONE. Step 2(b), the measure-zero of a
-nonzero multivariate polynomial zero set, is now DONE as the standalone axiom clean lemma
-`MvPolynomial.volume_setOf_eval_eq_zero` in `PolynomialNullSet.lean` (the Mathlib gap is closed). What
-remains for step 2: the application (PHASE 2) wiring that lemma to `cayleyLeftDom` through `skBasis`
-(det as `MvPolynomial` in coordinates, null transport, non-vanishing); then the step 3 Jacobian
+nonzero multivariate polynomial zero set, is DONE as the standalone axiom clean lemma
+`MvPolynomial.volume_setOf_eval_eq_zero` in `PolynomialNullSet.lean` (the Mathlib gap is closed). The
+step 2 MEASURE CORE is now DONE and axiom clean in `IwasawaHaarK.lean`: `cayleyLeftDom_compl_null`
+wires that lemma to `cayleyLeftDom` through the `skCoordEquiv` coordinate transport (det as
+`MvPolynomial` via `cayleyDomPoly` / `eval_cayleyDomPoly`, null transport from `volSk` to Lebesgue via
+`map_skCoordEquiv_volSk` and `volSk_eq_volume_image`), conditional on `cayleyLeftDom k0` being
+nonempty. The nonemptiness is REQUIRED (a correctness fix: `cayleyLeftDom k0` is empty for `det k0 = -1`
+since `det (cayley X) = 1`), holds on `SO(n)`, and is discharged in the generic case
+(`cayleyLeftDom_nonempty_of_one_add_unit`). The hard remaining case (`k0` in `SO(n)` with `-1` in its
+spectrum) needs density of the Cayley image in `SO(n)`; see `KDensityPlan.md`. What remains for the full
+PHASE 2 discharge over all `SO(n)`: that Cayley density (`KDensityPlan.md`); then the step 3 Jacobian
 bookkeeping, steps 4 and 5. No flat Lebesgue shortcut; no Riemannian volume form; no statement weakened;
 no sorry or axiom.
 
 Level 2 (the change of variables on the full chart):
-- B2a `haarG_integral_eq_coord : integral over G of f d haarG = (scalar) . integral over the
-  coordinate space of (f restricted) . detWeightCoord d volume`, from
-  `nuG = c . haarG`, `haarGCoord = volume.withDensity detWeightCoord`, and `comap` apply.
-- B2b apply `lintegral_image_eq_lintegral_abs_det_fderiv_mul` (or the
+- B2a [DONE, axiom clean in `IwasawaHaar.lean`] `nuG_lintegral_eq_setLIntegral_coord` and
+  `haarG_lintegral_eq_smul_setLIntegral_coord`: the `haarG` integral equals a positive scalar times a
+  coordinate Lebesgue integral weighted by `detWeightCoord` over `Set.range gToCoord`, with the scalar
+  `= haarScalarFactor nuG haarG`. Built from `nuG = c . haarG`,
+  `haarGCoord = volume.withDensity detWeightCoord`, and `comap` apply. This is the Level 2 measure half
+  and, as predicted, it is independent of the density gap for the K factor.
+- B2b [not started] apply `lintegral_image_eq_lintegral_abs_det_fderiv_mul` (or the
   `integral_target_eq_integral_abs_det_fderiv_smul` chart form) to `iwasawaCharted`,
   using `absDetInIwasawaBases` as `|det fderiv|`, giving the integral over `G` as an
   integral over the chart domain in `Sk x (Fin n -> R) x NN` against Lebesgue with weight
-  `absDetInIwasawaBases`.
+  `absDetInIwasawaBases`. Needs the source/target coordinate identification: the bridge
+  `detInIwasawaBases = LinearMap.det` of the coordinate composite, injectivity of `iwasawaCharted` on
+  its domain, `HasFDerivWithinAt` of the composite, then
+  `integral_image_eq_integral_abs_det_fderiv_smul` using
+  `absDetInIwasawaBases_fderiv_iwasawaCharted_general`.
 
 Level 3 (assembly):
 - B3a factor the chart domain Lebesgue measure as a product over the `Sk`, diagonal, and
@@ -190,5 +220,7 @@ Level 3 (assembly):
   K x A x U of f(k a u) . delta-weight d(haarK x haarA x haarN)`. Final result.
 
 Critical path: B1b' -> B1c' -> B1d (the density weighted K chart and its left invariance under
-the Mobius left translation) is the long pole; Level 0 (B0a, B0b) is done, and B2a, B2b can proceed
-independently and in parallel with B1.
+the Mobius left translation) is the long pole; within B1c', the step 2 measure core is done and the
+active blocker is now density of the Cayley image in `SO(n)` for nonemptiness (`KDensityPlan.md`). Level 0
+(B0a, B0b) is done and Level 2 B2a (the measure half) has landed; B2b proceeds independently and in
+parallel with B1. The final `iwasawaIntegrationFormula` (Level 3, B3a/B3b/B3c) is NOT done.
