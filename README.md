@@ -74,12 +74,32 @@ standard Lean and Mathlib axioms `[propext, Classical.choice, Quot.sound]`:
   (`nuG_eq_haarScalarFactor_smul_haarG`), $`\mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$
   (`haarAExplicit_eq_haarScalarFactor_smul_haarA`), and $`\nu_U = c\cdot\mathrm{haar}_N`$
   (`nuU_eq_haarScalarFactor_smul_haarN`);
+- the **coordinate integration transport for $`\mathrm{haar}_G`$** (`IwasawaHaar.lean`,
+  the Level 2 measure theoretic half, B2a): `nuG_lintegral_eq_setLIntegral_coord` and
+  `haarG_lintegral_eq_smul_setLIntegral_coord` rewrite an integral against
+  $`\mathrm{haar}_G`$ (using $`\nu_G = c\cdot\mathrm{haar}_G`$) as a coordinate Lebesgue
+  integral weighted by `detWeightCoord` over the chart range `Set.range gToCoord`, with
+  $`c = \mathrm{haarScalarFactor}\,\nu_G\,\mathrm{haar}_G`$;
 - the **$`K = O(n)`$ Cayley chart Haar density** (`IwasawaHaarK.lean`): the corrected
   left invariant density $`\rho_K(X) = |\det(1 + X)|^{-(n-1)}`$ with its exponent
   pinned by an honest determinant computation (`det_cayleyDerivOnSk`), the candidate
   invariant measure $`\nu_K`$ (`nuK`), the Mobius left translation (`cayleyLeftTrans`),
   and the reduction of the chart miss set to a polynomial zero locus
   (`mem_cayleyLeftDom_iff`);
+- the **chart miss set null lemma** (`IwasawaHaarK.lean`, PHASE 2, the B1c' step 2
+  measure core): `cayleyLeftDom_compl_null` shows that when the chart domain
+  `cayleyLeftDom k0` is nonempty, its complement (the chart miss set) is `volSk` null.
+  The proof writes the chart miss set as the zero locus of an explicit multivariate
+  polynomial `cayleyDomPoly k0` in `skBasis` coordinates and applies the polynomial
+  null lemma after a coordinate transport (`skCoordEquiv`, `map_skCoordEquiv_volSk`,
+  `skEntryPoly`, `eval_skEntryPoly`, `skCoordEquiv_symm_apply`, `skMatPoly`,
+  `eval_cayleyDomPoly`, `volSk_eq_volume_image`). The generic case is discharged
+  unconditionally: `cayleyLeftDom_nonempty_of_one_add_unit` (when $`1 + k_0`$ is
+  invertible, $`X = 0`$ lies in the domain since $`\mathrm{cayley}\,0 = 1`$) gives
+  `cayleyLeftDom_compl_null_of_one_add_unit`. Note that the original "for every $`k_0`$"
+  form is **false**: since $`\det(\mathrm{cayley}\,X) = 1`$ always, for $`\det k_0 = -1`$ the
+  domain is genuinely empty, so the honest statement is conditional on domain
+  nonemptiness (see [Remaining Work](#remaining-work) and `KDensityPlan.md`);
 - a **reusable measure theory lemma** (`PolynomialNullSet.lean`): the zero set of a
   nonzero real polynomial in finitely many variables has Lebesgue measure zero
   (`volume_setOf_eval_eq_zero`), a result that is absent from Mathlib and is the
@@ -90,11 +110,18 @@ with a clean signature and prints its axiom dependencies. Every result in
 `iwasawa_change_of_coords/`, including `IwasawaBridge.lean`, reduces to the
 standard three axioms; there is no user declared axiom anywhere in the
 subtree. What is **not yet** formalized is the final assembly of the integration
-formula: the left invariance of $`\nu_K`$ under $`SO(n)`$ (a change of variables for
-the Mobius translation, with the polynomial null lemma handling the chart miss set),
-the second $`O(n)`$ component, the Haar uniqueness identification
-$`\nu_K = c\cdot\mathrm{haar}_K`$, and the global product change of variables. None of
-this is backed by any placeholder axiom (see [Remaining Work](#remaining-work)).
+formula. The chart miss set is now handled (the polynomial null lemma gives
+`cayleyLeftDom_compl_null` whenever the chart domain is nonempty, with the generic
+case discharged unconditionally), and the Level 2 coordinate integration transport
+for $`\mathrm{haar}_G`$ (B2a) is proved. Still open are: the full discharge of the
+chart miss step over all of $`SO(n)`$ (which needs density of the Cayley image in
+$`SO(n)`$, a Mathlib gap tracked in `KDensityPlan.md`), the remaining steps of the
+left invariance of $`\nu_K`$ under $`SO(n)`$ (the Mobius map Jacobian, the density
+transformation, and the left invariance of $`\nu_K`$ itself), the second $`O(n)`$
+component (the $`\det = -1`$ reflected chart), the Haar uniqueness identification
+$`\nu_K = c\cdot\mathrm{haar}_K`$, and the global product change of variables (B2b and
+the Level 3 assembly). None of this is backed by any placeholder axiom (see
+[Remaining Work](#remaining-work)).
 
 Layered status (green is proved with the standard three axioms; yellow is the
 final assembly that is future work, not yet formalized):
@@ -108,17 +135,22 @@ flowchart TD
         S4["Differential: mfderiv at identity and general point"]
         S5["Jacobian: closed form determinant and absolute value, delta(a) = prod a_i/a_j"]
         S6["Measure: factor Haar, GL_n unimodular, conjugation crux, nuG = c haarG, haarA and nuU identifications"]
+        S6b["Level 2 B2a: coordinate integration transport for haarG (detWeightCoord over range gToCoord)"]
         S7["K Cayley density: rhoK proportional det(1+X)^-(n-1), nuK, Mobius translation, miss set reduction"]
+        S7b["K chart miss set null (generic case unconditional, general case needs domain nonemptiness)"]
         S8["Reusable lemma: nonzero polynomial zero set is Lebesgue null"]
     end
     subgraph AX["Future work (not formalized, no axiom)"]
         H["Final assembly: nuK left invariance + nuK = c haarK + global integration formula"]
     end
     S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> H
+    S6 --> S6b --> H
+    S7 --> S7b --> H
+    S8 --> S7b
     S8 --> H
     classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef ax fill:#fff8c5,stroke:#bf8700,color:#111;
-    class S1,S2,S3,S4,S5,S6,S7,S8 ok;
+    class S1,S2,S3,S4,S5,S6,S6b,S7,S7b,S8 ok;
     class H ax;
 ```
 
@@ -140,19 +172,31 @@ On top of this, the measure theory layer (`IwasawaHaar.lean`) is now largely
 formalized: the abstract factor Haar measures, the unimodularity of
 $`GL_n(\mathbb{R})`$, the conjugation crux $`\mathrm{Ad}(a)`$ scaling of $`\mathrm{haar}_N`$,
 and the identifications $`\nu_G = c\cdot\mathrm{haar}_G`$,
-$`\mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$, $`\nu_U = c\cdot\mathrm{haar}_N`$. The
+$`\mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$, $`\nu_U = c\cdot\mathrm{haar}_N`$.
+The Level 2 coordinate integration transport for $`\mathrm{haar}_G`$ (B2a,
+`nuG_lintegral_eq_setLIntegral_coord` and `haarG_lintegral_eq_smul_setLIntegral_coord`)
+rewrites an integral against $`\mathrm{haar}_G`$ as a coordinate Lebesgue integral
+weighted by `detWeightCoord` over the chart range `Set.range gToCoord`. The
 $`K = O(n)`$ factor (`IwasawaHaarK.lean`) has the corrected Cayley chart density
-$`\rho_K`$ with its exponent pinned, the candidate measure $`\nu_K`$, and the Mobius
-left translation with its chart miss set reduced to a polynomial zero locus; and
-the supporting Mathlib gap (a nonzero polynomial has a Lebesgue null zero set) is
-closed in `PolynomialNullSet.lean`.
+$`\rho_K`$ with its exponent pinned, the candidate measure $`\nu_K`$, the Mobius
+left translation with its chart miss set reduced to a polynomial zero locus, and
+the chart miss set null lemma `cayleyLeftDom_compl_null` (conditional on the chart
+domain being nonempty, with the generic case `cayleyLeftDom_compl_null_of_one_add_unit`
+discharged unconditionally); the supporting Mathlib gap (a nonzero polynomial has a
+Lebesgue null zero set) is closed in `PolynomialNullSet.lean`.
 
-What remains is the final assembly: the left invariance of $`\nu_K`$ under $`SO(n)`$
-(a change of variables for the Mobius translation), the Haar uniqueness step
+What remains is the final assembly. The chart miss step is not yet discharged over
+all of $`SO(n)`$: the honest statement is conditional on chart domain nonemptiness,
+since $`\det(\mathrm{cayley}\,X) = 1`$ always (so the $`\det = -1`$ coset has an empty
+domain and is deferred to a reflected chart), and nonemptiness over $`SO(n)`$ reduces
+to density of the Cayley image in $`SO(n)`$, a Mathlib gap tracked in
+`KDensityPlan.md`. Beyond that, the remaining steps of the left invariance of
+$`\nu_K`$ under $`SO(n)`$ (the Mobius map Jacobian, the density transformation, and the
+left invariance of $`\nu_K`$ itself), the Haar uniqueness step
 $`\nu_K = c\cdot\mathrm{haar}_K`$, and the global product change of variables that turns
-the pointwise Jacobian into the integration formula. This is future work, described
-in [Remaining Work](#remaining-work); it is not formalized and is not backed by any
-axiom.
+the pointwise Jacobian into the integration formula remain open. This is future
+work, described in [Remaining Work](#remaining-work); it is not formalized and is not
+backed by any axiom.
 The positive-root product
 
 ```math
@@ -284,10 +328,11 @@ determinant of the charted Iwasawa map
 to turn this density into the integration formula is now largely in place (see
 [The Haar measure layer](#the-haar-measure-layer-from-the-pointwise-jacobian-to-the-invariant-measure)):
 the factor Haar measures, the unimodularity of $`GL_n(\mathbb{R})`$, the conjugation crux,
-and the four factor identifications. What is not yet formalized is the final
-assembly, integrating against Haar measure across the change of variables to obtain
-the displayed integration formula; that step is future work and is not backed by any
-axiom.
+the four factor identifications, the Level 2 coordinate integration transport for
+$`\mathrm{haar}_G`$, and the chart miss set null lemma (generic case). What is not yet
+formalized is the final assembly, integrating against Haar measure across the change of
+variables to obtain the displayed integration formula; that step is future work and is
+not backed by any axiom.
 
 ### Why a *differential* isomorphism (not just a bijection)
 
@@ -818,24 +863,29 @@ flowchart TD
     PSI["cayleyLeftTrans = Mobius translation<br/>cayley(Psi X) = k0 cayley X"]
     MISS["mem_cayleyLeftDom_iff<br/>miss set = polynomial zero locus"]
     POLY["volume_setOf_eval_eq_zero<br/>nonzero polynomial zero set is null"]
-    INV["nuK left invariant under SO(n)  (future work)"]
+    NULL["cayleyLeftDom_compl_null<br/>miss set null (generic case unconditional)"]
+    B2A["B2a: haarG integral = coordinate integral<br/>over range gToCoord, weight detWeightCoord"]
+    INV["nuK left invariant under SO(n)  (future work; needs Cayley image density)"]
     ID["nuK = c haar_K by uniqueness  (future work)"]
     FORM["global integration formula  (future work)"]
 
     HG --> UNI --> NUG
     HG --> CRUX --> NUG
     NUG --> AU
+    NUG --> B2A
     RHO --> NUK
+    MISS --> NULL
+    POLY --> NULL
     NUK --> INV
     PSI --> INV
-    MISS --> INV
-    POLY --> INV
+    NULL --> INV
     INV --> ID --> FORM
     AU --> FORM
+    B2A --> FORM
 
     classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
-    class HG,UNI,CRUX,NUG,AU,RHO,NUK,PSI,MISS,POLY ok;
+    class HG,UNI,CRUX,NUG,AU,RHO,NUK,PSI,MISS,POLY,NULL,B2A ok;
     class INV,ID,FORM future;
 ```
 
@@ -1023,7 +1073,15 @@ $`\det(1 + X) \ne 0`$,
 
 and the right side is a polynomial in the entries of $`X`$ (the matrix is affine in
 $`X`$). So the chart miss set is the zero set of a polynomial, which the next section
-shows is Lebesgue null.
+shows is Lebesgue null. This connection is now realized in code:
+`cayleyLeftDom_compl_null` (PHASE 2, the B1c' step 2 measure core) expresses the
+chart miss set as the zero locus of the explicit polynomial `cayleyDomPoly k0` in
+`skBasis` coordinates and applies `volume_setOf_eval_eq_zero` to conclude the
+complement is `volSk` null, on the hypothesis that the chart domain is nonempty. That
+hypothesis is discharged unconditionally in the generic case (`1 + k0` invertible,
+giving `cayleyLeftDom_compl_null_of_one_add_unit`); over all of $`SO(n)`$ it reduces to
+density of the Cayley image (see [Remaining Work](#remaining-work) and
+`KDensityPlan.md`).
 
 ### 14. A reusable Mathlib gap: nonzero polynomials have null zero sets (`PolynomialNullSet.lean`)
 
@@ -1058,10 +1116,13 @@ self contained, upstreamable lemma:
   `measurePreserving_swap`, with the slice identity `eval_eq_eval_mv_eval'`), a set
   whose vertical slices are null over a co-null base is itself null. $`\square`$
 
-This lemma closes the gap that gated step 2 of the $`K`$ factor invariance. Applying
-it to $`\det((1 + X) + k_0(1 - X))`$ as a polynomial in the `skBasis` coordinates of
-$`X`$ (the application is itself future work, see [Remaining Work](#remaining-work))
-shows $`\mathrm{cayleyLeftDom}\,k_0`$ is co-null in $`\mathrm{Sk}_n`$.
+This lemma closes the gap that gated step 2 of the $`K`$ factor invariance, and the
+application is now formalized: `cayleyLeftDom_compl_null` feeds the explicit polynomial
+`cayleyDomPoly k₀` (which evaluates to $`\det((1 + X) + k_0(1 - X))`$ in the `skBasis`
+coordinates of $`X`$) to `volume_setOf_eval_eq_zero`, showing $`\mathrm{cayleyLeftDom}\,k_0`$
+is co-null in $`\mathrm{Sk}_n`$, on the hypothesis that the chart domain is nonempty (the
+generic case is unconditional). Discharging nonemptiness over all of $`SO(n)`$ remains
+future work, see [Remaining Work](#remaining-work) and `KDensityPlan.md`.
 
 ## Milestones
 
@@ -1069,10 +1130,11 @@ All entries below except the final assembly rows (milestone 8) are proved with
 no `sorry`, and the diagnostic files print their axiom dependencies as
 `[propext, Classical.choice, Quot.sound]`. Milestones 1 through 7, including the
 measure theory layer (factor Haar, unimodularity, the conjugation crux, the factor
-identifications, the $`K`$ Cayley density, and the polynomial null lemma), are proved
-axiom clean. Milestone 8, the final invariance, uniqueness, and integration formula
-assembly, is the remaining future work, not yet formalized, and is not backed by any
-axiom (see [Remaining Work](#remaining-work)).
+identifications, the Level 2 coordinate integration transport for $`\mathrm{haar}_G`$,
+the $`K`$ Cayley density, the chart miss set null lemma for the generic case, and the
+polynomial null lemma), are proved axiom clean. Milestone 8, the final invariance,
+uniqueness, and integration formula assembly, is the remaining future work, not yet
+formalized, and is not backed by any axiom (see [Remaining Work](#remaining-work)).
 
 How the milestones build up to the diffeomorphism, the derivative, the Jacobian, and
 the measure layer, ending at the single remaining assembly (green is proved axiom
@@ -1092,7 +1154,9 @@ flowchart TD
     M6p["M6. Positive root product (adNN_det_eq_pair_product)"]
     M6j["M6. Jacobian determinant, signed and absolute"]
     M7m["M7. Measure layer: GL_n unimodular, conjugation crux, nuG/haarA/nuU identifications"]
+    M7b["M7. Level 2 B2a: coordinate integration transport for haarG"]
     M7k["M7. K Cayley density rhoK, nuK, Mobius translation, miss set reduction"]
+    M7n["M7. Chart miss set null (cayleyLeftDom_compl_null, generic case unconditional)"]
     M7p["M7. Polynomial null lemma (volume_setOf_eval_eq_zero)"]
     M8["M8. Assembly: nuK left invariance, nuK = c haarK, integration formula (future work)"]
 
@@ -1110,13 +1174,18 @@ flowchart TD
     M6p --> M6j
     M6j --> M7m
     M6j --> M7k
+    M7m --> M7b
+    M7b --> M8
     M7m --> M8
+    M7k --> M7n
+    M7p --> M7n
+    M7n --> M8
     M7k --> M8
     M7p --> M8
 
     classDef proved fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
-    class M1,M1b,M2,M3g,M3k,DIFF,M4,M5,M6d,M6p,M6j,M7m,M7k,M7p proved;
+    class M1,M1b,M2,M3g,M3k,DIFF,M4,M5,M6d,M6p,M6j,M7m,M7b,M7k,M7n,M7p proved;
     class M8 future;
 ```
 
@@ -1159,10 +1228,12 @@ flowchart TD
 | 7   | `map_conjAut_haarN`: conjugation crux, $`\mathrm{Ad}(a)`$ scales $`\mathrm{haar}_N`$ by $`\delta(a)`$ | Proved | §I.2, Eq. (1)-(3) |
 | 7   | `nuG_eq_haarScalarFactor_smul_haarG`: coordinate Haar $`\nu_G = c\,\mathrm{haar}_G`$              | Proved   | §I.2, Haar              |
 | 7   | `haarAExplicit_eq_..._haarA`, `nuU_eq_..._haarN`: explicit factor Haar identifications          | Proved   | §I.2, Haar              |
+| 7   | `nuG_lintegral_eq_setLIntegral_coord`, `haarG_lintegral_eq_smul_setLIntegral_coord` (B2a coordinate integration transport for $`\mathrm{haar}_G`$) | Proved | §I.2, Haar |
 | 7   | `det_cayleyDerivOnSk`: $`K`$ chart Jacobian $`(-2)^{\binom n 2}(\det(1+X))^{-(n-1)}`$, density `rhoK` | Proved | Cayley density       |
 | 7   | `nuK`, `cayleyLeftTrans`, `cayley_cayleyLeftTrans`, `mem_cayleyLeftDom_iff` ($`K`$ chart Haar, Mobius map, miss set) | Proved | §I.2, Haar |
 | 7   | `volume_setOf_eval_eq_zero`: nonzero polynomial zero set is Lebesgue null (reusable, absent from Mathlib) | Proved | measure theory   |
-| 8   | $`\nu_K`$ left invariance, $`\nu_K = c\,\mathrm{haar}_K`$, global integration formula              | Future work (not formalized, no axiom) | §I.2, Prop. 2.1-2.4 |
+| 7   | `cayleyLeftDom_compl_null` (chart miss set null when domain nonempty) and `cayleyLeftDom_compl_null_of_one_add_unit` (generic case discharged) | Proved | §I.2, Haar |
+| 8   | $`\nu_K`$ left invariance over $`SO(n)`$, $`\nu_K = c\,\mathrm{haar}_K`$, global integration formula (partial: chart miss null and B2a transport done; needs Cayley image density, the Mobius Jacobian, the $`\det = -1`$ chart, B1d, and Level 3 assembly) | Future work (not formalized, no axiom) | §I.2, Prop. 2.1-2.4 |
 
 ## Theorem statements
 
@@ -1316,6 +1387,14 @@ lemma haarAExplicit_eq_haarScalarFactor_smul_haarA :
 lemma nuU_eq_haarScalarFactor_smul_haarN :
     nuU (n := n) = Measure.haarScalarFactor (nuU (n := n)) haarN • haarN
 
+/-- B2a (Level 2, measure theoretic half): an integral against `haarG`, scaled by
+`c = haarScalarFactor nuG haarG`, equals a coordinate Lebesgue integral weighted by
+`detWeightCoord` over the chart range. -/
+theorem haarG_lintegral_eq_smul_setLIntegral_coord
+    {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
+    (Measure.haarScalarFactor (nuG (n := n)) haarG) • ∫⁻ x, F (gToCoord x) ∂haarG
+      = ∫⁻ w in Set.range (gToCoord (n := n)), detWeightCoord w * F w ∂volume
+
 /- Milestone 7: the K Cayley chart Haar (namespace `IwasawaCoC.Complete`,
 `IwasawaHaarK.lean`). The exponent −(n−1) is read off `det_sandwichOnSkCLM`. -/
 
@@ -1335,6 +1414,17 @@ theorem cayley_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom
     cayley (cayleyLeftTrans k₀ X) = k₀.1 * cayley X.1
 theorem mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
     X ∈ cayleyLeftDom k₀ ↔ ((1 + X.1) + k₀.1 * (1 - X.1)).det ≠ 0
+
+/-- PHASE 2 (B1c' step 2 measure core): when the chart domain is nonempty, the chart
+miss set is `volSk` null. Proved by writing it as the zero locus of the explicit
+polynomial `cayleyDomPoly k₀` in `skBasis` coordinates and applying the polynomial
+null lemma after a coordinate transport. -/
+theorem cayleyLeftDom_compl_null (k₀ : K n) (hne : (cayleyLeftDom k₀).Nonempty) :
+    volSk (cayleyLeftDom k₀)ᶜ = 0
+/-- Generic case discharged unconditionally: when `1 + k₀` is invertible, `X = 0`
+lies in the domain (`cayley 0 = 1`), so the chart miss set is null. -/
+theorem cayleyLeftDom_compl_null_of_one_add_unit (k₀ : K n) (h : IsUnit (1 + k₀.1).det) :
+    volSk (cayleyLeftDom k₀)ᶜ = 0
 
 /-- B1d, the Haar uniqueness reduction on the compact group `K n`: the unconditional
 `nuK = c • haarK` reduces to discharging the three instances below on `nuK`. -/
@@ -1376,11 +1466,13 @@ iwasawa_change_of_coords/
 │                                Sylvester-Franke identity, general-point Jacobian
 ├── IwasawaBridge.lean           Haar bridge: positive root product, future work notes (no axiom)
 ├── IwasawaHaar.lean             measure layer: factor Haar, GL_n unimodularity, the
-│                                conjugation crux, coordinate Haar nuG = c haarG, and the
-│                                haarA and nuU factor identifications
+│                                conjugation crux, coordinate Haar nuG = c haarG, the
+│                                haarA and nuU factor identifications, and the Level 2
+│                                B2a coordinate integration transport for haarG
 ├── IwasawaHaarK.lean            K = O(n) Cayley chart Haar: density rhoK with pinned
 │                                exponent (det_cayleyDerivOnSk), candidate measure nuK,
-│                                Mobius left translation, chart miss set reduction
+│                                Mobius left translation, chart miss set reduction and its
+│                                null lemma (cayleyLeftDom_compl_null, generic case discharged)
 ├── PolynomialNullSet.lean       reusable: nonzero polynomial zero set is Lebesgue null
 └── AxiomCheck*.lean             diagnostic files for axiom dependencies
 ```
@@ -1400,8 +1492,8 @@ flowchart TD
     JA["IwasawaJacobianAbstract<br/>Jacobian scaffolding"]
     CMP["IwasawaComplete<br/>consolidated axiom clean restatement"]
     BR["IwasawaBridge<br/>Haar bridge notes (no axiom)"]
-    HAAR["IwasawaHaar<br/>measure layer: unimodularity, crux, identifications"]
-    HAARK["IwasawaHaarK<br/>K Cayley chart Haar density, nuK, Mobius map"]
+    HAAR["IwasawaHaar<br/>measure layer: unimodularity, crux, identifications, B2a transport"]
+    HAARK["IwasawaHaarK<br/>K Cayley chart Haar density, nuK, Mobius map, miss set null"]
     POLY["PolynomialNullSet<br/>nonzero polynomial zero set is null (Mathlib only)"]
 
     COC --> SK
@@ -1417,7 +1509,7 @@ flowchart TD
     JE --> BR
     CMP --> HAAR
     HAAR --> HAARK
-    POLY -.->|"future: K chart miss set is null"| HAARK
+    POLY -->|"K chart miss set null (cayleyLeftDom_compl_null)"| HAARK
 ```
 
 The project shares the parent's Lake build (single `lakefile.toml`,
@@ -1440,8 +1532,10 @@ lake build iwasawa_change_of_coords.AxiomCheckPolynomialNullSet
 
 The first build will compile the parent project's `project.Iwasawa`
 as a dependency. The `AxiomCheckHaar`, `AxiomCheckHaarK`, and
-`AxiomCheckPolynomialNullSet` files print the axiom dependencies of every measure
-layer, K Cayley chart, and polynomial null declaration claimed in this README, and
+`AxiomCheckPolynomialNullSet` files print the axiom dependencies of the principal
+measure layer, K Cayley chart, and polynomial null declarations, and the source files
+`IwasawaHaar.lean` and `IwasawaHaarK.lean` carry further `#print axioms` blocks
+(including over the B2a transport and the chart miss machinery), and
 `AxiomCheckMFDeriv` covers the general-point differential; each reports only
 `[propext, Classical.choice, Quot.sound]`.
 
@@ -1468,13 +1562,15 @@ each of which reports only `[propext, Classical.choice, Quot.sound]`. The
 core namespace is `IwasawaCoC`, and the consolidated restatements live in
 `IwasawaCoC.Complete`. `IwasawaBridge.lean` likewise ends with a `#print
 axioms` block confirming that it too is axiom free. `IwasawaHaar.lean`,
-`IwasawaHaarK.lean`, and `PolynomialNullSet.lean` each end with `#print axioms`
-blocks over every named result; all report the same three axioms. In addition, the
-dedicated diagnostic files `AxiomCheckHaar.lean`, `AxiomCheckHaarK.lean`,
+`IwasawaHaarK.lean`, and `PolynomialNullSet.lean` each carry `#print axioms` blocks
+over their named results, including the Level 2 coordinate integration transport
+(`nuG_lintegral_eq_setLIntegral_coord`, `haarG_lintegral_eq_smul_setLIntegral_coord`,
+`detWeightCoord`) and the chart miss set machinery; all report the same three axioms.
+The dedicated diagnostic files `AxiomCheckHaar.lean`, `AxiomCheckHaarK.lean`,
 `AxiomCheckPolynomialNullSet.lean`, and `AxiomCheckMFDeriv.lean` re-print the axioms
-of every measure layer, K Cayley chart, polynomial null, and general-point
-differential declaration claimed in this README, so each surfaces here is backed by a
-captured `#print axioms` result.
+of the measure layer, K Cayley chart, polynomial null, and general-point differential
+declarations, and the build output is scanned for `sorryAx`; the whole subtree reports
+only `[propext, Classical.choice, Quot.sound]`.
 `IwasawaComplete.lean` also contains compile-time
 sanity checks: the scalar value $`\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}`$
 at $`n = 3`$, the edge cases $`n = 0`$ and $`n = 1`$, the consistency of the
@@ -1840,8 +1936,9 @@ $`2^{\binom n 2}(\det a)^n\det(\mathrm{Ad}(a)|_{\mathfrak{n}})\,(\det(1+X))^{-(n
 
 ### Milestone 7: the measure layer
 
-The unimodularity, the conjugation crux, the factor identifications, the $`K`$ Cayley
-chart density, and the polynomial null lemma are proved in detail in the
+The unimodularity, the conjugation crux, the factor identifications, the Level 2
+coordinate integration transport, the $`K`$ Cayley chart density, the chart miss set
+null lemma, and the polynomial null lemma are proved in detail in the
 [Haar measure layer](#the-haar-measure-layer-from-the-pointwise-jacobian-to-the-invariant-measure)
 section (subsections 10 to 14). In one line each:
 
@@ -1857,6 +1954,14 @@ section (subsections 10 to 14). In one line each:
 - `volume_setOf_eval_eq_zero`: induction on the number of variables via `finSuccEquiv`,
   with a null base set from the leading coefficient and finite one variable slices,
   assembled by Fubini (`measure_prod_null`).
+- `cayleyLeftDom_compl_null`: the chart miss set is the zero locus of the explicit
+  polynomial `cayleyDomPoly k₀` in `skBasis` coordinates; transport `volSk` to Lebesgue
+  via `skCoordEquiv` (`map_skCoordEquiv_volSk`, `volSk_eq_volume_image`) and apply
+  `volume_setOf_eval_eq_zero`, on the hypothesis that the chart domain is nonempty;
+  the generic case (`1 + k₀` invertible) is discharged unconditionally.
+- `haarG_lintegral_eq_smul_setLIntegral_coord`: transport an integral against
+  $`\mathrm{haar}_G`$ (via $`\nu_G = c\cdot\mathrm{haar}_G`$) to a coordinate Lebesgue
+  integral weighted by `detWeightCoord` over the chart range `Set.range gToCoord`.
 
 ## Remaining Work
 
@@ -1864,11 +1969,29 @@ The Jacobian determinant layer is complete (closed form at a general point,
 signed and absolute), and the measure theory layer is now largely formalized:
 the factor Haar measures, the unimodularity of $`GL_n(\mathbb{R})`$, the conjugation
 crux, the coordinate Haar identification $`\nu_G = c\cdot\mathrm{haar}_G`$, the explicit
-factor identifications on $`A`$ and $`U`$, the $`K = O(n)`$ Cayley chart density
-$`\rho_K`$ with its pinned exponent, the candidate measure $`\nu_K`$, the Mobius left
-translation, and the reusable polynomial null lemma are all proved axiom clean.
+factor identifications on $`A`$ and $`U`$, the Level 2 coordinate integration transport
+for $`\mathrm{haar}_G`$ (B2a, `haarG_lintegral_eq_smul_setLIntegral_coord`), the
+$`K = O(n)`$ Cayley chart density $`\rho_K`$ with its pinned exponent, the candidate
+measure $`\nu_K`$, the Mobius left translation, the chart miss set null lemma
+(`cayleyLeftDom_compl_null`, conditional on chart domain nonemptiness, with the generic
+case discharged), and the reusable polynomial null lemma are all proved axiom clean.
 
-What remains is the **final assembly** of the integration formula, in four steps:
+The **integration formula is not complete.** What remains is the final assembly,
+broken down below. One correctness point is worth stating up front:
+
+- **PHASE 2 over all of $`SO(n)`$ is not yet discharged.** The original "for every
+  $`k_0`$" form of the chart miss null is **false**: since $`\det(\mathrm{cayley}\,X) = 1`$
+  always, for $`\det k_0 = -1`$ the chart domain `cayleyLeftDom k₀` is genuinely
+  **empty**, so the honest statement (`cayleyLeftDom_compl_null`) is conditional on
+  domain nonemptiness. Nonemptiness holds for $`k_0 \in SO(n)`$ (the generic
+  $`1 + k_0`$ invertible case is already unconditional) and in general reduces to
+  **density of the Cayley image in $`SO(n)`$**. That density is the remaining gap:
+  Mathlib lacks connectedness of the orthogonal and special orthogonal groups and the
+  surjectivity of the exponential and Cayley maps onto $`SO(n)`$. This blocker is
+  scoped in `KDensityPlan.md`. The $`\det = -1`$ coset is covered later by a separate
+  reflected chart (deferred).
+
+The remaining steps:
 
 1. **Left invariance of $`\nu_K`$ under $`SO(n)`$.** Prove
    $`(\,k_0 \cdot\,)_{*}\,\nu_K = \nu_K`$ for $`k_0`$ in the identity component, by a
@@ -1879,22 +2002,27 @@ What remains is the **final assembly** of the integration formula, in four steps
    `hasFDerivAt_cayleyLeftTrans` gives $`D\Psi_X`$ as the explicit composite
    $`D\,\mathrm{cayleyInv} \circ (k_0 \cdot) \circ D\,\mathrm{cayley}`$ (both `cayleyInv`
    and `cayley` reuse `hasFDerivAt_cayley_matrix`), with `differentiableOn_cayleyLeftTrans`
-   the regularity corollary. The remaining work is: (a) the **Sk restricted Jacobian
-   determinant** $`|\det D\Psi_X| = (|\det(1+\Psi X)|/|\det(1+X)|)^{n-1}`$, via the
+   the regularity corollary. Sub step (c) below is now **done**; the remaining work is:
+   (a) **B1c' step 3, the Sk restricted Jacobian determinant** of the Mobius map
+   $`\Psi_{k_0}`$, $`|\det D\Psi_X| = (|\det(1+\Psi X)|/|\det(1+X)|)^{n-1}`$, via the
    structural identity $`\mathrm{cayleyDerivOnSk}(\Psi X) \circ D\Psi_X = \mathrm{cayleyDerivOnSk}(X)`$
    (verified on paper from the Cayley product identities $`(1+\mathrm{cayley}\,Z)(1+Z)=2`$;
    this is where the `cayleyInv`/`cayley` codomain restriction to `Sk` and the private
-   `one_add_cayley_mul`/`one_sub_cayley_mul` re-derivation are needed); (b) the density
-   transformation $`\rho_K(\Psi X)\,|\det D\Psi_X| = \rho_K(X)`$, then pure algebra from
-   `ofReal_abs_det_cayleyDerivOnSk`; (c) applying `volume_setOf_eval_eq_zero` to the
-   `skBasis` coordinates to conclude the miss set is $`\nu_K`$ null; and (d) assembling
-   the Mathlib change of variables on the open dense chart domain. The current boundary
-   is sub step (a): the ambient derivative is banked, the `Sk` restricted determinant is
-   the next obligation.
+   `one_add_cayley_mul`/`one_sub_cayley_mul` re-derivation are needed); (b) **B1c' step 4,
+   the density transformation** $`\rho_K(\Psi X)\,|\det D\Psi_X| = \rho_K(X)`$, then pure
+   algebra from `ofReal_abs_det_cayleyDerivOnSk`; (c) **done:** the chart miss set is
+   $`\nu_K`$ null, via `cayleyLeftDom_compl_null` (the explicit polynomial
+   `cayleyDomPoly k₀` in `skBasis` coordinates fed to `volume_setOf_eval_eq_zero`),
+   conditional on chart domain nonemptiness and unconditional in the generic case; and
+   (d) **B1c' step 5, the left invariance of $`\nu_K`$** by assembling the Mathlib change
+   of variables on the open dense chart domain. None of (a), (b), or (d) is done; sub
+   step (a) is the next obligation, and the unconditional null over all of $`SO(n)`$ in
+   (c) waits on the Cayley image density gap above.
 2. **The second $`O(n)`$ component.** One Cayley chart covers $`SO(n)`$ only
    (`det_cayley_skew` forces $`\det = +1`$); extend $`\nu_K`$ to the $`\det = -1`$
-   coset by a reflected copy.
-3. **Haar uniqueness (reduction proved).** The uniqueness step is now formalized:
+   coset by a reflected copy. Not started.
+3. **Haar uniqueness, B1d (reduction proved, full statement not done).** The uniqueness
+   reduction is formalized:
    `nuK_eq_smul_haarK_of_invariant` proves $`\nu_K = c\cdot\mathrm{haar}_K`$ (with
    $`c = \mathrm{haarScalarFactor}\,\nu_K\,\mathrm{haar}_K`$) from Mathlib's
    `isMulLeftInvariant_eq_smul_of_innerRegular` on the compact group $`K`$, ASSUMING the
@@ -1903,12 +2031,15 @@ What remains is the **final assembly** of the integration formula, in four steps
    $`\nu_K`$: left invariance (step 1, the crux) yields `IsMulLeftInvariant`; finiteness
    of $`\int \rho_K\,d\,\mathrm{volSk}`$ yields `IsFiniteMeasureOnCompacts`; inner
    regularity then follows on the compact space. This is the only step where a
-   `Mathlib` lemma was available off the shelf.
-4. **The product change of variables.** Combine the pointwise absolute Jacobian
+   `Mathlib` lemma was available off the shelf. None of the three instances is yet
+   provided, so the unconditional $`\nu_K = c\cdot\mathrm{haar}_K`$ is **not done**.
+4. **The product change of variables (B2b, then the Level 3 assembly).** B2b applies
+   the area formula to `iwasawaCharted`; it is **not started**. The Level 3 assembly
+   (B3a, B3b, B3c) then combines the pointwise absolute Jacobian
    (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with the four factor
    identifications and a Mathlib change of variables theorem to obtain the
-   pushforward of the product Haar measure under the Iwasawa map, recovering the
-   integration formula.
+   pushforward of the product Haar measure under the Iwasawa map. The final
+   `iwasawaIntegrationFormula` is **not done**.
 
 The target integration formula is
 
@@ -1918,10 +2049,12 @@ The target integration formula is
 
 The whole project, including every file above, reduces to
 `[propext, Classical.choice, Quot.sound]`: there is no placeholder axiom anywhere
-(an earlier Haar "bridge" axiom was found redundant and removed). The four steps
-above are genuine future work, not yet formalized, and are not backed by any axiom.
-The route, the available Mathlib API, and the precise status against each sub step
-are tracked in `RouteAssessment.md`.
+(an earlier Haar "bridge" axiom was found redundant and removed). The steps above are
+genuine future work, not yet formalized, and are not backed by any axiom; the
+integration formula is therefore not complete. The route, the available Mathlib API,
+and the precise status against each sub step are tracked in `RouteAssessment.md`, and
+the $`SO(n)`$ chart domain nonemptiness blocker (the Cayley image density gap) is
+scoped in `KDensityPlan.md`.
 
 ## References
 
