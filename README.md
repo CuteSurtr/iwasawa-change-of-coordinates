@@ -29,15 +29,14 @@ project formalizes):
 
 ```mermaid
 flowchart LR
-    K["K = O(n)<br/>orthogonal<br/>dim n(n-1)/2"]
-    A["A<br/>positive diagonal<br/>dim n"]
-    U["U<br/>upper unipotent<br/>dim n(n-1)/2"]
-    P["K × A × U"]
-    G["GL_n(R)<br/>dim n^2"]
-    K --> P
-    A --> P
-    U --> P
-    P -->|"(k, a, u) maps to k · a · u"| G
+    subgraph P["domain  K × A × U  (dims sum to n²)"]
+        direction TB
+        K["K = O(n) · orthogonal · dim n(n−1)/2"]
+        A["A · positive diagonal · dim n"]
+        U["U · upper unipotent · dim n(n−1)/2"]
+    end
+    G["GL_n(ℝ)<br/>dim n²"]
+    P ==>|"Φ : (k, a, u) ↦ k · a · u"| G
     G -.->|"unique factorization g = k a u"| P
 ```
 
