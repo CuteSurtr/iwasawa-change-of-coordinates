@@ -1,0 +1,23 @@
+name = "iwasawa_change_of_coords"
+version = "0.1.0"
+defaultTargets = ["iwasawa_change_of_coords"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.30.0-rc1"
+
+# Module names are resolved from the package root, so `project.Iwasawa` lives at
+# `project/Iwasawa.lean` and `iwasawa_change_of_coords.X` at
+# `iwasawa_change_of_coords/X.lean`. That is the layout the existing `import`
+# lines in the source already assume.
+#
+# The base Iwasawa decomposition is vendored here rather than pulled from the
+# companion repository, so a clean clone of this repository builds on its own.
+[[lean_lib]]
+name = "project"
+roots = ["project.Iwasawa"]
+
+[[lean_lib]]
+name = "iwasawa_change_of_coords"
+globs = ["iwasawa_change_of_coords.*"]

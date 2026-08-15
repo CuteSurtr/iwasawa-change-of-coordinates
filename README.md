@@ -41,6 +41,27 @@ flowchart LR
     G -.->|"unique factorization g = k a u"| P
 ```
 
+
+## Building
+
+See [BUILD.md](BUILD.md). In short:
+
+```bash
+lake exe cache get
+lake build project   # base decomposition, builds clean and axiom-clean
+lake build           # full library
+```
+
+Toolchain `leanprover/lean4:v4.30.0-rc1`, Mathlib pinned to the matching
+revision. `project/Iwasawa.lean` is vendored from the companion
+`Iwasawa_Decomposition` repository, because the published copy there has since
+had `IsOrthogonal.transpose` removed and this development still depends on it.
+
+`IwasawaCoC.lean` currently has 15 elaboration errors from a topology diamond on
+the submodule model spaces; there are no `sorry`s anywhere. BUILD.md documents
+the cause, the part already fixed, and what is left.
+
+
 ## Status at a glance
 
 | Quantity | Value |

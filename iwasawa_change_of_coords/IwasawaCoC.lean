@@ -916,8 +916,16 @@ noncomputable instance instChartedSpaceUU :
   OpenPartialHomeomorph.singletonChartedSpace
     (UU.toNNHomeomorph.toOpenPartialHomeomorph) (by simp)
 
+-- Stated with the charted space given explicitly, following Mathlib's own
+-- `isManifold_singleton`. `NN n` is a `Submodule`, so `↥(NN n)` carries two
+-- syntactically different topologies: `instTopologicalSpaceSubtype`, which is
+-- what `instChartedSpaceUU` is built over, and the one induced by
+-- `Submodule.normedAddCommGroup`, which is what `𝓘(ℝ, NN n)` fixes. They are
+-- defeq but not syntactically equal, so leaving the instance implicit makes
+-- instance search fail; naming it defers the question to defeq checking.
 instance instIsManifoldUU :
-    IsManifold (𝓘(ℝ, (NN n : Type _))) ⊤ (UU n) :=
+    @IsManifold ℝ _ (NN n) _ _ (NN n) _ (𝓘(ℝ, (NN n : Type _))) ⊤ (UU n) _
+      instChartedSpaceUU :=
   OpenPartialHomeomorph.isManifold_singleton
     (UU.toNNHomeomorph.toOpenPartialHomeomorph) (by simp)
 
@@ -1383,8 +1391,13 @@ noncomputable instance instChartedSpaceKOpen :
     ChartedSpace (Sk n) (K_open n) :=
   cayleyInv_isOpenEmbedding.singletonChartedSpace
 
+-- Charted space given explicitly, as for `instIsManifoldUU` above and for
+-- Mathlib's own `isManifold_singleton`: `↥(Sk n)` carries both the subtype
+-- topology and the one induced by `Submodule.normedAddCommGroup`, and only the
+-- latter is what `𝓘(ℝ, Sk n)` fixes.
 instance instIsManifoldKOpen :
-    IsManifold (𝓘(ℝ, (Sk n : Type _))) ⊤ (K_open n) :=
+    @IsManifold ℝ _ (Sk n) _ _ (Sk n) _ (𝓘(ℝ, (Sk n : Type _))) ⊤ (K_open n) _
+      instChartedSpaceKOpen :=
   cayleyInv_isOpenEmbedding.isManifold_singleton (I := 𝓘(ℝ, (Sk n : Type _))) (n := ⊤)
 
 /-- The chart `cayleyHomeomorph.symm : K_open n → Sk n` is `C∞`. -/
