@@ -10,18 +10,12 @@ declaration in this file is proved without `sorry` and depends only
 on the three standard Lean and Mathlib axioms
 `propext`, `Classical.choice`, `Quot.sound`.
 
-In particular, the previously quarantined Haar bridge axiom from
-`IwasawaBridge.lean` is replaced here by an actual proof
-(`iwasawaHaarBridge`), using `c = 1`. Positivity of every ratio
-`a_i / a_j` for `a ∈ A n` makes the strict inequality immediate
-from the explicit T1-6 determinant formula
-`adNN_det_eq_pair_product`.
-
 The closing `#print axioms` block exhibits, for every named result
 in this file, only the standard three Mathlib axioms.
 
-Importing this file does not import `IwasawaBridge.lean`, so the
-quarantined axiom never enters scope.
+The measure theory built on top of this file (Haar measures on the
+factors, unimodularity of `GL_n(ℝ)`, and the Iwasawa integration formula)
+is in `IwasawaHaar.lean` and `IwasawaIntegration.lean`.
 -/
 
 import iwasawa_change_of_coords.IwasawaJacobianExplicit
@@ -489,46 +483,13 @@ theorem absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional
         a.1.det ^ n * LinearMap.det (adNN a).toLinearMap :=
   absDetIwasawaMatrixLeibnizCLM_at_factored k a u (abs_det_skOrthConjCLM_eq_one k)
 
-/-! ## 9. Haar bridge (proved, no axiom)
+/-! ## 9. Haar measure
 
-`IwasawaBridge.lean` previously declared
-`iwasawa_haar_pushforward_bridge` as a future facing axiom asserting
-existence of a positive scalar `c_n` with `c_n * |det (adNN a)| > 0`
-for all `a`. That statement is in fact provable (take `c_n = 1` and use
-positivity of every factor `a_i / a_j`), so the axiom was redundant and
-has been removed; both files now prove the existential directly.
-
-The genuinely measure theoretic identity `map iwasawaMap haar_KAN
-= c · haar_G` remains future work; what is proved here is only that weak
-existential, not that identity. -/
-
-/-- **Haar pushforward bridge (proved).** The statement previously
-declared as an axiom in `IwasawaBridge.lean` is in fact provable
-with `c_n = 1`. -/
-theorem iwasawaHaarBridge :
-    ∃ (c_n : ℝ), 0 < c_n ∧
-      ∀ (a : A n), c_n * |LinearMap.det (adNN a).toLinearMap| > 0 := by
-  refine ⟨1, one_pos, ?_⟩
-  intro a
-  rw [one_mul]
-  exact abs_pos.mpr (adNNDetPos a).ne'
-
-/-- **Positive weighted Haar product (proved).** Companion of
-`iwasawa_pushforward_weighted_haar_exists` from `IwasawaBridge.lean`,
-proved without the bridge axiom. -/
-theorem iwasawaPushforwardWeightedHaarExists :
-    ∃ (c_n : ℝ), 0 < c_n ∧
-      ∀ (a : A n), c_n *
-          (∏ ij ∈ (Finset.univ : Finset (Fin n × Fin n)).filter
-              (fun ij : Fin n × Fin n => ij.1 < ij.2),
-            a.1 ij.1 ij.1 / a.1 ij.2 ij.2) > 0 := by
-  refine ⟨1, one_pos, ?_⟩
-  intro a
-  rw [one_mul]
-  apply Finset.prod_pos
-  intro ij hij
-  rw [Finset.mem_filter] at hij
-  exact div_pos (a.2.2 ij.1) (a.2.2 ij.2)
+An earlier version of the project stated the Haar bridge as an axiom, and later
+replaced it with two positivity statements (`∃ c > 0, ∀ a, c · δ(a) > 0`). Those
+said nothing about measures and have been removed. The actual identity,
+`map iwasawaMap (haarK × δ(a) haarA × haarN) = c • haarG` with `c > 0`, is
+`map_iwasawaMap_haar` in `IwasawaIntegration.lean`. -/
 
 end ProvedCore
 
@@ -555,8 +516,6 @@ three Mathlib axioms `[propext, Classical.choice, Quot.sound]`. -/
 #print axioms adNNDetPos
 #print axioms modularCharacterFormula
 #print axioms modularCharacterFormulaFilter
-#print axioms iwasawaHaarBridge
-#print axioms iwasawaPushforwardWeightedHaarExists
 #print axioms absDetIwasawaMatrixLeibnizCLM_at_factored
 #print axioms kTransposeAsK
 #print axioms skOrthConjCLM_comp_transpose_eq_id

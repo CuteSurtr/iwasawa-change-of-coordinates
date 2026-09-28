@@ -131,4 +131,65 @@ theorem gl_decomposition_skew_diag_strictUpper :
   (DirectSum.isInternal_submodule_iff_iSupIndep_and_iSup_eq_top _).mpr
     ⟨iwasawaLieFamily_iSupIndep, iwasawaLieFamily_iSup_top⟩
 
+/-! ## Milestone 5 (d): `Sym_n = 𝔞 ⊕ 𝔫_sym`
+
+The Iwasawa decomposition refines the symmetric half of the Cartan
+decomposition `gl_n = Sym_n ⊕ Sk_n`: a symmetric matrix is its diagonal plus
+`X + Xᵀ`, where `X` holds its entries above the diagonal (J-L Ch. I §3, p. 14). -/
+
+/-- `X ↦ X + Xᵀ`, as a linear map on matrices. -/
+def symmetrizeLin : Matrix (Fin n) (Fin n) ℝ →ₗ[ℝ] Matrix (Fin n) (Fin n) ℝ where
+  toFun X := X + Xᵀ
+  map_add' X Y := by simp only [Matrix.transpose_add]; abel
+  map_smul' c X := by simp only [Matrix.transpose_smul, smul_add, RingHom.id_apply]
+
+/-- `𝔫_sym = {X + Xᵀ : X ∈ 𝔫}`, the symmetrization of the strictly upper
+triangular matrices. -/
+noncomputable def NNsym (n : ℕ) : Submodule ℝ (Matrix (Fin n) (Fin n) ℝ) := (NN n).map symmetrizeLin
+
+lemma AA_le_Sym : AA n ≤ Sym n := by
+  intro M hM
+  show M.transpose = M
+  ext i j
+  rw [Matrix.transpose_apply]
+  by_cases h : i = j
+  · rw [h]
+  · rw [hM j i (Ne.symm h), hM i j h]
+
+lemma NNsym_le_Sym : NNsym n ≤ Sym n := by
+  rintro _ ⟨X, -, rfl⟩
+  show (X + Xᵀ).transpose = X + Xᵀ
+  rw [Matrix.transpose_add, Matrix.transpose_transpose, add_comm]
+
+/-- **Milestone 5 (d).** `Sym_n = 𝔞 ⊔ 𝔫_sym`. -/
+theorem sym_eq_aa_sup_nnSym : Sym n = AA n ⊔ NNsym n := by
+  refine le_antisymm ?_ (sup_le AA_le_Sym NNsym_le_Sym)
+  intro M hM
+  have hMs : M.transpose = M := hM
+  let D : Matrix (Fin n) (Fin n) ℝ := fun i j => if i = j then M i j else 0
+  let X : Matrix (Fin n) (Fin n) ℝ := fun i j => if i < j then M i j else 0
+  have hD : D ∈ AA n := fun i j hij => by simp [D, hij]
+  have hX : X ∈ NN n := fun i j hji => by simp [X, not_lt.mpr hji]
+  refine Submodule.mem_sup.mpr ⟨D, hD, X + Xᵀ, ⟨X, hX, rfl⟩, ?_⟩
+  ext i j
+  simp only [Matrix.add_apply, Matrix.transpose_apply, D, X]
+  rcases lt_trichotomy i j with hij | rfl | hij
+  · simp [hij.ne, hij, not_lt.mpr hij.le]
+  · simp
+  · have hMij : M j i = M i j := by
+      have := congrFun (congrFun hMs i) j
+      simpa [Matrix.transpose_apply] using this
+    simp [hij.ne', hij, not_lt.mpr hij.le, hMij]
+
+/-- **Milestone 5 (d).** The sum `𝔞 ⊔ 𝔫_sym` is direct. -/
+theorem disjoint_AA_NNsym : Disjoint (AA n) (NNsym n) := by
+  rw [Submodule.disjoint_def]
+  rintro M hA ⟨X, hX, rfl⟩
+  ext i j
+  by_cases h : i = j
+  · subst h
+    have hXii : X i i = 0 := hX i i le_rfl
+    simp [symmetrizeLin, hXii]
+  · simpa using hA i j h
+
 end IwasawaCoC

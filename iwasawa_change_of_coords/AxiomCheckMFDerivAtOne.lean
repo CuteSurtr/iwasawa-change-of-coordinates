@@ -23,3 +23,5 @@ open IwasawaCoC
 -- API yet). They are verified at compile time.
 #print axioms IwasawaCoC.cartanInvolution_mfderiv_one_eq_neg_transpose
 #print axioms IwasawaCoC.iwasawaMap_mfderiv_at_one_eq_lieEquiv
+#print axioms IwasawaCoC.sym_eq_aa_sup_nnSym
+#print axioms IwasawaCoC.disjoint_AA_NNsym

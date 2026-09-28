@@ -1,24 +1,23 @@
-/- 
-Quarantined future bridge for the Iwasawa modular-character and
-Haar/change-of-variables formulas.
+/-
+The positive root product `δ(a) = ∏_{i<j} aᵢ / aⱼ`, stated over the filtered
+index set `{(i, j) | i < j} ⊆ Fin n × Fin n`.
 
-The determinant/product part is now proved directly from the explicit
-T1-6 determinant `ad_on_n_det_eq_pair_product`. The remaining bridge is
-an explicit future-facing axiom. It is not part of the axiom-clean
-diffeomorphism or derivative core.
+This file used to hold the "Haar bridge": a placeholder axiom standing in for
+the pushforward of product Haar measure under the Iwasawa map. The axiom only
+ever asserted a positivity statement and was removed. The genuine statement,
 
-Per MathlibInfrastructureMap.md §1c "Distribution Haar character":
-`Measure.distribHaarChar` is the abstract framework. The Iwasawa-
-specific identification with our `adNN` is the bridge.
+  `map iwasawaMap (haarK × δ(a) haarA × haarN) = c • haarG`  with  `c > 0`,
 
-Per MathlibInfrastructureMap.md §1c "Change of variables": Mathlib's
-`integral_image_eq_integral_abs_det_fderiv_smul` is the change-of-
-variables formula. The specific identification of the scalar `c` in
-`map iwasawaMap (haar_KAN) = c · haar_G` should eventually be proved
-from the existing diffeomorphism theorem and the now-proved Jacobian
-determinant theorem for `iwasawaMatrixLeibnizCLM`
-(`absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional` in
-`IwasawaComplete.lean`).
+together with its integral form and the Jorgenson-Lang ordering, is now proved
+in `IwasawaIntegration.lean` (`map_iwasawaMap_haar`, `lintegral_iwasawa`,
+`map_iwasawaMapJL_haar`).
+
+What remains here are restatements of `ad_on_n_det_eq_pair_product`: the
+determinant of `Ad(a) = (X ↦ a X a⁻¹)` on the strictly upper triangular
+matrices is the positive root product. That determinant is also the modular
+function of `B = A·N` at `a`; the identification with Mathlib's
+`Measure.modularCharacterFun` is `modularCharacterFun_toBB` in
+`IwasawaIntegration.lean`.
 -/
 
 import iwasawa_change_of_coords.IwasawaJacobianExplicit
@@ -45,12 +44,9 @@ attribute [local instance] Matrix.linftyOpNonUnitalNormedRing
 attribute [local instance] Matrix.linftyOpNormedRing
 attribute [local instance] Matrix.linftyOpNormedAlgebra
 
-/-! ## Determinant/product bridge theorem
-
-This theorem keeps the old downstream name, but it is no longer an
-axiom: it is the absolute-value version of `ad_on_n_det_eq_pair_product`.
-The genuinely abstract modular-character identification with
-`Measure.distribHaarChar` remains future work. -/
+/-- `|det Ad(a)|_𝔫| = |∏_{i<j} aᵢ / aⱼ|`, the absolute value form of
+`ad_on_n_det_eq_pair_product`. The name is kept from the version of this file
+in which it depended on the placeholder axiom. -/
 theorem modular_character_A_via_adNN_bridge :
     ∀ (a : A n),
       |LinearMap.det (adNN a).toLinearMap| =
@@ -60,56 +56,9 @@ theorem modular_character_A_via_adNN_bridge :
   intro a
   rw [ad_on_n_det_eq_pair_product]
 
-/-! ## Haar pushforward up to scalar: a weak existential, proved without an axiom
-
-This file previously declared `iwasawa_haar_pushforward_bridge` as a
-future facing axiom. Its statement was only the weak existential
-
-  `∃ c_n > 0, ∀ a, c_n * |det (adNN a)| > 0`,
-
-which is trivially true: take `c_n = 1`, and every factor `a_i / a_j` is
-positive because `a` is a positive diagonal. It never stated a real
-`Measure.map` or integral identity, so it carried no content beyond
-positivity, and the identical existential was already proved axiom free as
-`iwasawaHaarBridge` in `IwasawaComplete.lean`. The axiom was therefore
-redundant and has been removed; the downstream existential below is now
-proved directly. With this, the whole project depends only on the standard
-`[propext, Classical.choice, Quot.sound]`.
-
-The genuine measure theoretic identity, the pushforward of product Haar
-under the Iwasawa map and the integral formula
-
-  `∫_G f dx = c · ∫_U ∫_A ∫_K f(uak) · δ(a)⁻¹ du da dk`,
-
-is NOT formalized; it remains future work. See `HaarPushforwardPlan.md`
-for the dependency ordered plan (lemmas L0 to L9) and the Mathlib gaps:
-current Mathlib has no Haar measure on `GL_n` and no multiplicative Haar
-on the positive reals.
-
-**Mathlib gap.** Per MathlibInfrastructureMap.md §1c "Change of
-variables": Mathlib provides `integral_image_eq_integral_abs_det_fderiv_smul`,
-but specializing it to the Iwasawa setting requires the full
-diffeomorphism and Jacobian chain.
-
-**Literature.** Folland, *A Course in Abstract Harmonic Analysis*
-(2nd ed., 2016), Theorem 2.51 and §11.2. Knapp, *Lie Groups Beyond
-an Introduction* §VIII.2 (Equation 8.27) for `dg = dk · a^{2ρ} da · dn`.
-Helgason, *DGLGSS* Chapter IX §1 Propositions 1.17 and 1.19. -/
-
-/-! ## Theorem 9: Modular character formula for the AN parabolic
-
-The modular character of the conjugation action of `A` on `N` equals
-the explicit product `∏_{i<j} a_i/a_j` (in absolute value).
-
-This combines:
-- T1-6 (`ad_on_n_det_eq_pair_product`): the explicit determinant
-  formula.
-- `modular_character_A_via_adNN_bridge`: the bridge identifying the
-  abstract modular character with the absolute determinant.
-
-The result is the standard formula `δ(diag a) = ∏_{i<j} a_i/a_j` for
-the modular character of the AN parabolic of `GL_n(ℝ)`.
--/
+/-- The same identity as `modular_character_A_via_adNN_bridge`, stated for a
+fixed `a`. The left side is the modulus of `Ad(a)` on `𝔫`; see the file header
+for how it relates to the modular function of `A·N`. -/
 theorem modular_character_AN_eq_det_ad_on_n (a : A n) :
     |LinearMap.det (adNN a).toLinearMap| =
       |∏ ij ∈ (Finset.univ : Finset (Fin n × Fin n)).filter
@@ -117,57 +66,23 @@ theorem modular_character_AN_eq_det_ad_on_n (a : A n) :
         a.1 ij.1 ij.1 / a.1 ij.2 ij.2| :=
   modular_character_A_via_adNN_bridge a
 
-/-- The modular character formula in factored form: a positive product
-of positive ratios equals its absolute value. This is the explicit
-form `δ(diag a) = ∏_{i<j} (a_i/a_j)` (without absolute value, since
-all factors are positive when `a` is positive diagonal). -/
+/-- Without absolute values on the right: every factor `aᵢ / aⱼ` is positive
+because `a` is a positive diagonal matrix, so the product is its own absolute
+value. -/
 theorem modular_character_AN_explicit_form (a : A n) :
     |LinearMap.det (adNN a).toLinearMap| =
       ∏ ij ∈ (Finset.univ : Finset (Fin n × Fin n)).filter
           (fun ij : Fin n × Fin n => ij.1 < ij.2),
         a.1 ij.1 ij.1 / a.1 ij.2 ij.2 := by
   rw [modular_character_AN_eq_det_ad_on_n]
-  -- |∏ x_i| = ∏ x_i when all x_i > 0. Each x_i = a.1 i i / a.1 j j > 0
-  -- since A n is positive diagonal.
   apply abs_of_pos
-  apply Finset.prod_pos
-  intro ij _
-  -- ij = (i, j) with i < j. Both a.1 i i > 0 and a.1 j j > 0.
-  have h_num : 0 < a.1 ij.1 ij.1 := a.2.2 ij.1
-  have h_den : 0 < a.1 ij.2 ij.2 := a.2.2 ij.2
-  exact div_pos h_num h_den
-
-/-! ## Theorem 10: positive weighted factor (proved, no axiom)
-
-This theorem is deliberately weaker than a Haar pushforward identity: it
-only records positivity of the weighted positive root product
-`∏_{i<j} a_i/a_j`, proved directly with `c_n = 1`. A real future
-replacement should mention `Measure.map`, product measures, Haar
-measures, or an integral change of variables formula.
-
-For the full identity `dg = c_n · dk · δ(a) · da · dn` (in standard
-notation), see Knapp §VIII.2 or Folland §11.2.
--/
-theorem iwasawa_pushforward_weighted_haar_exists :
-    ∃ (c_n : ℝ), 0 < c_n ∧
-      ∀ (a : A n), c_n * (∏ ij ∈ (Finset.univ : Finset (Fin n × Fin n)).filter
-          (fun ij : Fin n × Fin n => ij.1 < ij.2),
-        a.1 ij.1 ij.1 / a.1 ij.2 ij.2) > 0 := by
-  refine ⟨1, one_pos, ?_⟩
-  intro a
-  rw [one_mul]
   apply Finset.prod_pos
   intro ij _
   exact div_pos (a.2.2 ij.1) (a.2.2 ij.2)
 
-/-! ## Axiom check: this file is now axiom free
-
-The bridge axiom has been removed. Each result below depends only on the
-standard `[propext, Classical.choice, Quot.sound]`. -/
 #print axioms modular_character_A_via_adNN_bridge
 #print axioms modular_character_AN_eq_det_ad_on_n
 #print axioms modular_character_AN_explicit_form
-#print axioms iwasawa_pushforward_weighted_haar_exists
 
 end Bridges
 

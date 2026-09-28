@@ -647,13 +647,9 @@ theorem disjoint_KK_NN (n : ℕ) : Disjoint (KK n) (NN n) := by
     have hMij : M i j = -M j i := by linarith
     rw [hMij, hMji]; simp
 
-/-- **Milestone 5 (d).** Sym = 𝔞 ⊕ 𝔫_sym, where `𝔫_sym = {X + Xᵀ : X ∈ 𝔫}`.
-Statement and proof deferred — requires defining the symmetrization
-submodule `𝔫_sym`. (See J-L Ch. I §3, p. 14.) -/
-theorem sym_eq_aa_add_n_sym :
-    -- Decomposition: any symmetric M = diag(M) + (strictUpper(M) + strictUpper(M)ᵀ).
-    -- Statement deferred (see README §"What's deferred").
-    True := trivial
+/-! **Milestone 5 (d)**, `Sym = 𝔞 ⊕ 𝔫_sym` with `𝔫_sym = {X + Xᵀ : X ∈ 𝔫}`
+(J-L Ch. I §3, p. 14), is `sym_eq_aa_sup_nnSym` and `disjoint_AA_NNsym` in
+`IwasawaLieDecomposition.lean`. -/
 
 /-- **Milestone 5 (e).** Codisjointness: `𝔨 ⊔ 𝔞 ⊔ 𝔫 = ⊤`. Combined with the
 three `disjoint_*` lemmas above this gives the Iwasawa Lie decomposition
@@ -845,13 +841,12 @@ noncomputable def iwasawaLieEquiv :
   LinearEquiv.ofBijective iwasawaLieMap
     ⟨iwasawaLieMap_injective, iwasawaLieMap_surjective⟩
 
-/-- Placeholder retained for compatibility with older notes. The real
-manifold derivative statements are now proved in
-`IwasawaMFDerivAtOne.lean` and `IwasawaMFDeriv.lean`; in particular,
-`iwasawaMap_mfderiv_at_one_eq_lieEquiv` gives the identity-point
-formula with the Cayley `-2` factor, and
-`mfderiv_iwasawaMap_at_factored` gives the general-point formula. -/
-theorem iwasawaMap_mfderiv_at_one : True := trivial
+/-! The geometric differential of `iwasawaMap` needs the smooth structures on
+`K n`, `A n`, `UU n`, which are only finished after this file, so it is stated
+elsewhere: `iwasawaMap_mfderiv_at_one_eq_lieEquiv` (`IwasawaMFDerivAtOne.lean`)
+at the identity, where it is `(X, v, Z) ↦ -2 • X + diag v + Z` in the Cayley,
+log and affine charts, and `mfderiv_iwasawaMap_at_factored`
+(`IwasawaMFDeriv.lean`) at a general point. -/
 
 /-! ### Smooth structure on `UU n` (upper unipotent matrices)
 

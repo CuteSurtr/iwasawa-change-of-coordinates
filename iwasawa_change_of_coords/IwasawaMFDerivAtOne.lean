@@ -19,15 +19,9 @@ Tier 1, Stage T1-3 (Theorems 1 and 3). Provides:
   should be read as the scaled chart differential, not the unscaled
   algebraic `iwasawaLieEquiv`.
 
-**Structural note on the placeholder at `IwasawaCoC.lean:859`.**
-Replacing the placeholder there with the real statement of Theorem 3
-is structurally infeasible without reordering the declarations in
-`IwasawaCoC.lean`: at line 859 the `IsManifold` instances for `K, A,
-UU` have not yet been declared (they come in later sections of the
-same file, with the `K` instance only finalized in `IwasawaSmoothK`).
-The placeholder accordingly stays as-is for now; Theorem 3 lives here
-under its own name and is wired up to the placeholder once the
-manifold-structure declaration order is revisited.
+Theorem 3 lives here rather than next to `iwasawaLieEquiv` in
+`IwasawaCoC.lean` because it needs the `IsManifold` instance on `K n`,
+which is only finished in `IwasawaSmoothK.lean`.
 -/
 
 import iwasawa_change_of_coords.IwasawaSmoothK
