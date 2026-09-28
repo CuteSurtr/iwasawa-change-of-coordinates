@@ -1380,6 +1380,42 @@ lemma nuG_eq_haarScalarFactor_smul_haarG :
 #print axioms instRegular_nuG
 #print axioms nuG_eq_haarScalarFactor_smul_haarG
 
+/-! ### B2a: the coordinate integration formula for `haarG`
+
+Transport an integral against `nuG` (hence, up to the positive scalar
+`haarScalarFactor nuG haarG`, against `haarG`) to the coordinate space, where it becomes a
+Lebesgue integral over the invertible locus `Set.range gToCoord` weighted by `detWeightCoord`.
+This is the measure-theoretic half of Route B's Level 2: it does not touch the chart Jacobian
+(that is B2b) and is independent of the `K`-factor story. -/
+
+/-- Coordinate change for `nuG`: for measurable `F` on the coordinate space, the `nuG`-integral
+of `F ∘ gToCoord` is the Lebesgue integral of `detWeightCoord · F` over the chart range. -/
+lemma nuG_lintegral_eq_setLIntegral_coord
+    {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
+    ∫⁻ x, F (gToCoord x) ∂(nuG (n := n))
+      = ∫⁻ w in Set.range (gToCoord (n := n)), detWeightCoord w * F w ∂volume := by
+  rw [← measurableEmbedding_gToCoord.lintegral_map (f := F), map_gToCoord_nuG]
+  show ∫⁻ w in Set.range (gToCoord (n := n)), F w ∂haarGCoord
+      = ∫⁻ w in Set.range (gToCoord (n := n)), detWeightCoord w * F w ∂volume
+  rw [haarGCoord,
+      setLIntegral_withDensity_eq_setLIntegral_mul volume measurable_detWeightCoord hF
+        measurableSet_range_gToCoord]
+  rfl
+
+/-- **B2a (`haarG_integral_eq_coord`).** The integration formula relating `haarG` to the
+coordinate Lebesgue integral: for measurable `F` on the coordinate space,
+`c • ∫ (F ∘ gToCoord) d haarG = ∫ over the chart range of detWeightCoord · F d volume`, with the
+positive scalar `c = haarScalarFactor nuG haarG`. -/
+theorem haarG_lintegral_eq_smul_setLIntegral_coord
+    {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
+    (Measure.haarScalarFactor (nuG (n := n)) haarG) • ∫⁻ x, F (gToCoord x) ∂(haarG (n := n))
+      = ∫⁻ w in Set.range (gToCoord (n := n)), detWeightCoord w * F w ∂volume := by
+  rw [← lintegral_smul_measure, ← nuG_eq_haarScalarFactor_smul_haarG,
+      nuG_lintegral_eq_setLIntegral_coord hF]
+
+#print axioms nuG_lintegral_eq_setLIntegral_coord
+#print axioms haarG_lintegral_eq_smul_setLIntegral_coord
+
 /-! ### Level 0: factor Haar identifications for `A` and `U`
 
 Mirroring `nuG = c . haarG`. `nuU` already carries its regularity instances, so the
