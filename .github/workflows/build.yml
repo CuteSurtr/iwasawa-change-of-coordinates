@@ -1,0 +1,26 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# One build per ref; newer pushes cancel older in-flight runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and check the proofs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Installs the toolchain from lean-toolchain, runs `lake exe cache get`
+      # to pull the prebuilt Mathlib, then `lake build` to elaborate the
+      # whole library. The `#guard_msgs` axiom checks make that build fail if
+      # a headline theorem ever depends on `sorryAx` or a new axiom.
+      - name: Build with Lean and Mathlib
+        uses: leanprover/lean-action@v1
