@@ -18,6 +18,9 @@ rev = "1708ec1fd9001d02aecb4bc71b70ca8690e4a894"
 name = "project"
 roots = ["project.Iwasawa"]
 
+# `lake build` builds the root module `iwasawa_change_of_coords.lean`, which imports
+# every module of the development. The `AxiomCheck*` files are not imported by it;
+# build them on request, e.g. `lake build iwasawa_change_of_coords.AxiomCheck`.
 [[lean_lib]]
 name = "iwasawa_change_of_coords"
-globs = ["iwasawa_change_of_coords.*"]
+roots = ["iwasawa_change_of_coords"]
