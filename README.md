@@ -1,412 +1,210 @@
-# Iwasawa Decomposition and Change of Coordinates
+# The Iwasawa change of coordinates on $`GL_n(\mathbb{R})`$ in Lean
 
-A Lean 4 / Mathlib formalization of **Theorem 1.1** of
+[![build](https://github.com/CuteSurtr/iwasawa-change-of-coordinates/actions/workflows/build.yml/badge.svg)](https://github.com/CuteSurtr/iwasawa-change-of-coordinates/actions/workflows/build.yml)
 
-> J. Jorgenson, S. Lang. *Spherical Inversion on* $`SL_n(\mathbb{R})`$.
-> Springer Monographs in Mathematics, 2001.
-
-The Iwasawa product map
+This is the follow-up to my [Iwasawa decomposition](https://github.com/CuteSurtr/Iwasawa_Decomposition)
+project. That one proves every invertible real matrix factors uniquely as
+$`g = kau`$ with $`k`$ orthogonal, $`a`$ positive diagonal and $`u`$ upper unipotent.
+Here I prove the stronger statement Jorgenson and Lang make in Theorem 1.1 of
+*Spherical Inversion on $`SL_n(\mathbb{R})`$* (Chapter I): the product map
 
 ```math
-\Phi : K \times A \times U \to GL_n(\mathbb{R}), \qquad (k, a, u) \mapsto k \cdot a \cdot u
+\Phi : K \times A \times U \to GL_n(\mathbb{R}), \qquad (k, a, u) \mapsto kau
 ```
 
-is asserted by Jorgenson and Lang to be a *differential isomorphism*
-(diffeomorphism), where
+is a diffeomorphism, so $`(k, a, u)`$ are global coordinates on $`GL_n(\mathbb{R})`$.
+I also prove the formula these coordinates are mostly used for: Haar measure on
+$`GL_n(\mathbb{R})`$, written in them, is
 
-- $`K = O(n)`$ is the real orthogonal group,
-- $`A`$ is the group of positive diagonal $`n \times n`$ real matrices,
-- $`U`$ is the group of unipotent upper triangular $`n \times n`$ real matrices.
-
-This project formalizes the algebraic, topological, and smooth
-content of that theorem, building on top of the parent project's
-[`project.Iwasawa`](../project/Iwasawa.lean), which provides the
-set theoretic existence and uniqueness of the Iwasawa factorization
-following Lang's *Linear Algebra*.
-
-The product map and its three factors (the differential isomorphism this
-project formalizes):
-
-```mermaid
-flowchart LR
-    K["K = O(n)<br/>orthogonal<br/>dim n(n-1)/2"]
-    A["A<br/>positive diagonal<br/>dim n"]
-    U["U<br/>upper unipotent<br/>dim n(n-1)/2"]
-    P["K × A × U"]
-    G["GL_n(R)<br/>dim n^2"]
-    K --> P
-    A --> P
-    U --> P
-    P -->|"(k, a, u) maps to k · a · u"| G
-    G -.->|"unique factorization g = k a u"| P
+```math
+\int_{GL_n(\mathbb{R})} f(g)\, dg \;=\; c \int_K \int_A \int_U f(kau)\, \delta(a)\, du\, da\, dk,
+\qquad \delta(a) = \prod_{i<j} \frac{a_i}{a_j},
 ```
 
+for a constant $`c > 0`$, where $`dk`$, $`da`$, $`du`$ are Haar measures on the three
+factors and $`a = \mathrm{diag}(a_1, \dots, a_n)`$.
+
+Everything builds against a pinned Mathlib with no `sorry`, and every result
+depends only on the axioms `propext`, `Classical.choice` and `Quot.sound`.
+
+## What's proved
+
+Here $`K = O(n)`$, $`A`$ is the positive diagonal matrices and $`U`$ the upper
+unipotent ones. The Lean names below live in the `IwasawaCoC` and
+`IwasawaCoC.Complete` namespaces.
+
+The map is a bijection (`iwasawaEquiv`), a homeomorphism (`iwasawaHomeomorph`) and
+a diffeomorphism (`iwasawaDiffeomorph`). Continuity of the inverse comes down to
+Gram-Schmidt being continuous on linearly independent families, which Mathlib
+doesn't have, so it's proved by hand in `IwasawaCoC.lean`. Most of the work in the
+smooth part is the manifold structure on $`O(n)`$: a Cayley chart
+$`X \mapsto (1 - X)(1 + X)^{-1}`$ from skew-symmetric matrices, translated to
+every point of $`O(n)`$ the way Mathlib builds its atlas on the sphere.
+
+The derivative of $`\Phi`$ at the identity, in the Cayley, log and translation
+charts, is $`(X, v, Z) \mapsto -2X + \mathrm{diag}(v) + Z`$
+(`iwasawaMap_mfderiv_at_one_eq_lieEquiv`). The $`-2`$ is the first-order term of
+the Cayley map. The derivative at a general point is
+`mfderiv_iwasawaMap_at_factored`, and its determinant in these charts is
+
+```math
+2^{n(n-1)/2}\,(\det a)^n\,\delta(a)\,\det(1 + X)^{-(n-1)}
+```
+
+(`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). The last factor comes from
+the Sylvester-Franke identity $`\det(X \mapsto B^T X B) = (\det B)^{n-1}`$ on
+skew-symmetric matrices (`det_sandwichOnSkCLM`).
+
+On the Lie algebra side there is $`\mathfrak{gl}_n = \mathfrak{k} \oplus \mathfrak{a} \oplus \mathfrak{n}`$
+(`iwasawaLieDecomp`, `iwasawaLieEquiv`), the Cartan splitting
+$`\mathfrak{gl}_n = \mathrm{Sym}_n \oplus \mathrm{Sk}_n`$ (`cartanLieDecomp`), and the
+refinement $`\mathrm{Sym}_n = \mathfrak{a} \oplus \{X + X^T : X \in \mathfrak{n}\}`$
+(`sym_eq_aa_sup_nnSym`, `disjoint_AA_NNsym`).
+
+The measure theory is in `IwasawaHaar.lean` and `IwasawaIntegration.lean`.
+$`GL_n(\mathbb{R})`$, $`U`$ and $`K`$ are unimodular (`modularCharacterFun_eq_one`,
+`modularCharacterFun_UU_eq_one`, `modularCharacterFun_K_eq_one`). Pushing Haar
+measure on $`U`$ forward along $`u \mapsto a^{-1} u a`$ multiplies it by $`\delta(a)`$
+(`map_conjAut_haarN`). The integration formula above is `map_iwasawaMap_haar` as an
+identity of measures and `lintegral_iwasawa` as an integral formula. In
+Jorgenson and Lang's order $`g = uak`$ the weight flips to $`\delta(a)^{-1}`$
+(`map_iwasawaMapJL_haar`). And $`\delta`$ really is the modular function of the
+group $`B = AU`$: Mathlib's `Measure.modularCharacterFun` for $`B`$ takes the value
+$`\delta(a)`$ at $`a`$ (`modularCharacterFun_toBB`).
+
+Two smaller results that might be useful elsewhere. The Jacobian of the Cayley chart,
+measured against a left-invariant frame, is $`(-2)^{n(n-1)/2}\det(1 + X)^{-(n-1)}`$
+(`det_cayleyDerivOnSk`, checked against $`SO(2)`$), which is the density Haar measure on
+$`SO(n)`$ has in Cayley coordinates. And the zero set of a nonzero real polynomial in
+several variables has Lebesgue measure zero (`MvPolynomial.volume_setOf_eval_eq_zero`).
+As far as I can tell, Mathlib has neither at the pinned version.
+
+## Conventions
+
+Lang writes $`g = kau`$ and so did my first project. Jorgenson and Lang write
+$`g = uak`$. Inversion converts one into the other: if $`g = kau`$ then
+$`g^{-1} = u^{-1} a^{-1} k^T`$ (`inv_iwasawa_jl`). The Cartan involution
+$`\theta(g) = (g^T)^{-1}`$ does not do this. It fixes $`K`$, inverts $`A`$ and turns
+upper unipotent matrices into lower unipotent ones. Jorgenson and Lang use it to
+describe $`K`$ as its fixed points, and it's formalized here for that reason
+(`cartanInvolution`, `cartanInvolution_involutive`).
+
+Because of the order, the weight is $`\delta(a)`$ for $`kau`$ and $`\delta(a)^{-1}`$ for
+$`uak`$. In Lie-theoretic notation $`\delta(a) = e^{2\rho(\log a)}`$.
+
+## How the integration formula is proved
+
+My original plan was a change of variables through the Jacobian above. That needs
+an explicit Haar measure on $`K`$ in Cayley coordinates and a proof that it's left
+invariant, which is what `IwasawaHaarK.lean` was building toward. It turned out not
+to be necessary. The textbook proof (Knapp, Prop. 8.43; Folland, Thm. 2.51) only uses
+uniqueness of Haar measure:
+
+1. $`B = AU`$ is a group (upper triangular with positive diagonal), and
+   $`(k, b) \mapsto k b^{-1}`$ identifies $`K \times B`$ with $`G`$.
+2. Left multiplication by $`(k_0, b_0)`$ on $`K \times B`$ turns into
+   $`g \mapsto k_0\, g\, b_0^{-1}`$ on $`G`$. Since $`G`$ is unimodular, Haar measure on
+   $`G`$ is invariant under that, so its pullback is a left Haar measure on $`K \times B`$.
+3. The measure $`dk\,\delta(a)\,da\,du`$, carried over to $`K \times B`$, is left invariant
+   too. The reason is $`(au)(a'u') = (aa')\big((a'^{-1} u a')\, u'\big)`$: the
+   $`A`$ coordinate gets translated, which costs a factor $`\delta(a')^{-1}`$, and the
+   $`U`$ coordinate gets conjugated, which gives the $`\delta(a')`$ back.
+4. Two left Haar measures on $`K \times B`$ agree up to a constant.
+
+The Jacobian is still a good sanity check. In
+$`2^{n(n-1)/2}(\det a)^n\,\delta(a)\,\det(1+X)^{-(n-1)}`$, the factor $`(\det a)^n`$ is
+$`|\det g|^n`$, which the density $`|\det g|^{-n}`$ of Haar measure on
+$`GL_n(\mathbb{R})`$ cancels, and $`2^{n(n-1)/2}\det(1+X)^{-(n-1)}`$ is the
+Cayley-coordinate density of Haar measure on $`K`$. What's left is $`\delta(a)`$.
 
 ## Building
 
-See [BUILD.md](BUILD.md). In short:
-
-```bash
-lake exe cache get
-lake build project   # base decomposition, builds clean and axiom-clean
-lake build           # full library
-```
-
-Toolchain `leanprover/lean4:v4.30.0-rc1`, Mathlib pinned to the matching
-revision. `project/Iwasawa.lean` is vendored from the companion
-`Iwasawa_Decomposition` repository, because the published copy there has since
-had `IsOrthogonal.transpose` removed and this development still depends on it.
-
-`IwasawaCoC.lean` currently has 15 elaboration errors from a topology diamond on
-the submodule model spaces; there are no `sorry`s anywhere. BUILD.md documents
-the cause, the part already fixed, and what is left.
-
-
-## Status at a glance
-
-| Quantity | Value |
-|---|---|
-| Build status | `lake build` succeeds |
-| Active Lean `sorry` declarations in `iwasawa_change_of_coords/` | 0 |
-| Core algebraic, topological, smooth, and Jacobian axioms | `propext`, `Classical.choice`, `Quot.sound` only |
-| User axioms beyond the standard three | 0 (the former Haar placeholder axiom was redundant and has been removed) |
-
-Every layer below is proved with no `sorry` and prints only the standard axioms
-`[propext, Classical.choice, Quot.sound]`; there is no user declared axiom anywhere
-in the subtree, and `IwasawaComplete.lean` restates every main result with a clean
-signature next to its axiom check. The one piece not yet formalized is the final
-assembly of the integration formula (the left invariance and Haar uniqueness of the
-`K = O(n)` measure, and the global change of variables), described under
-[Remaining Work](#remaining-work). It is future work and is not backed by any
-placeholder axiom.
-
-Layered status (green is proved with the standard three axioms; yellow is the
-final assembly that is future work, not yet formalized):
-
-```mermaid
-flowchart TD
-    subgraph CLEAN["Proved, axioms: propext, Classical.choice, Quot.sound"]
-        S1["Algebraic: bijection, convention swap, Lie decompositions"]
-        S2["Topological: homeomorphism (Gram Schmidt continuity)"]
-        S3["Smooth: manifold structures, full diffeomorphism"]
-        S4["Differential: mfderiv at identity and general point"]
-        S5["Jacobian: closed form determinant and absolute value, delta(a) = prod a_i/a_j"]
-        S6["Measure: factor Haar, GL_n unimodular, conjugation crux, nuG = c haarG, haarA and nuU identifications"]
-        S7["K Cayley density: rhoK proportional det(1+X)^-(n-1), nuK, Mobius translation, miss set reduction"]
-        S8["Reusable lemma: nonzero polynomial zero set is Lebesgue null"]
-    end
-    subgraph AX["Future work (not formalized, no axiom)"]
-        H["Final assembly: nuK left invariance + nuK = c haarK + global integration formula"]
-    end
-    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> H
-    S8 --> H
-    classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
-    classDef ax fill:#fff8c5,stroke:#bf8700,color:#111;
-    class S1,S2,S3,S4,S5,S6,S7,S8 ok;
-    class H ax;
-```
-
-## Provenance and convention
-
-The parent project follows Lang's *Linear Algebra* (3rd edition, 1987)
-and writes the Iwasawa decomposition as $`g = k \cdot a \cdot u`$ (orthogonal,
-positive diagonal, upper unipotent, with $`K`$ on the *left*).
-
-Jorgenson and Lang use the opposite order $`g = u \cdot a \cdot k`$ ($`K`$ on the
-*right*). The clean change of coordinates between the two conventions
-is **inversion**: if $`g = k \cdot a \cdot u`$ (Lang), then
-
-```math
-g^{-1} = u^{-1} \cdot a^{-1} \cdot k^{T}
-```
-
-is in the Jorgenson and Lang form (upper unipotent, then positive diagonal,
-then orthogonal),
-since the inverse of an upper unipotent matrix is upper unipotent, the
-inverse of a positive diagonal matrix is positive diagonal, and the
-transpose of an orthogonal matrix is orthogonal.
-
-The Cartan involution $`\theta : g \mapsto (g^T)^{-1}`$ is a separate involution that
-Jorgenson and Lang use on p. 2 to characterize $`K`$ as its fixed point subgroup. We
-formalize both.
-
-## Mathematical motivation
-
-The Iwasawa decomposition `g = k · a · u` writes every invertible real matrix
-uniquely as an orthogonal factor, a positive diagonal factor, and an upper
-unipotent factor, so the product map `Φ : K × A × U → GL_n(ℝ)` is a global
-coordinate system on `GL_n(ℝ)`. Calling it a change of coordinates, rather than a
-bare bijection, is the assertion that `Φ` is a diffeomorphism: the coordinates and
-their inverse are both smooth, so derivatives, vector fields, and integrals all
-transform correctly.
-
-The bridge to harmonic analysis is the Jacobian. The determinant of the
-differential of `Φ` is the positive root product `δ(a) = ∏_{i<j} aᵢ/aⱼ`, which is
-also the factor by which conjugation by `a` scales Haar measure on the unipotent
-part. It is exactly the weight in the Haar decomposition
-`∫_G f dx = c · ∫∫∫ f(uak) · δ(a)⁻¹ du da dk`. This project formalizes the
-algebraic, topological, smooth, and Jacobian content of that statement, together
-with most of the measure theory layer.
-
-The full writeup is in [`docs/mathematics.md`](docs/mathematics.md).
-
-## Detailed documentation
-
-The detail lives in [`docs/`](docs) so this page stays small enough for GitHub to
-render its math and diagrams:
-
-- [`docs/mathematics.md`](docs/mathematics.md): the motivation in full, the
-  fourteen formalized pieces, and the Haar measure layer.
-- [`docs/theorem-statements.md`](docs/theorem-statements.md): the Lean signature of
-  every main result.
-- [`docs/methodology.md`](docs/methodology.md): how the proofs are trusted, the
-  de Bruijn criterion, and what `#print axioms` certifies.
-- [`docs/proof-outlines.md`](docs/proof-outlines.md): the proof sketch for each
-  milestone.
-
-These documents are long and dense with math, so GitHub may display them as source
-rather than rendering every formula. The research and planning notes
-(`RouteAssessment.md`, `IwasawaBlockers.md`, `KDensityPlan.md`, and the other
-`*Plan.md` files) are in the repository root.
-
-## Milestones
-
-All entries below except the final assembly rows (milestone 8) are proved with
-no `sorry`, and the diagnostic files print their axiom dependencies as
-`[propext, Classical.choice, Quot.sound]`. Milestones 1 through 7, including the
-measure theory layer (factor Haar, unimodularity, the conjugation crux, the factor
-identifications, the $`K`$ Cayley density, and the polynomial null lemma), are proved
-axiom clean. Milestone 8, the final invariance, uniqueness, and integration formula
-assembly, is the remaining future work, not yet formalized, and is not backed by any
-axiom (see [Remaining Work](#remaining-work)).
-
-| # | Goal | Status | Jorgenson and Lang reference |
-|---|------|--------|---------------|
-| 1   | `iwasawaEquiv : K × A × U ≃ GL_n(ℝ)` (set-theoretic bijection)                   | Proved   | Thm I.1.1, set-theoretic |
-| 1b  | `inv_iwasawa_jl`: $`(kau)^{-1} = u^{-1} a^{-1} k^T`$ (Lang vs Jorgenson and Lang convention swap)            | Proved   | §I.1, p. 2              |
-| 1b  | `cartanInvolution`, `cartanInvolution_involutive`                                | Proved   | §I.1, p. 2              |
-| 2   | `continuous_iwasawaMap` (forward direction)                                      | Proved   | Thm I.1.1, topology     |
-| 2   | `continuous_iwasawaSymm` (inverse direction; Gram-Schmidt continuity from scratch) | Proved | Thm I.1.1, topology     |
-| 2   | `iwasawaHomeomorph : K × A × U ≃ₜ GL_n(ℝ)`                                       | Proved   | Thm I.1.1, topology     |
-| 3   | `isOpen_G`, `G_isOpenEmbedding`, smooth structure on `G n`                       | Proved   | Thm I.1.1, smoothness   |
-| 3   | `UU.toNNHomeomorph`, smooth structure on `UU n` (modeled on `NN n`)              | Proved   | Thm I.1.1, smoothness   |
-| 3   | `A.toFinNRHomeomorph`, smooth structure on `A n` (modeled on `Fin n → ℝ`)        | Proved   | Thm I.1.1, smoothness   |
-| 3   | Cayley transform setup (`cayley`, `cayleyInv`, `one_add_skew_isUnit`, `cayley_isOrthogonal`) | Proved   | Cayley 1846             |
-| 3   | Cayley two-sided inverse (`cayley_self_inverse`, `cayleyInv_cayley`, `cayley_cayleyInv`) | Proved   | Cayley 1846             |
-| 3   | `cayleyInv_isSkew` (image of orthogonal under Cayley is skew)                    | Proved   | Cayley 1846             |
-| 3   | `cayleyEquiv : Sk n ≃ K_open n` (set-level Cayley bijection)                     | Proved   | Thm I.1.1, smoothness   |
-| 3   | Cayley continuity (`continuous_cayley_on_skew`, `continuous_cayleyInv_on_KOpen`) | Proved   | Thm I.1.1, smoothness   |
-| 3   | `cayleyHomeomorph : Sk n ≃ₜ K_open n` (topological)                              | Proved   | Thm I.1.1, smoothness   |
-| 3   | Smooth manifold structure on `K_open n` modeled on `Sk n` via Cayley chart       | Proved   | Thm I.1.1, smoothness   |
-| 3   | `cayleyDiffeomorph : Sk n ≃ₘ K_open n` ($`C^\infty`$ diffeomorphism)                     | Proved   | Thm I.1.1, smoothness   |
-| 3   | `IsOrthogonal.mul`, `K_open_at`, `cayleyEquivAt Q₀ : Sk n ≃ K_open_at Q₀`        | Proved   | Thm I.1.1, multi-chart  |
-| 3   | `self_mem_K_open_at` (cover $`\bigcup K_{\mathrm{open\,at}} Q = K\,n`$)                                | Proved   | Thm I.1.1, multi-chart  |
-| 3   | `cayleyOpenChartAt Q₀ : OpenPartialHomeomorph (K n) (Sk n)` plus `instChartedSpaceK` | Proved   | Sphere-pattern atlas    |
-| 3   | `instIsManifoldK` (chart transitions `ContDiffOn`, full `IsManifold` on $`K = O(n)`$) | Proved   | Thm I.1.1, full         |
-| 3   | `iwasawaDiffeomorph : K × A × U ≃ₘ GL_n(ℝ)` (full diffeomorphism)                | Proved   | Thm I.1.1, full         |
-| 4   | `cartanLieDecomp : IsCompl (Sym n) (Sk n)` (Cartan Lie decomp $`\mathfrak{gl}_n = \mathrm{Sym} \oplus \mathrm{Sk}`$) | Proved   | §I.3, p. 12             |
-| 5   | `disjoint_AA_NN`, `disjoint_KK_AA`, `disjoint_KK_NN` (pairwise disjoint)         | Proved   | §I.3                    |
-| 5   | `iwasawa_codisjoint`: $`\mathfrak{k} \sqcup \mathfrak{a} \sqcup \mathfrak{n} = \top`$ (sum is everything)                         | Proved   | §I.3                    |
-| 5   | `iwasawaLieDecomp`: full Iwasawa Lie decomposition $`\mathfrak{gl}_n = \mathfrak{k} \oplus \mathfrak{a} \oplus \mathfrak{n}`$            | Proved   | §I.3                    |
-| 5   | `iwasawaLieEquiv`: linear iso $`\mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \simeq_{\mathbb{R}} \mathfrak{gl}_n(\mathbb{R})`$ (algebraic differential at 1) | Proved | §I.3                    |
-| 5   | `iwasawaMfderivAtIdentity` (geometric `mfderiv` at the identity)                 | Proved   | §I.3                    |
-| 6   | `iwasawaMfderivAtFactored` (geometric `mfderiv` at a general $`(k, a, u)`$)        | Proved   | §I.2-I.3                |
-| 6   | `det_sandwichOnSkCLM`: Sylvester-Franke $`\det(\Lambda^2 B) = (\det B)^{n-1}`$ on $`\mathrm{Sk}\,n`$ | Proved   | Jacobian density        |
-| 6   | `adNN_det_eq_pair_product`: $`\det(\mathrm{ad}_{\mathfrak{n}}\, a) = \prod_{i \lt j} a_i / a_j`$ | Proved   | §I.2, Eq. (3)           |
-| 6   | `detInIwasawaBases_fderiv_iwasawaCharted_general` (signed Jacobian determinant)  | Proved   | §I.2 Jacobian           |
-| 6   | `absDetInIwasawaBases_fderiv_iwasawaCharted_general` (absolute Jacobian determinant) | Proved | §I.2 Jacobian           |
-| 7   | `modularCharacterFun_eq_one`: $`GL_n(\mathbb{R})`$ is unimodular ($`\Delta_G \equiv 1`$)          | Proved   | §I.2, Haar              |
-| 7   | `map_conjAut_haarN`: conjugation crux, $`\mathrm{Ad}(a)`$ scales $`\mathrm{haar}_N`$ by $`\delta(a)`$ | Proved | §I.2, Eq. (1)-(3) |
-| 7   | `nuG_eq_haarScalarFactor_smul_haarG`: coordinate Haar $`\nu_G = c\,\mathrm{haar}_G`$              | Proved   | §I.2, Haar              |
-| 7   | `haarAExplicit_eq_..._haarA`, `nuU_eq_..._haarN`: explicit factor Haar identifications          | Proved   | §I.2, Haar              |
-| 7   | `det_cayleyDerivOnSk`: $`K`$ chart Jacobian $`(-2)^{\binom n 2}(\det(1+X))^{-(n-1)}`$, density `rhoK` | Proved | Cayley density       |
-| 7   | `nuK`, `cayleyLeftTrans`, `cayley_cayleyLeftTrans`, `mem_cayleyLeftDom_iff` ($`K`$ chart Haar, Mobius map, miss set) | Proved | §I.2, Haar |
-| 7   | `volume_setOf_eval_eq_zero`: nonzero polynomial zero set is Lebesgue null (reusable, absent from Mathlib) | Proved | measure theory   |
-| 8   | $`\nu_K`$ left invariance, $`\nu_K = c\,\mathrm{haar}_K`$, global integration formula              | Future work (not formalized, no axiom) | §I.2, Prop. 2.1-2.4 |
-
-## Repository layout
-
-```
-iwasawa_change_of_coords/
-├── README.md                    this file
-├── IwasawaCoC.lean              core definitions, algebraic and topological layer
-├── MatrixContDiff.lean          smoothness lemmas for matrix operations
-├── IwasawaSmoothK.lean          full smooth manifold structure on K = O(n)
-├── IwasawaDiffeomorph.lean      homeomorphism and full diffeomorphism
-├── IwasawaLieDecomposition.lean Cartan and Iwasawa Lie decompositions
-├── IwasawaMFDerivAtOne.lean     manifold differential at the identity
-├── IwasawaMFDeriv.lean          manifold differential at a general point
-├── IwasawaJacobianAbstract.lean abstract Jacobian / determinant scaffolding
-├── IwasawaJacobianExplicit.lean explicit Jacobian: adNN determinant, transport CLMs
-├── IwasawaComplete.lean         consolidated axiom-clean restatement,
-│                                Sylvester-Franke identity, general-point Jacobian
-├── IwasawaBridge.lean           Haar bridge: positive root product, future work notes (no axiom)
-├── IwasawaHaar.lean             measure layer: factor Haar, GL_n unimodularity, the
-│                                conjugation crux, coordinate Haar nuG = c haarG, and the
-│                                haarA and nuU factor identifications
-├── IwasawaHaarK.lean            K = O(n) Cayley chart Haar: density rhoK with pinned
-│                                exponent (det_cayleyDerivOnSk), candidate measure nuK,
-│                                Mobius left translation, chart miss set reduction
-├── PolynomialNullSet.lean       reusable: nonzero polynomial zero set is Lebesgue null
-└── AxiomCheck*.lean             diagnostic files for axiom dependencies
-```
-
-Internal module dependencies (an arrow from A to B means B imports A):
-
-```mermaid
-flowchart TD
-    COC["IwasawaCoC<br/>core defs, algebra, topology"]
-    MCD["MatrixContDiff<br/>matrix smoothness lemmas"]
-    SK["IwasawaSmoothK<br/>manifold structure on K"]
-    DIFF["IwasawaDiffeomorph<br/>homeomorphism and diffeomorphism"]
-    LIE["IwasawaLieDecomposition<br/>Cartan and Iwasawa Lie decomp"]
-    D1["IwasawaMFDerivAtOne<br/>differential at identity"]
-    DG["IwasawaMFDeriv<br/>differential at general point"]
-    JE["IwasawaJacobianExplicit<br/>adNN determinant, transport CLMs"]
-    JA["IwasawaJacobianAbstract<br/>Jacobian scaffolding"]
-    CMP["IwasawaComplete<br/>consolidated axiom clean restatement"]
-    BR["IwasawaBridge<br/>Haar bridge notes (no axiom)"]
-    HAAR["IwasawaHaar<br/>measure layer: unimodularity, crux, identifications"]
-    HAARK["IwasawaHaarK<br/>K Cayley chart Haar density, nuK, Mobius map"]
-    POLY["PolynomialNullSet<br/>nonzero polynomial zero set is null (Mathlib only)"]
-
-    COC --> SK
-    COC --> LIE
-    SK --> DIFF
-    MCD --> DIFF
-    SK --> D1
-    DIFF --> D1
-    D1 --> DG
-    DG --> JE
-    DG --> JA
-    JE --> CMP
-    JE --> BR
-    CMP --> HAAR
-    HAAR --> HAARK
-    POLY -.->|"future: K chart miss set is null"| HAARK
-```
-
-The project shares the parent's Lake build (single `lakefile.toml`,
-single `lean-toolchain`, single Mathlib pin), so there is no duplicated
-toolchain configuration.
-
-## Build instructions
-
-From the workspace root (the directory containing `lakefile.toml`):
-
 ```sh
+lake exe cache get   # prebuilt Mathlib
 lake build
-lake build iwasawa_change_of_coords.AxiomCheckDiffeomorph
-lake build iwasawa_change_of_coords.AxiomCheckMFDerivAtOne
 ```
 
-The first build will compile the parent project's `project.Iwasawa`
-as a dependency.
+Lean `v4.30.0-rc1` and Mathlib commit `1708ec1f`, the same pin as the
+Iwasawa_Decomposition repo. [BUILD.md](BUILD.md) has the details, including why
+`project/Iwasawa.lean` is a vendored older copy of that repo's `Iwasawa.lean`.
 
-## Verifying the result
+`IwasawaIntegration.lean` ends with `#print axioms` for its main theorems wrapped in
+`#guard_msgs`, so the build fails if any of them picks up a `sorry` or another
+axiom. Five other files end with plain `#print axioms` blocks that show up in the
+build output, and the four `AxiomCheck*.lean` files, which aren't part of the default
+build, hold 80 more. Run them with, for example,
+`lake build iwasawa_change_of_coords.AxiomCheck`. CI runs `lake build` on pushes to
+`main` and on pull requests.
 
-After a successful build, the diagnostic files and the `#print axioms`
-blocks at the end of `IwasawaComplete.lean` print axiom dependencies. The
-consolidated file checks, among others,
+## Where things are
 
-```lean
-IwasawaCoC.Complete.iwasawaDiffeo
-IwasawaCoC.Complete.iwasawaMfderivAtIdentity
-IwasawaCoC.Complete.iwasawaMfderivAtFactored
-IwasawaCoC.Complete.det_sandwichOnSkCLM
-IwasawaCoC.Complete.detInIwasawaBases_fderiv_iwasawaCharted_general
-IwasawaCoC.Complete.absDetInIwasawaBases_fderiv_iwasawaCharted_general
-IwasawaCoC.Complete.modularCharacterFun_eq_one              -- GL_n unimodular
-IwasawaCoC.Complete.nuG_eq_haarScalarFactor_smul_haarG      -- nuG = c haarG
-IwasawaCoC.Complete.det_cayleyDerivOnSk                     -- K chart Jacobian pin
-MvPolynomial.volume_setOf_eval_eq_zero                      -- polynomial null lemma
-```
+| File | Contents |
+| --- | --- |
+| `project/Iwasawa.lean` | the decomposition $`g = kau`$ (vendored) |
+| `IwasawaCoC.lean` | the four groups, bijection, homeomorphism, Lie decompositions, charts on $`G`$, $`U`$, $`A`$, the Cayley transform |
+| `IwasawaSmoothK.lean` | the manifold structure on $`O(n)`$ |
+| `MatrixContDiff.lean`, `IwasawaDiffeomorph.lean` | smoothness, the diffeomorphism |
+| `IwasawaLieDecomposition.lean` | the Lie decomposition as `DirectSum.IsInternal`, and $`\mathrm{Sym}_n = \mathfrak{a} \oplus \mathfrak{n}_{\mathrm{sym}}`$ |
+| `IwasawaMFDerivAtOne.lean`, `IwasawaMFDeriv.lean` | the derivative at the identity and at a general point |
+| `IwasawaJacobianAbstract.lean`, `IwasawaJacobianExplicit.lean` | $`\det \mathrm{Ad}(a)\vert_{\mathfrak{n}} = \delta(a)`$ and the pieces of the Jacobian |
+| `IwasawaComplete.lean` | the Jacobian determinant, Sylvester-Franke, clean restatements of the main results, the topological groups and their Haar measures |
+| `IwasawaBridge.lean` | restatements of $`\det \mathrm{Ad}(a)\vert_{\mathfrak{n}} = \delta(a)`$ (this is where the old placeholder axiom used to be) |
+| `IwasawaHaar.lean` | unimodularity of $`GL_n`$, the conjugation formula, explicit Haar measures |
+| `IwasawaIntegration.lean` | the integration formula and the modular character of $`B`$ |
+| `IwasawaHaarK.lean` | Haar measure on $`SO(n)`$ in Cayley coordinates (partial) |
+| `PolynomialNullSet.lean` | zero sets of polynomials are null |
 
-each of which reports only `[propext, Classical.choice, Quot.sound]`. The
-core namespace is `IwasawaCoC`, and the consolidated restatements live in
-`IwasawaCoC.Complete`. `IwasawaBridge.lean` likewise ends with a `#print
-axioms` block confirming that it too is axiom free. `IwasawaHaar.lean`,
-`IwasawaHaarK.lean`, and `PolynomialNullSet.lean` each end with `#print axioms`
-blocks over every named result; all report the same three axioms.
-`IwasawaComplete.lean` also contains compile-time
-sanity checks: the scalar value $`\det(\mathrm{sandwich}(c \cdot 1)) = c^{\,n(n-1)}`$
-at $`n = 3`$, the edge cases $`n = 0`$ and $`n = 1`$, the consistency of the
-general Jacobian at $`X = 0`$ with the chart-center value, and (in `IwasawaHaarK.lean`)
-the $`SO(2)`$ density check $`2 / (1 + a^2)`$.
+All of these except `project/Iwasawa.lean` are in `iwasawa_change_of_coords/`.
+[docs/](docs) has longer write-ups: the math in [mathematics.md](docs/mathematics.md),
+Lean signatures and a milestone index in [theorem-statements.md](docs/theorem-statements.md),
+proof sketches in [proof-outlines.md](docs/proof-outlines.md), and some notes on what the
+axiom checks do and don't certify in [methodology.md](docs/methodology.md). The other
+markdown files in the root are my working notes from along the way. Some of them are
+out of date, which the ones about the Haar measure say at the top.
 
-## Remaining Work
+## Notes on the formalization
 
-The Jacobian determinant layer is complete (closed form at a general point,
-signed and absolute), and the measure theory layer is now largely formalized:
-the factor Haar measures, the unimodularity of $`GL_n(\mathbb{R})`$, the conjugation
-crux, the coordinate Haar identification $`\nu_G = c\cdot\mathrm{haar}_G`$, the explicit
-factor identifications on $`A`$ and $`U`$, the $`K = O(n)`$ Cayley chart density
-$`\rho_K`$ with its pinned exponent, the candidate measure $`\nu_K`$, the Mobius left
-translation, and the reusable polynomial null lemma are all proved axiom clean.
+- The Mathlib pin matters. For a while the build configuration pointed at the
+  `v4.30.0-rc1` tag, 368 commits older than the Mathlib this was written against,
+  and `IwasawaCoC.lean` failed there with `ChartedSpace` instances not found on the
+  submodule model spaces. On the right commit the same file elaborates unchanged.
+- The four groups are subtypes of `Matrix (Fin n) (Fin n) ℝ` with group instances
+  written by hand, like in the first project. $`B = AU`$ is the one exception. It's a
+  `Subgroup` of $`G`$, since it only exists to carry a Haar measure.
+- The smooth part needs a normed ring structure on matrices, which Mathlib doesn't
+  register globally, so the derivative files turn on the $`\ell^\infty`$ operator norm
+  with local instances. The measure part avoids putting a measure on `Matrix`
+  itself (its `MeasurableSpace` instance clashes with the one `volume` wants) and
+  works on coordinate spaces like `nnIndex n → ℝ` instead.
+- `PolynomialNullSet.lean` used to `import Mathlib`, which forces a build of all of
+  Mathlib. It now imports the five modules it uses, and the whole project needs about
+  2,500 Mathlib modules instead of about 7,900.
 
-What remains is the **final assembly** of the integration formula, in four steps:
+## What's not done
 
-1. **Left invariance of $`\nu_K`$ under $`SO(n)`$.** Prove
-   $`(\,k_0 \cdot\,)_{*}\,\nu_K = \nu_K`$ for $`k_0`$ in the identity component, by a
-   change of variables for the Mobius map $`\Psi_{k_0}`$. The pieces in place are the
-   intertwining identity `cayley_cayleyLeftTrans`, the chart domain openness and
-   continuity, and the reduction of the chart miss set to a polynomial zero locus
-   (`mem_cayleyLeftDom_iff`). The remaining work is: (a) the density transformation
-   $`\rho_K(\Psi X)\,|\det D\Psi_X| = \rho_K(X)`$, whose Jacobian factors through the
-   same `sandwichOnSkCLM` determinant as `det_cayleyDerivOnSk`; (b) applying
-   `volume_setOf_eval_eq_zero` to the `skBasis` coordinates to conclude the miss set
-   is $`\nu_K`$ null; and (c) assembling the Mathlib change of variables on the open
-   dense chart domain.
-2. **The second $`O(n)`$ component.** One Cayley chart covers $`SO(n)`$ only
-   (`det_cayley_skew` forces $`\det = +1`$); extend $`\nu_K`$ to the $`\det = -1`$
-   coset by a reflected copy.
-3. **Haar uniqueness.** Conclude $`\nu_K = c\cdot\mathrm{haar}_K`$ once $`\nu_K`$ is
-   established as a Haar measure ($`K`$ is compact, so inner regularity is free).
-4. **The product change of variables.** Combine the pointwise absolute Jacobian
-   (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`) with the four factor
-   identifications and a Mathlib change of variables theorem to obtain the
-   pushforward of the product Haar measure under the Iwasawa map, recovering the
-   integration formula.
-
-The target integration formula is
-
-```math
-\int_G f\,dx = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, du\, da\, dk.
-```
-
-The whole project, including every file above, reduces to
-`[propext, Classical.choice, Quot.sound]`: there is no placeholder axiom anywhere
-(an earlier Haar "bridge" axiom was found redundant and removed). The four steps
-above are genuine future work, not yet formalized, and are not backed by any axiom.
-The route, the available Mathlib API, and the precise status against each sub step
-are tracked in `RouteAssessment.md`.
+- The explicit Haar measure on $`K`$ in Cayley coordinates is incomplete: left
+  invariance of `nuK`, its extension to the $`\det = -1`$ half of $`O(n)`$, and
+  `nuK = c • haarK`. The integration formula doesn't need it anymore, but it would
+  be a nice explicit description.
+- The constant $`c`$ isn't computed. It depends on how the four Haar measures are
+  normalized, and Mathlib's `Measure.haar` fixes those in a way that has nothing to
+  do with this formula.
+- Continuity of Gram-Schmidt and the polynomial null-set lemma would make reasonable
+  Mathlib contributions.
 
 ## References
 
-- J. Jorgenson, S. Lang. *Spherical Inversion on* $`SL_n(\mathbb{R})`$. Springer
-  Monographs in Mathematics, 2001. (Primary source, Chapter I, §1 to §3.)
-- S. Lang. *Linear Algebra*, 3rd edition. Springer Undergraduate Texts
-  in Mathematics, 1987. (Convention for the parent project.)
-- A. Cayley. "Sur quelques propriétés des déterminants gauches."
-  *Crelle's Journal* 32 (1846), 119 to 123.
-- The Mathlib community.
-  [Mathlib4](https://github.com/leanprover-community/mathlib4).
-- H. Macbeth. [`Mathlib.Geometry.Manifold.Instances.Sphere`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/Instances/Sphere.html), 2021.
-  (Stereographic projection multi chart atlas, the model we follow
-  for `cayleyOpenChartAt`.)
-- [`Mathlib.LinearAlgebra.Matrix.NonsingularInverse`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/LinearAlgebra/Matrix/NonsingularInverse.html): transpose and inverse interaction.
-- [`Mathlib.LinearAlgebra.Matrix.PosDef`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/LinearAlgebra/Matrix/PosDef.html): `PosDef.add_posSemidef`, `PosDef.isUnit`, `posSemidef_self_mul_conjTranspose` (used in `one_add_skew_isUnit`).
-- [`Mathlib.Analysis.Matrix.Normed`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Analysis/Matrix/Normed.html): locally attributed matrix norm.
-- [`Mathlib.Topology.Instances.Matrix`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/Instances/Matrix.html): continuity of matrix operations, including `continuousAt_matrix_inv` (used in `continuous_cayley_on_skew` and `continuous_cayleyInv_on_KOpen`).
-- [`Mathlib.Geometry.Manifold.IsManifold.Basic`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/IsManifold.Basic.html): `IsOpenEmbedding.isManifold_singleton`, `isManifold_of_contDiffOn`.
-- [`Mathlib.Geometry.Manifold.Diffeomorph`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/Diffeomorph.html): `Diffeomorph` structure.
-- [`Mathlib.MeasureTheory.Measure.Haar.Basic`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Haar/Basic.html) and `Mathlib.MeasureTheory.Measure.Haar.Unique`: canonical Haar measure `Measure.haar`, `haarScalarFactor`, and Haar uniqueness `isMulLeftInvariant_eq_smul_of_innerRegular` (the factor identifications $`\nu_G = c\,\mathrm{haar}_G`$, $`\mathrm{haar}_A^{\exp}`$, $`\nu_U`$).
-- `Mathlib.MeasureTheory.Group.ModularCharacter`: the modular character $`\Delta`$ (`modularCharacterFun`), used for `modularCharacterFun_eq_one`.
-- [`Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Lebesgue/EqHaar.html) and `Mathlib.MeasureTheory.Measure.Haar.OfBasis`: `Basis.addHaar` (the measure `volSk` on $`\mathrm{Sk}_n`$) and `map_linearMap_addHaar_eq_smul_addHaar` (linear maps scale additive Haar by the absolute determinant, used in the conjugation crux and unimodularity).
-- `Mathlib.MeasureTheory.Measure.Prod`: Fubini and the product null criterion `measure_prod_null`, `volume_preserving_piFinSuccAbove`, `measurePreserving_swap` (the assembly of `volume_setOf_eval_eq_zero`).
-- `Mathlib.Algebra.MvPolynomial.Equiv`: `finSuccEquiv` and `eval_eq_eval_mv_eval'` (the inductive step of the polynomial null lemma).
-- [`Mathlib.Algebra.Polynomial.Roots`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Algebra/Polynomial/Roots.html): `finite_setOf_isRoot` (a nonzero one variable polynomial has finitely many roots, the finite slices).
-
+- J. Jorgenson and S. Lang, *Spherical Inversion on $`SL_n(\mathbb{R})`$*, Springer
+  Monographs in Mathematics, 2001. Chapter I, §1 to §3.
+- S. Lang, *Linear Algebra*, 3rd ed., Springer, 1987. Appendix II.
+- A. W. Knapp, *Lie Groups Beyond an Introduction*, 2nd ed., Birkhäuser, 2002.
+  Prop. 8.43.
+- G. B. Folland, *A Course in Abstract Harmonic Analysis*, 2nd ed., CRC Press, 2016.
+  Thm. 2.51.
+- A. Cayley, "Sur quelques propriétés des déterminants gauches", *J. reine angew.
+  Math.* 32 (1846), 119 to 123.
+- Mathlib's `Mathlib/Geometry/Manifold/Instances/Sphere.lean` (Heather Macbeth), the
+  model for the Cayley atlas.
 
 ## License
 
