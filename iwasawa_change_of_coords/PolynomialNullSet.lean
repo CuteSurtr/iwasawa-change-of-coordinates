@@ -14,7 +14,11 @@ on each remaining one variable slice (finite, hence null fiber).
 This file is self contained and intended to be reusable and upstreamable.
 -/
 
-import Mathlib
+import Mathlib.Algebra.MvPolynomial.Equiv
+import Mathlib.Algebra.Polynomial.Roots
+import Mathlib.MeasureTheory.Constructions.Pi
+import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+import Mathlib.Topology.Algebra.MvPolynomial
 
 open MeasureTheory MvPolynomial
 
