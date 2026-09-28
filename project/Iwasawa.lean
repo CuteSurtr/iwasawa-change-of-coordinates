@@ -1,26 +1,13 @@
 /-
-SETUP / DEPENDENCIES
+Iwasawa decomposition of GLₙ(ℝ). Math 157 final project.
 
-This file depends on Mathlib; there are no other nonstandard dependencies. To
-compile it in a fresh project, pin the toolchain and the Mathlib revision so
-that the lemma names used below resolve correctly. Concretely, the file
-`lean-toolchain` should contain `leanprover/lean4:v4.30.0`, and the lakefile
-should require Mathlib at the matching revision `v4.30.0`, for example:
+Author: Jiho Lee
 
-    name = "iwasawa_project"
-    defaultTargets = ["Iwasawa"]
-
-    [[require]]
-    name = "mathlib"
-    git = "https://github.com/leanprover-community/mathlib4.git"
-    rev = "v4.30.0"
-
-    [[lean_lib]]
-    name = "Iwasawa"
-
-After creating those files, run `lake exe cache get` to download the prebuilt
-Mathlib artifacts (this avoids a multi-hour local Mathlib build) and then
-`lake build` to compile this file.
+Vendored from https://github.com/CuteSurtr/Iwasawa_Decomposition. This is an
+older version of `Iwasawa.lean` than the one published there: upstream commit
+4465bdd removed `IsOrthogonal.transpose` and `IsOrthogonal.matInv_eq_transpose`,
+which this project still uses. The Lean and Mathlib versions are pinned by this
+repository's `lean-toolchain` and `lakefile.toml` (see BUILD.md).
 -/
 import Mathlib.LinearAlgebra.UnitaryGroup
 import Mathlib.LinearAlgebra.Matrix.Block
@@ -34,8 +21,6 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 Every invertible real `n × n` matrix factors uniquely as `g = k * a * u`
 with `k` orthogonal, `a` positive diagonal, `u` upper unipotent.
 Proof after Lang, *Linear Algebra* (3rd ed., Appendix II).
-
-Author: Jiho Lee, Math 157, Spring 2026, UC San Diego.
 
 ## Main results
 
