@@ -145,15 +145,15 @@ noncomputable def iwasawaEquiv : K n × A n × UU n ≃ G n where
 
 Jorgenson-Lang state Theorem 1.1 as `G = U · A · K` (U on the left); we
 have the parent's convention `G = K · A · U`. The change of coordinates
-between the two is the **Cartan involution**
+between the two is **inversion**: if `g = k · a · u` then
+`g⁻¹ = u⁻¹ · a⁻¹ · kᵀ` is in Jorgenson-Lang form (`inv_iwasawa_jl`).
 
-    θ : GL_n(ℝ) → GL_n(ℝ),    θ(g) = (gᵀ)⁻¹.
-
-`θ` is an order-2 group automorphism; it carries `K` to `K`, `A` to
-`A⁻¹` (still `A`), and `U` (upper unipotent) to lower unipotent,
-which is `U` again after relabelling rows/columns (or after one
-additional transposition). We formalize the involutivity here and use
-it to convert between the two factorization orders. -/
+The **Cartan involution** `θ(g) = (gᵀ)⁻¹` is a different map. It is an
+order-2 group automorphism that fixes `K` pointwise, inverts `A`, and
+sends upper unipotent matrices to lower unipotent ones, so it does not
+convert one factorization order into the other. Jorgenson-Lang use it
+to characterize `K` as its fixed-point set; we record it and its
+involutivity. -/
 
 /-- The Cartan involution `θ(g) = (gᵀ)⁻¹` on `GL_n(ℝ)`. -/
 noncomputable def cartanInvolution : G n → G n := fun g =>
@@ -447,21 +447,10 @@ instance instIsManifoldG :
 
 end SmoothG
 
--- TODO(milestone 3, K smooth): set up `ChartedSpace`/`IsManifold` on `K n`
--- as an embedded submanifold cut out by `Q · Qᵀ = 1`. This requires
--- formalizing `O(n)` as a smooth submanifold of `Matrix` via Cayley-transform
--- charts (or stereographic-style local charts, following the pattern of
--- `Mathlib.Geometry.Manifold.Instances.Sphere`). Substantial Mathlib-level
--- work; deferred.
-
--- TODO(milestone 3, UU smooth): smooth structure on `UU n` via
--- the homeomorphism `UU n ≃ₜ NN n` given by `U ↦ U - 1`. The
--- homeomorphism construction and `IsManifold` instance live below
--- in the Milestone-5 area (after `NN n` is introduced).
-
--- TODO(milestone 3, A smooth): smooth structure on `A n` modeled on
--- `AA n` via the open inclusion (positivity is open on each diagonal
--- entry). Deferred.
+-- The smooth structures on the other three factors come later: `UU n` and
+-- `A n` below (single charts `U ↦ U - 1` and the diagonal log), and `K n`
+-- through the Cayley atlas, whose `IsManifold` instance is completed in
+-- `IwasawaSmoothK.lean`.
 
 /-! ## Milestone 4: Cartan Lie decomposition `gl_n(ℝ) = Sym_n ⊕ Sk_n`
 
@@ -1617,52 +1606,13 @@ noncomputable instance instChartedSpaceK :
 
 /-! ### IsManifold instance on the full orthogonal group
 
-For the chart compatibility, the transition map in coordinates is
-`X ∈ Sk n ↦ cayleyInv (cayley X · Q₀.1 · Q₁.1.transpose)`, on the open
-subset where `1 + cayley X · Q₀.1 · Q₁.1.transpose` is invertible.
-
-The proof strategy: factor each `cayleyOpenChartAt Q₀` as
-right-translation-by-`Q₀⁻¹` followed by `cayleyOpenChartAt 1`. Since
-right-translation is a smooth bijection K → K (preserves the smooth
-structure when expressed in chart coordinates as multiplication by a
-fixed orthogonal matrix), the chart compatibility for arbitrary Q₀
-reduces to the case Q₀ = Q₁ = 1, which is trivial.
-
-The full ContDiffOn proof requires `ContDiff` lemmas for the cayley
-formula. The core pieces:
-
-* `ContDiff ℝ ⊤ (cayley : Sk n → Matrix _ _ ℝ)` — cayley is a rational
-  function with non-vanishing denominator on Sk (`one_add_skew_isUnit`).
-* `ContDiff ℝ ⊤ (· * R)` for fixed orthogonal R — linear map, hence smooth.
-* `ContDiffOn ℝ ⊤ cayleyInv {M | (1+M).det.IsUnit}` — rational with
-  non-vanishing denominator on its open domain.
-
-Composing gives ContDiffOn for the transition. -/
-
-/-! ### Outline of the remaining `instIsManifoldK` proof
-
-Once we have
-
-* `cayleyChart_transition_contDiffOn (Q₀ Q₁ : K n)` :
-  `ContDiffOn ℝ ⊤ (fun X : Sk n => cayleyInv ((cayley X.1 * Q₀.1) * Q₁.1.transpose))`
-  on the open set `{X | IsUnit ((1 + (cayley X.1 * Q₀.1) * Q₁.1.transpose).det)}`,
-
-the `IsManifold` instance follows from `isManifold_of_contDiffOn` plus
-set-equality bookkeeping that identifies the abstract `(e.symm ≫ₕ e').source`
-with the concrete invertibility-of-`1+...` set after unfolding
-`cayleyOpenChartAt`.
-
-The transition-smoothness lemma decomposes as
-
-* `cayley` is `ContDiff` (rational with non-vanishing denominator on `Sk n`),
-* multiplication by a constant matrix is linear, hence `ContDiff`,
-* `cayleyInv` is `ContDiff` on its open domain (rational with non-vanishing
-  denominator there).
-
-Each piece uses Mathlib's `ContDiff.bilinear`/`isBoundedBilinearMap_apply.contDiff`
-for matrix multiplication and `contDiffAt_ringInverse` (lifted to matrices)
-for the inverse, plus `ContDiffOn.comp` and `ContDiffOn.congr` for the
-composition. -/
+The chart transition from `cayleyOpenChartAt Q₀` to `cayleyOpenChartAt Q₁` is
+`X ↦ cayleyInv (cayley X · Q₀.1 · Q₁.1ᵀ)` on the open subset of `Sk n` where
+`1 + cayley X · Q₀.1 · Q₁.1ᵀ` is invertible: a composition of `cayley`,
+right multiplication by a fixed matrix, and `cayleyInv`, each smooth on its
+domain. The smoothness proof needs a `NormedRing` structure on matrices, so it
+is done in `IwasawaSmoothK.lean` (`contDiffOn_cayleyChart_transition`), which
+also assembles `instIsManifoldK` with `isManifold_of_contDiffOn`. -/
 
 end CayleyTransform
 

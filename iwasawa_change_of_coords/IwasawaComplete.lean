@@ -224,14 +224,15 @@ where `skOrthConjCLM k : Sk n →L[ℝ] Sk n` is the conjugation
 inner product, hence has matrix `±1`. Formalizing this in Lean
 requires either Mathlib's exterior algebra (`Λ² k`), an inner
 product structure on the `Submodule` `Sk n`, or a connectedness
-argument on `O(n)`. We expose the conditional result here and
-prove the partial fact that the determinant times its
-"transposed-k" companion equals one, leaving only the equality of
-the two determinants as the remaining gap. -/
+argument on `O(n)`. We first expose the conditional result, then
+close the hypothesis below (`abs_det_skOrthConjCLM_eq_one`, by
+showing the matrix of the conjugation in `skBasis` times its
+transpose is the identity), which gives the unconditional
+`absDetIwasawaMatrixLeibnizCLM_at_factored_unconditional`. -/
 
 /-- **Conditional general-point absolute Jacobian formula.** If
-`|det (skOrthConjCLM k)| = 1` (a known but currently
-unformalized fact for orthogonal `k`), then the absolute Jacobian
+`|det (skOrthConjCLM k)| = 1` (true for orthogonal `k`, proved
+below as `abs_det_skOrthConjCLM_eq_one`), then the absolute Jacobian
 of the Iwasawa derivative at any factored point `(k, a, u)` is the
 expected `2^{n(n-1)/2} * |det a|^n * |det adNN a|`. -/
 theorem absDetIwasawaMatrixLeibnizCLM_at_factored
@@ -288,12 +289,10 @@ theorem skOrthConjCLM_transpose_comp_eq_id (k : K n) :
       Matrix.mul_assoc, hk, Matrix.mul_one]
 
 /-- **Product of the two determinants is one.** This is the
-"`det × det = 1`" half of `|det| = 1`. The remaining gap to fully
-close `|det skOrthConjCLM k| = 1` is showing the two determinants
-are equal (which is true because the matrices are transposes in any
-Frobenius-orthonormal basis; the formalization needs either an
-inner product structure on the `Submodule Sk n`, or an exterior
-algebra identification `Sk n ≃ Λ²(ℝⁿ)`). -/
+"`det × det = 1`" half of `|det| = 1`. The other half, that the two
+determinants are equal, comes from their matrices in `skBasis` being
+transposes of each other (`skOrthConjCLM_kTranspose_toMatrix_eq_transpose`
+below). -/
 theorem det_skOrthConjCLM_mul_det_skOrthConjCLM_transpose (k : K n) :
     LinearMap.det (skOrthConjCLM (n := n) k).toLinearMap *
       LinearMap.det (skOrthConjCLM (n := n) (kTransposeAsK k)).toLinearMap = 1 := by
@@ -746,9 +745,9 @@ theorem fderiv_iwasawaCharted_at_chart_center (a : A n) :
 For the change-of-variables formula, we need
 `|LinearMap.det (fderiv ℝ iwasawaCharted p).toLinearMap|` as a
 function of `p`. At the chart center we have the closed form via
-the existing Jacobian theorem. At general `p` the formula has chart
-corrections; the precise general-point determinant is left for the
-next stage (RemainingWork.md). -/
+the existing Jacobian theorem. At general `p` the formula picks up the
+Cayley chart factor `det(1 + X)^{-(n-1)}`; that case is
+`detInIwasawaBases_fderiv_iwasawaCharted_general` below. -/
 
 /-- At the chart center `(0, log_diag a, U_one)`, the absolute
 determinant of the Fréchet derivative (expressed in the Iwasawa

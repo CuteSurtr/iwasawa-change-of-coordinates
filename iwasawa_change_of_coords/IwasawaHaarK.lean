@@ -3,10 +3,14 @@
 
 Level 1 (Route B): the Haar measure on `K n = O(n)` in Cayley coordinates.
 
-This file develops the orthogonal-group factor of the Iwasawa integration
-formula. The Cayley chart `cayleyToK : Sk n → K n` parameterizes the identity
-component `SO(n)` (the locus where `1 + Q` is invertible) by skew-symmetric
-matrices. Because `O(n)` is a curved group, flat Lebesgue measure on the chart
+This file describes Haar measure on the orthogonal group explicitly, in Cayley
+coordinates. The Cayley chart `cayleyToK : Sk n → K n` parameterizes, by
+skew-symmetric matrices, the orthogonal matrices `Q` with `1 + Q` invertible:
+a dense open subset of `SO(n)` (such `Q` always have determinant `1`).
+
+The Iwasawa integration formula itself no longer goes through this file: it is
+proved by Haar uniqueness in `IwasawaIntegration.lean`, which needs no chart on
+`K`. What is here stands on its own as an explicit density computation. Because `O(n)` is a curved group, flat Lebesgue measure on the chart
 is NOT left invariant; the correct left invariant density is the Cayley
 Jacobian density `ρK X ∝ |det (1 + X)|^{-(n-1)}`.
 

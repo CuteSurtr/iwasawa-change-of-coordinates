@@ -10,10 +10,10 @@ Target:
 
 Per MathlibInfrastructureMap.md §1c "Distribution Haar character":
 `distribHaarChar N (a) = |det Ad(a)|_𝔫|`. This file computes the
-RHS explicitly. In the current project structure this is the
-positive-root product needed by the future Jacobian/Haar layer; it is
-not yet the determinant theorem for the full derivative
-`iwasawaMatrixLeibnizCLM k a u`.
+RHS explicitly. This is the positive-root product that appears as a
+factor of the full Jacobian determinant (computed for
+`iwasawaMatrixLeibnizCLM k a u` in `IwasawaComplete.lean`) and as the
+weight in the Iwasawa integration formula (`IwasawaIntegration.lean`).
 
 Strategy: build a `Basis (nnIndex n) ℝ (NN n)` indexed by ordered pairs
 `{(i, j) | i < j}` with basis vector `⟨Matrix.single i j 1, _⟩`; then
@@ -1510,9 +1510,9 @@ theorem absDetInIwasawaBases_one_a_one_eq_scaled_det_pow_mul_det_adNN (a : A n) 
 At a general Iwasawa point `(k, a, u)`, the derivative differs from the
 normalized derivative at `(1, a, 1)` by a source transport
 `(X, v, Z) ↦ (kᵀ X k, v, Z u⁻¹)` and a target transport `M ↦ k M u`.
-The determinant statements below isolate these transport factors.  Proving
-that their absolute determinants are `1` is the remaining linear-algebraic
-step for the fully invariant arbitrary-point Jacobian formula. -/
+The determinant statements below isolate these transport factors. That their
+absolute determinants are `1` is proved in `IwasawaComplete.lean`
+(`abs_det_skOrthConjCLM_eq_one`). -/
 
 noncomputable def skOrthConjLinearMap (k : K n) : Sk n →ₗ[ℝ] Sk n where
   toFun X := ⟨k.1.transpose * X.1 * k.1, by

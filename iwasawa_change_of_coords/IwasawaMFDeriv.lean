@@ -294,12 +294,11 @@ The identity-case version is `iwasawaMap_mfderiv_at_one_eq_lieEquiv`
 in `IwasawaMFDerivAtOne.lean`. The general-point chart-coord
 differentials at K, A, UU at non-identity points are themselves
 chain-rule sub-problems (Cayley chart at `Q₀ ≠ 1` for K, log chart at
-`a₀ ≠ 1` for A; UU's affine chart is uniform). These are deferred
-sub-lemmas for a future closure of the full formula.
+`a₀ ≠ 1` for A; UU's affine chart is uniform). The closed form at a
+general point is `mfderiv_iwasawaMap_at_factored`, later in this file.
 
-The result below records the achievable progress at this stage: the
-function is differentiable at every point, and its mfderiv extracted
-from the smoothness statement is well-defined. -/
+The result below records the first step: the function is differentiable
+at every point, so its mfderiv is the genuine derivative. -/
 
 /-- **T1-4 Lemma 3 (partial).** `iwasawaMap` is `MDifferentiableAt`
 at every point. The full explicit mfderiv formula at general points

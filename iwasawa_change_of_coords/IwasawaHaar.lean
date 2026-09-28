@@ -395,8 +395,9 @@ lemma conjAut_nnChart_symm (a : A n) (w : nnIndex n → ℝ) :
 the chart coordinates through the inverse chart. -/
 noncomputable def nuU : Measure (UU n) := Measure.map nnChart.symm volume
 
-/-- **T2.** Conjugation by `a` scales the explicit `U` measure by
-`δ(a) = det (adNN a)`: `map (conjAut a) nuU = δ(a) • nuU`. The determinant
+/-- **T2.** Pushing the explicit `U` measure forward along
+`conjAut a : u ↦ a⁻¹ u a` multiplies it by `δ(a) = det (adNN a)`:
+`map (conjAut a) nuU = δ(a) • nuU`. The determinant
 half of the crux, via the chart and the additive Haar determinant scaling. -/
 lemma map_conjAut_nuU (a : A n) :
     Measure.map (conjAut a) (nuU (n := n))
@@ -654,7 +655,10 @@ instance instIsHaarMeasure_nuU : (nuU (n := n)).IsHaarMeasure := ⟨⟩
 
 #print axioms instIsHaarMeasure_nuU
 
-/-! ### T4: the crux — conjugation scales `U`-Haar by `δ(a)⁻¹` -/
+/-! ### T4: the crux — the Haar character of `u ↦ a⁻¹ u a` is `δ(a)⁻¹`
+
+Equivalently, pushing Haar measure on `U` forward along `u ↦ a⁻¹ u a`
+multiplies it by `δ(a)` (`map_conjAut_haarN`). -/
 
 /-- **T4 — the crux**, `ℝ≥0` form. Combining the determinant scaling (T2,
 `map_conjAut_nuU`) with `nuU` being a regular Haar measure (T3), the Haar
@@ -689,8 +693,9 @@ lemma mulEquivHaarChar_conjAut (a : A n) :
 
 /-! ### The crux for the canonical Haar measure `haarN` -/
 
-/-- **Crux, canonical form.** Conjugation by `a` scales the abstract Haar
-measure `haarN = Measure.haar` on `U` by `δ(a) = det (adNN a)`:
+/-- **Crux, canonical form.** Pushing the abstract Haar measure
+`haarN = Measure.haar` on `U` forward along `conjAut a : u ↦ a⁻¹ u a`
+multiplies it by `δ(a) = det (adNN a)`:
 `map (conjAut a) haarN = δ(a) • haarN`. This transports T4 from the explicit
 chart measure `nuU` to the project's canonical Haar measure, since
 `mulEquivHaarChar` does not depend on the chosen regular Haar measure. -/

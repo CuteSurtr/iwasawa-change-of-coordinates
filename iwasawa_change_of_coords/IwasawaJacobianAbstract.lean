@@ -1,10 +1,11 @@
 /- 
 T1-5: auxiliary determinant identities for the Iwasawa Jacobian layer.
 
-This file does not yet prove the determinant of the actual derivative
+This file does not compute the determinant of the actual derivative
 `mfderiv iwasawaMap (k, a, u)`. The actual derivative is the direct
 matrix-Leibniz map `iwasawaMatrixLeibnizCLM k a u`, proved in
-`IwasawaMFDeriv.lean`.
+`IwasawaMFDeriv.lean`, and its determinant is computed in
+`IwasawaComplete.lean` (`absDetInIwasawaBases_fderiv_iwasawaCharted_general`).
 
 What this file proves is the determinant of the auxiliary source twist
 `lieTwistCLM a = id ⊕ id ⊕ adNN a`. This isolates the `adNN` determinant
