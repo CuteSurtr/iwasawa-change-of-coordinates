@@ -1,10 +1,12 @@
 # Current Blockers and Status
 
-> **Status, 2026-09-28.** Out of date. There is no axiom in `IwasawaBridge.lean`
-> any more, the Jacobian of the actual derivative is proved
-> (`absDetInIwasawaBases_fderiv_iwasawaCharted_general` in `IwasawaComplete.lean`),
-> and the Haar measure formula is proved in `IwasawaIntegration.lean`. See the
-> README for the current state.
+> **Status, 2026-09-28.** Partly out of date. The integration formula is proved in
+> `IwasawaIntegration.lean` by Haar uniqueness, so the Route B items listed as
+> remaining below (B1c' steps 3 to 5, B1d, B2b, Level 3) are no longer needed for
+> it. The Cayley density blocker still stands, but only for the explicit
+> description of Haar measure on `K`. The build now runs from this repository's
+> own `lakefile.toml`, not from a parent Lake project. See the README for the
+> current state.
 
 This file is a current status note for the Iwasawa change-of-coordinates
 project. Older status logs have been superseded by the proved

@@ -63,7 +63,10 @@ refinement $`\mathrm{Sym}_n = \mathfrak{a} \oplus \{X + X^T : X \in \mathfrak{n}
 
 The measure theory is in `IwasawaHaar.lean` and `IwasawaIntegration.lean`.
 $`GL_n(\mathbb{R})`$, $`U`$ and $`K`$ are unimodular (`modularCharacterFun_eq_one`,
-`modularCharacterFun_UU_eq_one`, `modularCharacterFun_K_eq_one`). Pushing Haar
+`modularCharacterFun_UU_eq_one`, `modularCharacterFun_K_eq_one`). In matrix
+coordinates, Haar measure on $`GL_n(\mathbb{R})`$ is Lebesgue measure with density
+$`|\det g|^{-n}`$, up to a constant (`nuG_eq_haarScalarFactor_smul_haarG`, and
+`haarG_lintegral_eq_smul_setLIntegral_coord` for integrals). Pushing Haar
 measure on $`U`$ forward along $`u \mapsto a^{-1} u a`$ multiplies it by $`\delta(a)`$
 (`map_conjAut_haarN`). The integration formula above is `map_iwasawaMap_haar` as an
 identity of measures and `lintegral_iwasawa` as an integral formula. In
@@ -131,8 +134,8 @@ Iwasawa_Decomposition repo. [BUILD.md](BUILD.md) has the details, including why
 `IwasawaIntegration.lean` ends with `#print axioms` for its main theorems wrapped in
 `#guard_msgs`, so the build fails if any of them picks up a `sorry` or another
 axiom. Five other files end with plain `#print axioms` blocks that show up in the
-build output, and the four `AxiomCheck*.lean` files, which aren't part of the default
-build, hold 80 more. Run them with, for example,
+build output, and the eight `AxiomCheck*.lean` files, which aren't part of the default
+build, hold 120 more. Run them with, for example,
 `lake build iwasawa_change_of_coords.AxiomCheck`. CI runs `lake build` on pushes to
 `main` and on pull requests.
 
@@ -182,10 +185,16 @@ out of date, which the ones about the Haar measure say at the top.
 
 ## What's not done
 
-- The explicit Haar measure on $`K`$ in Cayley coordinates is incomplete: left
-  invariance of `nuK`, its extension to the $`\det = -1`$ half of $`O(n)`$, and
-  `nuK = c • haarK`. The integration formula doesn't need it anymore, but it would
-  be a nice explicit description.
+- The explicit Haar measure on $`K`$ in Cayley coordinates is incomplete.
+  `nuK_eq_smul_haarK_of_invariant` reduces `nuK = c • haarK` to three facts about
+  `nuK` that aren't proved yet: left invariance (the real work), finiteness on
+  compacts, and inner regularity. The extension to the $`\det = -1`$ half of
+  $`O(n)`$ is missing too. The change of variables for left invariance needs the
+  Cayley chart domain after translating by $`k_0`$ to be co-null. That's proved
+  whenever the domain is nonempty (`cayleyLeftDom_compl_null`), and nonemptiness is
+  proved when $`1 + k_0`$ is invertible, but it's still open for $`k_0 \in SO(n)`$
+  with eigenvalue $`-1`$ (`KDensityPlan.md`). The integration formula doesn't need
+  any of this, but it would be a nice explicit description.
 - The constant $`c`$ isn't computed. It depends on how the four Haar measures are
   normalized, and Mathlib's `Measure.haar` fixes those in a way that has nothing to
   do with this formula.

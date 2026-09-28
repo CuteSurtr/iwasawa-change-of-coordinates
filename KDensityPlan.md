@@ -1,5 +1,11 @@
 # KDensityPlan: discharging the SO(n) chart-domain nonemptiness blocker
 
+> **Status, 2026-09-28.** Still open, but no longer on the path to the integration
+> formula, which `IwasawaIntegration.lean` proves by Haar uniqueness on `K × B`
+> without any chart on `K`. This plan only matters for the explicit Cayley
+> description of Haar measure on `K` in `IwasawaHaarK.lean`. The line numbers below
+> are from June 2026 and have shifted since.
+
 Scope of this document: a single formalization blocker in `iwasawa_change_of_coords/IwasawaHaarK.lean`.
 It records the precise statement, two candidate proof strategies with a Mathlib gap analysis
 (researched against the pinned Mathlib, v4.30.0-rc1, under the mathlib package in `.lake/packages/mathlib`),

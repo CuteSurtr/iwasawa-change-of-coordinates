@@ -48,13 +48,17 @@ wrapped in `#guard_msgs`, so `lake build` fails if any of them ever depends on
 `sorryAx` or on an axiom other than `propext`, `Classical.choice` and
 `Quot.sound`. `IwasawaBridge`, `IwasawaComplete`, `IwasawaHaar`, `IwasawaHaarK` and
 `PolynomialNullSet` end with plain `#print axioms` blocks, whose output shows up in
-the build log. The `AxiomCheck*.lean` files contain 80 more and are built on
-request:
+the build log. The eight `AxiomCheck*.lean` files contain 120 more and are built
+on request:
 
 ```bash
 lake build iwasawa_change_of_coords.AxiomCheck
 lake build iwasawa_change_of_coords.AxiomCheckDiffeomorph
+lake build iwasawa_change_of_coords.AxiomCheckHaar
+lake build iwasawa_change_of_coords.AxiomCheckHaarK
+lake build iwasawa_change_of_coords.AxiomCheckMFDeriv
 lake build iwasawa_change_of_coords.AxiomCheckMFDerivAtOne
+lake build iwasawa_change_of_coords.AxiomCheckPolynomialNullSet
 lake build iwasawa_change_of_coords.AxiomCheckSmoothK
 ```
 

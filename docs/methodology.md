@@ -57,9 +57,10 @@ every `axiom` reaching it. When it prints
 
 it certifies that `foo` uses **no** `sorry` (which is itself the axiom `sorryAx`),
 **no** project specific axiom, and **nothing** beyond the three standard logical
-axioms that Mathlib itself is built on. Most files in the project end with a block of
-`#print axioms` commands over their named results, which print during `lake build`;
-the `AxiomCheck*.lean` files cover more declarations and are built separately. The
+axioms that Mathlib itself is built on. Five files (`IwasawaBridge`, `IwasawaComplete`,
+`IwasawaHaar`, `IwasawaHaarK`, `PolynomialNullSet`) end with a block of `#print axioms`
+commands over their named results, which print during `lake build`; the eight
+`AxiomCheck*.lean` files hold 120 more and are built separately. The
 main theorems of `IwasawaIntegration.lean` go one step further: their `#print axioms`
 is wrapped in `#guard_msgs`, so `lake build` fails outright if one of them ever
 depends on `sorryAx` or on any axiom beyond the three below. This is the operational

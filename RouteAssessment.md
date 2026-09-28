@@ -3,8 +3,8 @@
 > **Status, 2026-09-28.** The integration formula is now proved in
 > `IwasawaIntegration.lean` by a third route: Haar uniqueness on the group
 > `K × B`, `B = AU` (Knapp, Prop. 8.43). It needs neither Route A's disintegration
-> nor Route B's Cayley density on `K`, so the remaining B1c' and B1d steps below are
-> no longer needed for the formula.
+> nor Route B's Cayley density on `K`, so the Route B steps still listed as remaining
+> below (in B1c', B1d, B2b and Level 3) are no longer needed for the formula.
 
 Goal of the assembly (NOT started here): the Iwasawa integration formula on
 `G n = GL_n(R)`, relating `haarG` to the factor Haar measures through

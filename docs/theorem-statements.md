@@ -160,6 +160,13 @@ lemma haarAExplicit_eq_haarScalarFactor_smul_haarA :
 lemma nuU_eq_haarScalarFactor_smul_haarN :
     nuU (n := n) = Measure.haarScalarFactor (nuU (n := n)) haarN • haarN
 
+/-- Integrals against `haarG` in matrix coordinates, with density `|det|^(-n)`
+(`detWeightCoord`) over the invertible matrices (`Set.range gToCoord`). -/
+theorem haarG_lintegral_eq_smul_setLIntegral_coord
+    {F : ((Fin n × Fin n) → ℝ) → ℝ≥0∞} (hF : Measurable F) :
+    (Measure.haarScalarFactor (nuG (n := n)) haarG) • ∫⁻ x, F (gToCoord x) ∂(haarG (n := n))
+      = ∫⁻ w in Set.range (gToCoord (n := n)), detWeightCoord w * F w ∂volume
+
 /- Milestone 8: the integration formula (namespace `IwasawaCoC.Complete`,
 `IwasawaIntegration.lean`). `iwasawaDeltaNN a = ∏_{i<j} a_i/a_j` as an `ℝ≥0`. -/
 
@@ -217,6 +224,19 @@ theorem cayley_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeftDom
 theorem mem_cayleyLeftDom_iff (k₀ : K n) (X : Sk n) :
     X ∈ cayleyLeftDom k₀ ↔ ((1 + X.1) + k₀.1 * (1 - X.1)).det ≠ 0
 
+/-- The domain of the Mobius translation is co-null once it is nonempty, and it is
+nonempty when `1 + k₀` is invertible. -/
+theorem cayleyLeftDom_compl_null (k₀ : K n) (hne : (cayleyLeftDom k₀).Nonempty) :
+    volSk (cayleyLeftDom k₀)ᶜ = 0
+lemma cayleyLeftDom_nonempty_of_one_add_unit (k₀ : K n) (h : IsUnit (1 + k₀.1).det) :
+    (cayleyLeftDom k₀).Nonempty
+
+/-- Haar uniqueness reduces `nuK = c • haarK` to left invariance and regularity. -/
+theorem nuK_eq_smul_haarK_of_invariant
+    [IsFiniteMeasureOnCompacts (nuK (n := n))] [Measure.IsMulLeftInvariant (nuK (n := n))]
+    [Measure.InnerRegular (nuK (n := n))] :
+    (nuK (n := n)) = Measure.haarScalarFactor (nuK (n := n)) (haarK (n := n)) • (haarK (n := n))
+
 end IwasawaCoC
 
 /-- Reusable measure theory lemma (`PolynomialNullSet.lean`, namespace `MvPolynomial`):
@@ -257,8 +277,9 @@ $`SL_n(\mathbb{R})`$, Chapter I. Everything listed is proved except the last row
 | 7 | `modularCharacterFun_eq_one`: $`GL_n(\mathbb{R})`$ is unimodular | §I.2 |
 | 7 | `map_conjAut_haarN`: pushing $`\mathrm{haar}_N`$ along $`u \mapsto a^{-1}ua`$ multiplies it by $`\delta(a)`$ | §I.2, Eq. (1) to (3) |
 | 7 | `nuG_eq_haarScalarFactor_smul_haarG`, `haarAExplicit_eq_…`, `nuU_eq_…`: explicit Haar measures | §I.2 |
-| 7 | `det_cayleyDerivOnSk`, `nuK`, `cayleyLeftTrans`, `mem_cayleyLeftDom_iff`: Haar measure on $`K`$ in Cayley coordinates (partial) | |
+| 7 | `haarG_lintegral_eq_smul_setLIntegral_coord`: integrals against $`\mathrm{haar}_G`$ in matrix coordinates | |
+| 7 | `det_cayleyDerivOnSk`, `nuK`, `cayleyLeftTrans`, `mem_cayleyLeftDom_iff`, `cayleyLeftDom_compl_null`, `nuK_eq_smul_haarK_of_invariant`: Haar measure on $`K`$ in Cayley coordinates (partial) | |
 | 7 | `MvPolynomial.volume_setOf_eval_eq_zero`: polynomial zero sets are null | |
 | 8 | `map_iwasawaMap_haar`, `lintegral_iwasawa`, `map_iwasawaMapJL_haar`: the integration formula | §I.2, Prop. 2.1 to 2.4 |
 | 8 | `modularCharacterFun_toBB`: the modular character of $`B = AU`$ on $`A`$ is $`\delta`$ | §I.2 |
-| | not done: left invariance of `nuK`, the $`\det = -1`$ component, `nuK = c • haarK` | |
+| | not done: left invariance, finiteness on compacts and inner regularity of `nuK` (which together give `nuK = c • haarK`), nonemptiness of `cayleyLeftDom k₀` for $`k_0 \in SO(n)`$ with eigenvalue $`-1`$, the $`\det = -1`$ component | |

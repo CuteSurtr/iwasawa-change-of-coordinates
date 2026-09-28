@@ -638,9 +638,9 @@ flowchart TD
     FORM["map_iwasawaMap_haar<br/>integration formula"]
     NUG["nuG = c haar_G, haarA_exp = c haar_A, nuU = c haar_N"]
     RHO["det_cayleyDerivOnSk<br/>Cayley density det(1+X)^-(n-1)"]
-    NUK["nuK, Mobius translation, miss set"]
+    NUK["nuK, Mobius translation,<br/>miss set null if the domain is nonempty"]
     POLY["volume_setOf_eval_eq_zero"]
-    INV["nuK left invariant, nuK = c haar_K (not done)"]
+    INV["nuK left invariant and regular (not done),<br/>which gives nuK = c haar_K"]
 
     HG --> UNI --> FORM
     HG --> UNIU --> FORM
@@ -648,7 +648,7 @@ flowchart TD
     B --> FORM
     HG --> NUG
     RHO --> NUK --> INV
-    POLY --> INV
+    POLY --> NUK
 
     classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
@@ -701,6 +701,13 @@ second countable group $`G`$ then yields
 
 ```math
 \texttt{nuG\_eq\_haarScalarFactor\_smul\_haarG} : \quad \nu_G = c \cdot \mathrm{haar}_G, \qquad c = \mathrm{haarScalarFactor}\,\nu_G\,\mathrm{haar}_G > 0 .
+```
+
+For integrals this reads (`haarG_lintegral_eq_smul_setLIntegral_coord`): for every
+measurable $`F \ge 0`$ on the coordinate space,
+
+```math
+c \int_G F(g)\, d\mathrm{haar}_G(g) = \int_{\det w \ne 0} |\det w|^{-n}\, F(w)\, dw .
 ```
 
 ### 11. The conjugation crux: $`\mathrm{Ad}(a)`$ scales $`\mathrm{haar}_N`$ by $`\delta(a)`$
@@ -833,7 +840,10 @@ the geometric heart of left invariance:
 
 equivalently $`\mathrm{cayleyToK}(\Psi_{k_0}(X)) = k_0 \cdot \mathrm{cayleyToK}(X)`$
 (`cayleyToK_cayleyLeftTransSk`): the Cayley chart **intertwines** the Mobius map with
-left multiplication by $`k_0`$ in the group $`K_n`$.
+left multiplication by $`k_0`$ in the group $`K_n`$. Since $`\Psi_{k_0}`$ is the Cayley map,
+then left multiplication by $`k_0`$, then the inverse Cayley map (the same formula), the
+chain rule gives its derivative on the domain (`hasFDerivAt_cayleyLeftTrans`,
+`differentiableOn_cayleyLeftTrans`).
 
 **The chart miss set is a polynomial zero locus.** Clearing the Cayley denominator
 turns the domain condition into a polynomial non vanishing. From the identity
@@ -881,10 +891,23 @@ self contained, upstreamable lemma:
   `measurePreserving_swap`, with the slice identity `eval_eq_eval_mv_eval'`), a set
   whose vertical slices are null over a co-null base is itself null. $`\square`$
 
-This lemma closes the gap that gated step 2 of the $`K`$ factor invariance. Applying
-it to $`\det((1 + X) + k_0(1 - X))`$ as a polynomial in the `skBasis` coordinates of
-$`X`$ (the application is not formalized, see [What's not done](../README.md#whats-not-done))
-shows $`\mathrm{cayleyLeftDom}\,k_0`$ is co-null in $`\mathrm{Sk}_n`$.
+This lemma closes the gap that gated step 2 of the $`K`$ factor invariance. In
+`IwasawaHaarK.lean`, $`\det((1 + X) + k_0(1 - X))`$ is written as a polynomial in the
+`skBasis` coordinates of $`X`$ (`cayleyDomPoly`, `eval_cayleyDomPoly`), and
+`map_skCoordEquiv_volSk` identifies $`\mathrm{volSk}`$ with Lebesgue measure in those
+coordinates. If $`\mathrm{cayleyLeftDom}\,k_0`$ is nonempty the polynomial is not
+identically zero, so $`\mathrm{cayleyLeftDom}\,k_0`$ is co-null in $`\mathrm{Sk}_n`$
+(`cayleyLeftDom_compl_null`). It is nonempty when $`1 + k_0`$ is invertible, since then
+$`X = 0`$ lies in it (`cayleyLeftDom_nonempty_of_one_add_unit`), and empty when
+$`\det k_0 = -1`$, since $`k_0\,\mathrm{cayley}(X)`$ then has determinant $`-1`$ and so has
+eigenvalue $`-1`$. For $`k_0 \in SO(n)`$ with eigenvalue $`-1`$ it is nonempty because
+the Cayley image is dense in $`SO(n)`$, but that is not formalized (`KDensityPlan.md`).
+
+The last step is in place too: once $`\nu_K`$ is known to be left invariant, finite on
+compacts and inner regular, Haar uniqueness on the compact group $`K`$ gives
+$`\nu_K = c \cdot \mathrm{haar}_K`$ (`nuK_eq_smul_haarK_of_invariant`). None of the three
+hypotheses is formalized yet. Left invariance, the change of variables along
+$`\Psi_{k_0}`$, is the substantial one; see [What's not done](../README.md#whats-not-done).
 
 ### 15. The integration formula (`IwasawaIntegration.lean`)
 
