@@ -1137,7 +1137,7 @@ private lemma det_sandwichOnSkCLM_transvection (t : Matrix.TransvectionStruct (F
     show ((Q (Q (Q δ)) : Sk n) : Matrix (Fin n) (Fin n) ℝ)
         = ((0 : Sk n) : Matrix (Fin n) (Fin n) ℝ)
     rw [hQ_apply, hQ_apply, hQ_apply, Submodule.coe_zero]
-    simp only [Matrix.mul_add, Matrix.add_mul, Matrix.mul_assoc, hN, hNT, z1, z2,
+    simp only [Matrix.mul_add, Matrix.add_mul, Matrix.mul_assoc, hN, z1,
                Matrix.mul_zero, Matrix.zero_mul, add_zero, zero_add]
   have hnil : IsNilpotent Q := ⟨3, hQ3⟩
   have hrw : (sandwichOnSkCLM (1 + N)).toLinearMap = 1 + Q := by rw [hQdef]; abel
