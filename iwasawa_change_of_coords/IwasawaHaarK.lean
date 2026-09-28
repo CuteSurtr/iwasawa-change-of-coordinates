@@ -10,7 +10,8 @@ a dense open subset of `SO(n)` (such `Q` always have determinant `1`).
 
 The Iwasawa integration formula itself no longer goes through this file: it is
 proved by Haar uniqueness in `IwasawaIntegration.lean`, which needs no chart on
-`K`. What is here stands on its own as an explicit density computation. Because `O(n)` is a curved group, flat Lebesgue measure on the chart
+`K`. What is here stands on its own as an explicit density computation.
+Because `O(n)` is a curved group, flat Lebesgue measure on the chart
 is NOT left invariant; the correct left invariant density is the Cayley
 Jacobian density `ρK X ∝ |det (1 + X)|^{-(n-1)}`.
 
@@ -25,9 +26,16 @@ B1c' (in progress) builds the candidate left invariant measure
 `nuK = map cayleyToK (volSk.withDensity ρK)` on the `SO(n)` component, with
 `volSk` the Lebesgue measure on `Sk n` from `skBasis`, together with the
 measurability facts (`measurable_rhoK`, `measurable_cayleyToK`) that make `nuK`
-a genuine pushforward. The remaining step, left invariance of `nuK` under the
-Möbius left translation `X ↦ cayleyInv (k₀ · cayley X)` (and then `nuK = c • haarK`
-by Haar uniqueness, B1d), is not yet formalized.
+a genuine pushforward. For the Möbius left translation
+`Ψ k₀ X = cayleyInv (k₀ · cayley X)` it proves the derivative
+(`hasFDerivAt_cayleyLeftTrans`) and that the domain `cayleyLeftDom k₀` is co-null
+in `Sk n` whenever it is nonempty (`cayleyLeftDom_compl_null`). Nonemptiness is
+proved when `1 + k₀` is invertible (`cayleyLeftDom_nonempty_of_one_add_unit`); the
+domain is empty when `det k₀ = -1`, and the case of `k₀ ∈ SO(n)` with eigenvalue
+`-1` is open (`KDensityPlan.md`). `nuK = c • haarK` follows by Haar uniqueness
+(`nuK_eq_smul_haarK_of_invariant`, B1d) once `nuK` is shown to be left
+invariant, finite on compacts and inner regular; none of the three is
+formalized yet, and left invariance is the substantial one.
 -/
 
 import iwasawa_change_of_coords.IwasawaHaar
@@ -305,7 +313,7 @@ lemma hasFDerivAt_cayleyLeftTrans (k₀ : K n) {X : Sk n} (hX : X ∈ cayleyLeft
 of variables in step 3). -/
 lemma differentiableOn_cayleyLeftTrans (k₀ : K n) :
     DifferentiableOn ℝ (fun Y : Sk n => cayleyLeftTrans k₀ Y) (cayleyLeftDom k₀) :=
-  fun X hX => (hasFDerivAt_cayleyLeftTrans k₀ hX).differentiableAt.differentiableWithinAt
+  fun _ hX => (hasFDerivAt_cayleyLeftTrans k₀ hX).differentiableAt.differentiableWithinAt
 
 #print axioms hasFDerivAt_cayleyLeftTrans
 #print axioms differentiableOn_cayleyLeftTrans
@@ -458,7 +466,7 @@ lemma eval_cayleyDomPoly (k₀ : K n) (c : Fin (Fintype.card (nnIndex n)) → �
   rw [← halg]
   ext i j
   simp only [RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.add_apply, Matrix.mul_apply,
-    map_add, map_sum, map_mul, MvPolynomial.eval_C, skMatPoly, Matrix.of_apply, eval_skEntryPoly, hY]
+    map_add, map_mul, MvPolynomial.eval_C, skMatPoly, Matrix.of_apply, eval_skEntryPoly, hY]
 
 /-- **Coordinate transport for sets.** A measurable `B ⊆ Sk n` has `volSk B` equal to
 the Lebesgue measure of its coordinate image. -/
