@@ -1,5 +1,8 @@
 # Haar Pushforward Plan: replacing `iwasawa_haar_pushforward_bridge`
 
+> **Status, 2026-09-28.** The integration formula is proved in
+> `IwasawaIntegration.lean` (`map_iwasawaMap_haar`). This plan is kept as a record.
+
 Scope note only. This document plans the work; it proves nothing. It records
 the verified state of the project, surveys the Mathlib measure theory API by
 name and current signature, isolates the genuine remaining gap, and gives a

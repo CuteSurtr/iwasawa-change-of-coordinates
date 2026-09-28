@@ -1,5 +1,8 @@
 # haarG identification plan (branch `haar-identify`)
 
+> **Status, 2026-09-28.** Done: `modularCharacterFun_eq_one` and
+> `nuG_eq_haarScalarFactor_smul_haarG` in `IwasawaHaar.lean`.
+
 Goal: identify `haarGCoord` with `haarG` on `G n` and conclude
 `Measure.modularCharacterFun (g : G n) = 1` (unimodularity of GL_n(R)).
 

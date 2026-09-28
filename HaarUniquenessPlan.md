@@ -1,5 +1,10 @@
 # Haar Uniqueness Plan for the Iwasawa integration formula
 
+> **Status, 2026-09-28.** The integration formula is proved in
+> `IwasawaIntegration.lean` (`map_iwasawaMap_haar`). The step this plan found hard,
+> splitting the pulled-back measure into its factors, is avoided by treating
+> `B = AU` as a group and applying Haar uniqueness on `K × B`.
+
 Plan note. Records the strategy, the verified feasibility findings, the exact
 target, the weight power, the crux route, and the dependency order. Proves
 nothing here. Mathlib facts were read from the pinned copy under

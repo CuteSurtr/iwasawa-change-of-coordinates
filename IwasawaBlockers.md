@@ -1,5 +1,11 @@
 # Current Blockers and Status
 
+> **Status, 2026-09-28.** Out of date. There is no axiom in `IwasawaBridge.lean`
+> any more, the Jacobian of the actual derivative is proved
+> (`absDetInIwasawaBases_fderiv_iwasawaCharted_general` in `IwasawaComplete.lean`),
+> and the Haar measure formula is proved in `IwasawaIntegration.lean`. See the
+> README for the current state.
+
 This file is a current status note for the Iwasawa change-of-coordinates
 project. Older status logs have been superseded by the proved
 diffeomorphism and derivative layers.

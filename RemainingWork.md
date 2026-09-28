@@ -1,5 +1,14 @@
 # RemainingWork.md
 
+> **Status, 2026-09-28.** Superseded. The integration formula is proved in
+> `IwasawaIntegration.lean` (`map_iwasawaMap_haar`), by Haar uniqueness on `K × B`
+> rather than by the route planned here. The target below is also not right as
+> written: without the weight `δ(a)` on the `A` factor, the pushforward of
+> `haarK × haarA × haarN` is not a multiple of `haarG`, and the constant depends on
+> how the four Haar measures are normalized, not on the Cayley chart. In §1, the
+> factor `(det a)^n` comes from the density `|det g|^{-n}` of Haar measure on
+> `GL_n`, not from the chart on `A`.
+
 Scope for the next stage. The goal is the unconditional Haar pushforward identity
 
 ```lean
