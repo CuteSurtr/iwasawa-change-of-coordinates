@@ -20,7 +20,7 @@ this README. If any of those produced a bad term, the kernel would reject it.
 
 The **trusted computing base** (TCB) of a Lean development is therefore just:
 
-1. the kernel type checker (a few thousand lines),
+1. the kernel type checker (small compared to everything above it),
 2. the logical axioms the development actually invokes, and
 3. the hardware and operating system running the checker.
 
@@ -40,7 +40,7 @@ flowchart LR
     class ELAB untrust;
 ```
 
-**Propositions as types (Curry, Howard).** In CIC a proposition is a type and a
+**Propositions as types (Curry-Howard).** In CIC a proposition is a type and a
 proof is a term of that type: `h : P` literally means "`h` is a term of type `P`".
 Implication is the function type `P → Q`, universal quantification is the dependent
 product `∀ x, P x`. Checking a proof is therefore *type checking a term*, which is
@@ -57,17 +57,21 @@ every `axiom` reaching it. When it prints
 
 it certifies that `foo` uses **no** `sorry` (which is itself the axiom `sorryAx`),
 **no** project specific axiom, and **nothing** beyond the three standard logical
-axioms that Mathlib itself is built on. Every named result in this project is checked
-this way, and the build output is additionally scanned for the string `sorryAx` to
-guarantee no incomplete proof slipped through. This is the operational meaning of
-"axiom clean" throughout this README.
+axioms that Mathlib itself is built on. Most files in the project end with a block of
+`#print axioms` commands over their named results, which print during `lake build`;
+the `AxiomCheck*.lean` files cover more declarations and are built separately. The
+main theorems of `IwasawaIntegration.lean` go one step further: their `#print axioms`
+is wrapped in `#guard_msgs`, so `lake build` fails outright if one of them ever
+depends on `sorryAx` or on any axiom beyond the three below. This is the operational
+meaning of "axiom clean" in these documents.
 
 The three standard axioms are conservative and well understood:
 
 - **`propext`** (propositional extensionality): logically equivalent propositions are
   equal, $`(P \leftrightarrow Q) \to (P = Q)`$. Standard in classical mathematics.
 - **`Classical.choice`**: a nonempty type has a (noncomputable) inhabitant, the type
-  theoretic axiom of choice; with `propext` it yields excluded middle. Used for
+  theoretic axiom of choice; together with the other two it yields excluded middle
+  (Diaconescu's argument). Used for
   nonconstructive existence, for example the Haar measure (`Measure.haar`) and the
   basis `skBasis`.
 - **`Quot.sound`**: quotient types respect their defining relation. Needed because
@@ -84,15 +88,17 @@ computational content.
   explicit CIC term and rechecked. Tactics are convenience, not trust.
 - **Definitional equality (`rfl`, defeq).** The kernel identifies terms up to
   computation (beta, delta, iota, eta). The project uses this repeatedly: for example
-  `cayleyDerivOnSk X` unfolds definitionally to `-2 • sandwichOnSkCLM (…)`, and
-  `consEquiv α ys` is defeq to `Fin.cons ys.1 ys.2` in the Fubini transport.
+  `cayleyDerivOnSk X` unfolds definitionally to `-2 • sandwichOnSkCLM (…)`, and in the
+  Fubini transport of `volume_setOf_eval_eq_zero` the inverse of
+  `MeasurableEquiv.piFinSuccAbove` at `0` reduces to `Fin.cons` and the goal closes by
+  `rfl`.
 - **Decidability and `decide`.** A `Decidable` proposition carries an algorithm the
   kernel can run. `card_nnIndex_two : Fintype.card (nnIndex 2) = 1` is closed by
   `decide`, which evaluates the decision procedure *inside the kernel*, keeping the
   result in the TCB (contrast `native_decide`, below).
 - **Structural and well founded induction.** Inductive eliminators drive, for
   instance, the induction on the number of variables in `volume_setOf_eval_eq_zero`
-  and the induction on `Fin n` in the Gram, Schmidt continuity proof.
+  and the induction on `Fin n` in the Gram-Schmidt continuity proof.
 - **Type class inference.** Instances such as `MeasurableSpace`, `BorelSpace`,
   `IsHaarMeasure`, `NoAtoms`, and the `Matrix.linftyOp*` normed structures are
   resolved by the elaborator and then checked. Aligning them (reusing the existing
@@ -103,10 +109,11 @@ computational content.
 
 ### Techniques deliberately omitted (kept out of the TCB)
 
-- **`sorry` / `admit`.** Never used. Any occurrence surfaces as `sorryAx` in
-  `#print axioms` and is treated as a hard failure.
-- **Project axioms.** None. An earlier Haar "bridge" placeholder axiom was found
-  redundant and removed; the subtree declares no `axiom`.
+- **`sorry` / `admit`.** Never used. Any occurrence would surface as `sorryAx` in
+  `#print axioms`, and for the `#guard_msgs`-wrapped checks it fails the build.
+- **Project axioms.** None. An earlier Haar "bridge" placeholder axiom was removed,
+  and the statement it stood in for is now proved (`map_iwasawaMap_haar`); the
+  project declares no `axiom`.
 - **`native_decide`.** Avoided. It runs a decision procedure as compiled native code
   and trusts the Lean compiler and runtime, which *enlarges* the TCB. We use the
   kernel level `decide`, accepting slower checking for a smaller trusted base.
@@ -120,15 +127,16 @@ computational content.
   project's finite checks are small enough that ordinary `decide` suffices.
 - **Native compilation / `native_decide`.** Would speed up heavy finite checks at the
   cost of trust; not needed at these sizes.
-- **External automation (SMT, resolution hammers).** Lean offers `omega`, `polyrith`,
-  and `aesop`, but the genuinely hard steps here (the Cayley determinant, the Mobius
+- **External automation (SMT, resolution hammers).** Lean and Mathlib offer tactics
+  such as `omega` and `aesop`, but the genuinely hard steps here (the Cayley determinant, the Mobius
   intertwining, the Fubini null argument) are structural and were written by hand
   against the relevant Mathlib API, not discharged by a hammer.
 - **Code extraction.** CIC developments can extract executable programs; this project
   proves theorems about classical objects (Haar measure, manifolds), so there is
   nothing to extract.
 
-The upshot: every theorem in this subtree is a CIC term accepted by the Lean kernel
-using only `propext`, `Classical.choice`, and `Quot.sound`. That is the strongest
-standard guarantee a Lean formalization can offer.
+The upshot: every theorem in the project is a CIC term accepted by the Lean kernel
+using only `propext`, `Classical.choice`, and `Quot.sound`. The kernel checks that the
+proofs are correct; whether the statements say what the documentation claims is a
+separate question, which is why the documents quote the Lean statements.
 

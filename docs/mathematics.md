@@ -56,53 +56,57 @@ natural in the Iwasawa coordinates.
 
 The classical bridge between "Iwasawa decomposition" and
 "change of coordinates Jacobian" is the **Haar measure
-decomposition formula**. If $`dx`$ is a (left) Haar measure on
-$`G = GL_n(\mathbb{R})`$, with $`du`$, $`da`$, $`dk`$ Haar measures on $`U`$, $`A`$, $`K`$,
-and the product map $`U \times A \times K \to UAK = G`$ is the Jorgenson and Lang Iwasawa map,
-then for any $`f \in C_c(G)`$
+decomposition formula**. Let $`dg`$ be Haar measure on $`G = GL_n(\mathbb{R})`$ and
+$`dk`$, $`da`$, $`du`$ Haar measures on $`K`$, $`A`$, $`U`$. In Lang's order $`g = kau`$ (the
+order used throughout this project),
 
 ```math
-\int_G f(x)\, dx = c \cdot \int_U \int_A \int_K f(uak) \cdot \delta(a)^{-1}\, du\, da\, dk
+\int_G f(g)\, dg = c \int_K \int_A \int_U f(kau)\, \delta(a)\, du\, da\, dk ,
 ```
 
-for a constant $`c`$ and a homomorphism $`\delta : A \to \mathbb{R}^+`$ called the
-**Iwasawa character** (Jorgenson and Lang, Propositions 2.1, 2.3, 2.4). The
-Jacobian factor is precisely $`\delta(a)^{-1}`$: changing variables from
-$`x \in G`$ to $`(u, a, k) \in U \times A \times K`$ introduces the determinant of
-the differential of the Iwasawa map, which equals $`\delta(a)`$ (up to the
-constant $`c`$).
-
-For $`G = GL_n(\mathbb{R})`$ with the standard upper unipotent, positive diagonal, and
-orthogonal Iwasawa data, the explicit formula in Equation (3) of §I.2 of
-Jorgenson and Lang reads
+and in Jorgenson and Lang's order $`g = uak`$ the weight is inverted,
 
 ```math
-\delta(a) = \prod_{i \lt j} \frac{a_i}{a_j} = \prod_{i=1}^{n} a_i^{n - 2i + 1}.
+\int_G f(g)\, dg = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, dk\, da\, du ,
 ```
 
-This is the **explicit Jacobian** of the change of coordinates from
-ambient matrix entries to Iwasawa coordinates $`(u, a, k)`$. The
-proof is a direct computation: $`\delta(a)`$ is the determinant of the
-conjugation action of $`a \in A`$ on the Lie algebra $`\mathfrak{n} = \mathrm{Lie}(U)`$ of
-strictly upper triangular matrices, because the Lie algebra $`\mathfrak{n}`$
-is the *tangent space* to $`U`$ at the identity, and the change of
-variable formula on a Lie group near a point is governed by the
-adjoint action on the Lie algebra (Equations (1) through (3) of §I.2 of Jorgenson and Lang).
-The eigenvalues of $`\mathrm{Ad}(a)`$ on the basis $`E_{ij}`$ (for $`i \lt j`$) of $`\mathfrak{n}`$
-are exactly the characters $`\chi_{ij}(a) = a_i / a_j`$, and $`\delta(a)`$ is
-the product of these.
+for a constant $`c > 0`$ (depending only on how the four Haar measures are normalized)
+and the **Iwasawa character**
 
-This $`\mathrm{Ad}(a)`$ determinant is `adNN_det_eq_pair_product` in the project,
-and it is now a *factor* of the fully formalized pointwise Jacobian
-determinant of the charted Iwasawa map
-(`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). The measure theory needed
-to turn this density into the integration formula is now largely in place (see
-[The Haar measure layer](#the-haar-measure-layer-from-the-pointwise-jacobian-to-the-invariant-measure)):
-the factor Haar measures, the unimodularity of $`GL_n(\mathbb{R})`$, the conjugation crux,
-and the four factor identifications. What is not yet formalized is the final
-assembly, integrating against Haar measure across the change of variables to obtain
-the displayed integration formula; that step is future work and is not backed by any
-axiom.
+```math
+\delta(a) = \prod_{i \lt j} \frac{a_i}{a_j} = \prod_{i=1}^{n} a_i^{n - 2i + 1} = e^{2\rho(\log a)} .
+```
+
+The two forms are equivalent: substitute $`g \mapsto g^{-1}`$, which preserves $`dg`$
+because $`GL_n(\mathbb{R})`$ is unimodular, and use $`(kau)^{-1} = u^{-1} a^{-1} k^{-1}`$ with
+$`\delta(a^{-1}) = \delta(a)^{-1}`$. Both are proved in `IwasawaIntegration.lean`
+(`map_iwasawaMap_haar`, `lintegral_iwasawa`, `map_iwasawaMapJL_haar`); Jorgenson and
+Lang treat the Haar measure formula in Chapter I, §2.
+
+Read as a change of variables, the formula says that the Jacobian of
+$`(k, a, u) \mapsto kau`$, measured against Haar measure on each side, is $`\delta(a)`$.
+$`\delta(a)`$ is the determinant of $`\mathrm{Ad}(a) : X \mapsto a X a^{-1}`$ on the Lie algebra
+$`\mathfrak{n} = \mathrm{Lie}(U)`$ of strictly upper triangular matrices: $`\mathrm{Ad}(a)`$ scales the
+basis matrix $`E_{ij}`$ ($`i \lt j`$) by $`a_i / a_j`$. This is `adNN_det_eq_pair_product` in
+the project. It enters because moving $`a`$ past $`u`$ conjugates $`u`$, and conjugation by
+$`a`$ changes Haar measure on $`U`$ by exactly this determinant (`map_conjAut_haarN`).
+
+The project also computes the Jacobian in coordinates. In the Cayley, log and
+translation charts, the absolute determinant of the derivative of the Iwasawa map
+at a chart point $`(X, v, Z)`$, with $`a = e^{\mathrm{diag}(v)}`$, is
+$`2^{n(n-1)/2} (\det a)^n\, \delta(a)\, |\det(1+X)|^{-(n-1)}`$
+(`absDetInIwasawaBases_fderiv_iwasawaCharted_general`). This is consistent with the
+formula above: $`(\det a)^n = |\det g|^n`$ is cancelled by the density $`|\det g|^{-n}`$ of
+Haar measure on $`GL_n(\mathbb{R})`$ against Lebesgue measure on matrix entries,
+$`2^{n(n-1)/2} |\det(1+X)|^{-(n-1)}`$ is the density of Haar measure on $`K`$ in Cayley
+coordinates (the chart Jacobian is `det_cayleyDerivOnSk`; that this density is left
+invariant is the classical fact whose proof is unfinished in `IwasawaHaarK.lean`), and
+Lebesgue measure in the log and translation charts is already Haar measure on $`A`$
+and $`U`$. What is left over is $`\delta(a)`$.
+
+The integration formula itself is not proved through this Jacobian, though. The proof
+in `IwasawaIntegration.lean` uses Haar uniqueness on $`K \times B`$, $`B = AU`$, and needs no
+chart on $`K`$; see [section 15](#15-the-integration-formula-iwasawaintegrationlean).
 
 ### Why a *differential* isomorphism (not just a bijection)
 
@@ -202,8 +206,8 @@ a unique factorization
 g = k \cdot a \cdot u, \qquad k \in O(n),\ a \text{ positive diagonal},\ u \text{ upper unipotent}.
 ```
 
-The proof goes through Gram, Schmidt orthonormalization: write $`g`$'s
-columns as a tuple of vectors $`(v_1, \ldots, v_n)`$, run the Gram, Schmidt
+The proof goes through Gram-Schmidt orthonormalization: write $`g`$'s
+columns as a tuple of vectors $`(v_1, \ldots, v_n)`$, run the Gram-Schmidt
 procedure to produce an orthonormal basis $`(e_1', \ldots, e_n')`$ of $`\mathbb{R}^n`$,
 let $`Q`$ be the matrix of $`e_i'`$ (orthogonal), and $`R = Q^T g`$ (upper
 triangular with positive diagonal). Then $`R = a \cdot u`$ for $`a`$ the
@@ -212,7 +216,7 @@ diagonal of $`R`$ and $`u = a^{-1} R`$ upper unipotent. Set $`k = Q`$.
 Uniqueness comes from a clever orthogonality argument: an
 orthogonal upper triangular matrix with positive diagonal must be
 the identity. This existence plus uniqueness is the parent project
-[`project.Iwasawa`](../../project/Iwasawa.lean), which we wrap as
+[`project.Iwasawa`](../project/Iwasawa.lean), which we wrap as
 `iwasawaEquiv : K n × A n × UU n ≃ G n`, encoding the bijection
 $`K \times A \times U \simeq GL_n(\mathbb{R})`$.
 
@@ -279,16 +283,16 @@ embed the result back into the open subtype $`GL_n(\mathbb{R})`$ via
 The inverse direction is substantially harder, and is the most
 technically interesting topological content of the project. Given
 $`g \in GL_n(\mathbb{R})`$, we need to show that the maps $`g \mapsto k`$, $`g \mapsto a`$,
-$`g \mapsto u`$ are continuous. Each of these is built from Gram, Schmidt
+$`g \mapsto u`$ are continuous. Each of these is built from Gram-Schmidt
 orthonormalization applied to the columns of $`g`$, so we are
-asking: **is Gram, Schmidt continuous in its input function?**
+asking: **is Gram-Schmidt continuous in its input function?**
 
 The answer is yes, on the open set of input tuples that are
-linearly independent. The intuition: the Gram, Schmidt outputs are
+linearly independent. The intuition: the Gram-Schmidt outputs are
 rational functions of the input vectors, with positive denominators
 (norms of intermediate vectors) on the linearly independent locus,
 so they are continuous (in fact smooth). Concretely, Wikipedia's
-"Gram, Schmidt process" article gives an explicit determinantal
+"Gram-Schmidt process" article gives an explicit determinantal
 formula:
 
 ```math
@@ -311,7 +315,7 @@ inline by induction on the index $`i : \mathrm{Fin}\,n`$ using
 Each term in the sum is continuous in $`f`$ by induction (the
 projection onto a 1 dimensional subspace is the rational expression
 $`(\langle v, w \rangle / \lVert v \rVert^2) \cdot v`$ via `Submodule.starProjection_singleton`,
-which is continuous when $`\lVert v \rVert \ne 0`$, and the previous Gram, Schmidt
+which is continuous when $`\lVert v \rVert \ne 0`$, and the previous Gram-Schmidt
 outputs are nonzero on the linearly independent locus).
 
 This is the proof of `continuous_gramSchmidt_at`, which feeds into
@@ -405,8 +409,10 @@ Two crucial facts:
 In words: as $`X`$ ranges over skew symmetric matrices $`\mathrm{Sk}\,n`$, the
 formula $`\mathrm{cayley}(X) = (1 - X)(1 + X)^{-1}`$ ranges over orthogonal
 matrices $`Q`$ for which $`1 + Q`$ is invertible (i.e., $`-1`$ is not an
-eigenvalue of $`Q`$). This is a dense open subset of $`O(n)`$, called
-$`K_{\mathrm{open}}\,n`$ in our file.
+eigenvalue of $`Q`$). This is a dense open subset of $`SO(n)`$, called
+$`K_{\mathrm{open}}\,n`$ in our file. It lies inside $`SO(n)`$ because an orthogonal
+matrix with determinant $`-1`$ always has $`-1`$ as an eigenvalue, so the other
+component of $`O(n)`$ needs different charts (next section).
 
 The transform is **its own inverse**: applying $`\mathrm{cayley}`$ twice
 returns the input (when both $`1 + X`$ and $`1 + \mathrm{cayley}(X)`$ are
@@ -444,7 +450,7 @@ itself) is achieved through `contMDiff_isOpenEmbedding` and
 `contMDiffOn_isOpenEmbedding_symm` plus a function equality
 identification. Bundling all of this gives `cayleyDiffeomorph`, a
 $`C^\infty`$ diffeomorphism between the
-skew symmetric matrices and the dense open subset of $`O(n)`$.
+skew symmetric matrices and the dense open subset $`K_{\mathrm{open}}\,n`$ of $`SO(n)`$.
 
 ### 6. The Sphere pattern multi chart atlas covering all of $`K = O(n)`$
 
@@ -615,44 +621,44 @@ gives the explicit formulas above.
 
 ## The Haar measure layer: from the pointwise Jacobian to the invariant measure
 
-The Jacobian milestones produce a *pointwise* density. The Haar layer turns that
-density into *measures* and proves the invariance and identification statements
-that the integration formula needs. This is where the project crosses from
-differential topology into measure theory, and it is the substance of
-`IwasawaHaar.lean`, `IwasawaHaarK.lean`, and `PolynomialNullSet.lean`.
+The Jacobian milestones produce a *pointwise* density. The Haar layer works with
+*measures*: it proves that $`GL_n(\mathbb{R})`$, $`U`$ and $`K`$ are unimodular, how conjugation
+acts on Haar measure of $`U`$, and finally the integration formula. This is where the
+project crosses from differential topology into measure theory, in
+`IwasawaHaar.lean`, `IwasawaIntegration.lean`, `IwasawaHaarK.lean`, and
+`PolynomialNullSet.lean`.
 
 ```mermaid
 flowchart TD
     HG["haar_G, haar_K, haar_A, haar_N (Mathlib Measure.haar)"]
     UNI["modularCharacterFun_eq_one<br/>GL_n(R) is unimodular"]
-    CRUX["map_conjAut_haarN<br/>Ad(a) scales haar_N by delta(a)"]
-    NUG["nuG = c haar_G<br/>coordinate Haar = canonical Haar"]
-    AU["haarA_exp = c haar_A, nuU = c haar_N<br/>(factor identifications, Haar uniqueness)"]
-    RHO["rhoK proportional det(1+X)^-(n-1)<br/>det_cayleyDerivOnSk (Sylvester Franke reuse)"]
-    NUK["nuK = map cayleyToK (volSk.withDensity rhoK)"]
-    PSI["cayleyLeftTrans = Mobius translation<br/>cayley(Psi X) = k0 cayley X"]
-    MISS["mem_cayleyLeftDom_iff<br/>miss set = polynomial zero locus"]
-    POLY["volume_setOf_eval_eq_zero<br/>nonzero polynomial zero set is null"]
-    INV["nuK left invariant under SO(n)  (future work)"]
-    ID["nuK = c haar_K by uniqueness  (future work)"]
-    FORM["global integration formula  (future work)"]
+    UNIU["U and K are unimodular"]
+    CRUX["map_conjAut_haarN<br/>pushforward along u to a^-1 u a is delta(a) haar_N"]
+    B["B = AU, K x B homeomorphic to G via (k, b) to k b^-1"]
+    FORM["map_iwasawaMap_haar<br/>integration formula"]
+    NUG["nuG = c haar_G, haarA_exp = c haar_A, nuU = c haar_N"]
+    RHO["det_cayleyDerivOnSk<br/>Cayley density det(1+X)^-(n-1)"]
+    NUK["nuK, Mobius translation, miss set"]
+    POLY["volume_setOf_eval_eq_zero"]
+    INV["nuK left invariant, nuK = c haar_K (not done)"]
 
-    HG --> UNI --> NUG
-    HG --> CRUX --> NUG
-    NUG --> AU
-    RHO --> NUK
-    NUK --> INV
-    PSI --> INV
-    MISS --> INV
+    HG --> UNI --> FORM
+    HG --> UNIU --> FORM
+    HG --> CRUX --> FORM
+    B --> FORM
+    HG --> NUG
+    RHO --> NUK --> INV
     POLY --> INV
-    INV --> ID --> FORM
-    AU --> FORM
 
     classDef ok fill:#e6ffed,stroke:#2da44e,color:#111;
     classDef future fill:#fff8c5,stroke:#bf8700,color:#111;
-    class HG,UNI,CRUX,NUG,AU,RHO,NUK,PSI,MISS,POLY ok;
-    class INV,ID,FORM future;
+    class HG,UNI,UNIU,CRUX,B,FORM,NUG,RHO,NUK,POLY ok;
+    class INV future;
 ```
+
+The right-hand column (the explicit Cayley density on $`K`$) was the original route to
+the integration formula. It is no longer needed for it, and its last steps are not
+formalized.
 
 ### 10. Abstract Haar measures and the unimodularity of $`GL_n(\mathbb{R})`$
 
@@ -701,7 +707,7 @@ second countable group $`G`$ then yields
 
 The single most load bearing measure identity is how conjugation by a diagonal
 $`a \in A`$ acts on Haar measure of the unipotent group $`U`$. Write
-$`\mathrm{conj}_a(u) = a\,u\,a^{-1}`$; this is a group automorphism of $`U`$ (`conjAut`).
+$`\mathrm{conj}_a(u) = a^{-1}\,u\,a`$; this is a group automorphism of $`U`$ (`conjAut a`).
 The statement is
 
 ```math
@@ -711,8 +717,10 @@ The statement is
 matching the Lean statement `map (conjAut a) haarN = (det (adNN a)).toNNReal • haarN`.
 The proof transports to the chart $`U \cong NN_n = \mathfrak{n}`$ (strictly upper triangular
 matrices) via $`u \mapsto u - 1`$, where conjugation becomes the *linear*
-automorphism $`Z \mapsto a Z a^{-1}`$ of $`\mathfrak{n}`$ whose determinant is $`\delta(a)`$
-(`det_adNN_pos`, `det_conjDiag`). Pushing the chart Lebesgue measure (the explicit
+automorphism $`Z \mapsto a^{-1} Z a`$ of $`\mathfrak{n}`$ whose determinant is $`\delta(a)^{-1}`$
+(`det_adNN_pos`, `det_conjDiag`). Pushing Lebesgue measure forward along a linear
+automorphism multiplies it by the inverse of the absolute determinant, which is where
+the factor $`\delta(a)`$ comes from. Pushing the chart Lebesgue measure (the explicit
 measure $`\nu_U`$) through a linear automorphism rescales it by that determinant
 factor, and the bookkeeping yields exactly $`\delta(a)\,\mathrm{haar}_N`$; the abstract
 modular machinery `mulEquivHaarChar_conjAut` packages this as the Haar character of
@@ -746,10 +754,10 @@ left invariant; $`O(n)`$ is *curved*, and flat Lebesgue is **not** invariant.
 
 ### 13. The $`K = O(n)`$ Cayley chart Haar density (`IwasawaHaarK.lean`)
 
-This is the long pole of the integration formula and the most subtle part of the
-measure theory. The Cayley chart $`\mathrm{cayleyToK} : \mathrm{Sk}_n \to K_n`$ parametrizes the
-identity component $`SO(n)`$ (the locus where $`1 + Q`$ is invertible, which forces
-$`\det Q = +1`$). The naive guess, "push flat Lebesgue on $`\mathrm{Sk}_n`$ forward through
+This was the planned route to the $`K`$ factor of the integration formula (section 15
+proves the formula without it) and is the most subtle part of the measure theory. The Cayley chart $`\mathrm{cayleyToK} : \mathrm{Sk}_n \to K_n`$ parametrizes the
+dense open subset of $`SO(n)`$ where $`1 + Q`$ is invertible (invertibility of $`1 + Q`$
+forces $`\det Q = +1`$). The naive guess, "push flat Lebesgue on $`\mathrm{Sk}_n`$ forward through
 the chart," is **wrong** for $`n \ge 2`$, because $`O(n)`$ is a curved group: left
 translation in Cayley coordinates is a Mobius type map with nonconstant Jacobian.
 
@@ -776,7 +784,7 @@ $`\mathrm{cayley}(X)^{-1} = \mathrm{cayley}(X)^T`$ produces a genuine endomorphi
 
 For skew $`X`$ one has $`((1+X)^{-1})^T = (1 - X)^{-1}`$, so this is **exactly**
 $`-2 \cdot \mathrm{sandwichOnSkCLM}((1+X)^{-1})`$, where $`\mathrm{sandwichOnSkCLM}(B) : \delta \mapsto B^T \delta B`$
-is the congruence whose determinant is the Sylvester, Franke value
+is the congruence whose determinant is the Sylvester-Franke value
 $`(\det B)^{n-1}`$ (`det_sandwichOnSkCLM`, Milestone 6). Therefore
 
 ```math
@@ -845,7 +853,7 @@ shows is Lebesgue null.
 The change of variables that will eventually prove $`\nu_K`$ left invariant lives on
 the open dense chart domain; to ignore the complement it must be Lebesgue null.
 Mathlib has the one variable fact (a nonzero polynomial has finitely many roots,
-`Polynomial.finite_setOf_isRoot`) and the Schwartz, Zippel counting bound over finite
+`Polynomial.finite_setOf_isRoot`) and the Schwartz-Zippel counting bound over finite
 sets, but **not** the multivariate Lebesgue statement. We prove it from scratch as a
 self contained, upstreamable lemma:
 
@@ -875,6 +883,74 @@ self contained, upstreamable lemma:
 
 This lemma closes the gap that gated step 2 of the $`K`$ factor invariance. Applying
 it to $`\det((1 + X) + k_0(1 - X))`$ as a polynomial in the `skBasis` coordinates of
-$`X`$ (the application is itself future work, see [Remaining Work](../README.md#remaining-work))
+$`X`$ (the application is not formalized, see [What's not done](../README.md#whats-not-done))
 shows $`\mathrm{cayleyLeftDom}\,k_0`$ is co-null in $`\mathrm{Sk}_n`$.
 
+### 15. The integration formula (`IwasawaIntegration.lean`)
+
+The statement, in Lang's order, is
+
+```math
+\texttt{map\_iwasawaMap\_haar} : \quad (k, a, u) \mapsto kau \ \text{ pushes } \ dk \times \delta(a)\,da \times du \ \text{ forward to } \ c \cdot dg, \qquad c > 0,
+```
+
+with `lintegral_iwasawa` the same statement for integrals of measurable
+$`f : G \to [0, \infty]`$, and `map_iwasawaMapJL_haar` the version for $`g = uak`$ with
+weight $`\delta(a)^{-1}`$. The proof uses Haar uniqueness twice over, never a Jacobian.
+
+**The group $`B`$.** $`B = AU`$, the upper triangular matrices with positive diagonal, is
+a subgroup of $`G`$ (`BB`): $`(au)(a'u') = (aa')\bigl((a'^{-1}ua')u'\bigr)`$ and
+$`(au)^{-1} = a^{-1}(a u^{-1} a^{-1})`$. The map $`(a, u) \mapsto au`$ is a homeomorphism
+$`A \times U \simeq B`$ (`toBBHomeomorph`); its inverse reads off the $`A`$ and $`U`$ Iwasawa
+coordinates, which are continuous by `continuous_iwasawaSymm`.
+
+**The chart $`K \times B \simeq G`$.** $`\psi(k, b) = k b^{-1}`$ is a homeomorphism
+(`kbHomeomorph`), and for $`h = (k_0, b_0)`$ in the product group $`K \times B`$,
+
+```math
+\psi(h \cdot x) = k_0\, \psi(x)\, b_0^{-1} \qquad (\texttt{kbHomeomorph\_mul}).
+```
+
+Haar measure on $`G`$ is invariant under $`g \mapsto k_0\, g\, b_0^{-1}`$: under left
+multiplication because it is a left Haar measure, and under right multiplication because
+$`G`$ is unimodular (`modularCharacterFun_eq_one`). So the pullback
+$`\psi^{*}\mathrm{haar}_G`$ (`haarKB`) is a left invariant, locally finite measure on the
+second countable, locally compact group $`K \times B`$, that is, a Haar measure on it.
+
+**The candidate.** Push $`\mathrm{haar}_K \times \delta(a)\,\mathrm{haar}_A \times \mathrm{haar}_N`$
+forward along $`(k, a, u) \mapsto (k, (au)^{-1})`$ (`candKB`). Left multiplication by
+$`(k_0, b_0)`$ with $`b_0^{-1} = a'u'`$ becomes $`k \mapsto k_0 k`$ on the first coordinate
+and, on the other two,
+
+```math
+(a, u) \mapsto \bigl(a a',\ (a'^{-1} u a')\, u'\bigr) \qquad (\texttt{toBB\_mul}),
+```
+
+because $`b_0\,(au)^{-1} = \bigl((au)\,b_0^{-1}\bigr)^{-1} = \bigl((au)(a'u')\bigr)^{-1}`$. On the $`A`$ coordinate this is translation by $`a'`$, which turns
+$`\delta(a)\,da`$ into $`\delta(a')^{-1}\,\delta(a)\,da`$ (`map_mul_right_haarAδ`, using
+$`\delta(aa'^{-1}) = \delta(a)\,\delta(a')^{-1}`$). On the $`U`$ coordinate it is conjugation
+followed by right translation, which multiplies $`du`$ by $`\delta(a')`$
+(`map_conjAut_mul_right_haarN`: the conjugation formula `map_conjAut_haarN`, plus the
+unimodularity of $`U`$, `modularCharacterFun_UU_eq_one`). The two factors cancel
+(`map_rightMulAU_haarAU`), and left invariance of $`\mathrm{haar}_K`$ handles the first
+coordinate, so the candidate is left invariant too.
+
+**Uniqueness.** `isMulLeftInvariant_eq_smul` gives
+$`\mathrm{candidate} = c \cdot \psi^{*}\mathrm{haar}_G`$ with
+$`c = \mathrm{haarScalarFactor}`$, and $`c \ne 0`$ because the candidate is a nonzero
+measure. Pushing both sides forward along $`\psi`$, and noting that $`\psi`$ composed with
+$`(k, a, u) \mapsto (k, (au)^{-1})`$ is the Iwasawa map, gives the theorem.
+
+**The other order.** For $`g = uak`$, write $`uak = (k^{-1} a^{-1} u^{-1})^{-1}`$
+(`iwasawaMapJL_eq`) and use that inversion preserves Haar measure on each of the four
+groups: on $`A`$ because it is abelian, and on $`G`$, $`U`$, $`K`$ because they are unimodular
+(`isInvInvariant_of_isMulRightInvariant`; $`K`$ is unimodular because it is compact,
+`modularCharacterFun_K_eq_one`). Inversion also turns $`\delta(a)^{-1}\,da`$ into
+$`\delta(a)\,da`$ (`map_inv_haarA_withDensity_inv`).
+
+**The modular character of $`B`$.** The same measure $`\delta(a)\,da\,du`$, carried to $`B`$
+by $`(a, u) \mapsto (au)^{-1}`$, is a left Haar measure on $`B`$ (`haarBB`). Right
+multiplication by $`a \in A \subseteq B`$ multiplies it by $`\delta(a)`$, so Mathlib's modular
+character of $`B`$, `Measure.modularCharacterFun`, takes the value $`\delta(a)`$ at $`a`$
+(`modularCharacterFun_toBB`). This is the precise sense in which $`\delta`$ "is the modular
+function of the Borel subgroup".

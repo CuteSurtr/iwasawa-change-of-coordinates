@@ -98,6 +98,11 @@ theorem iwasawaLieMap_injective  : Function.Injective  (iwasawaLieMap (n := n))
 noncomputable def iwasawaLieEquiv :
     (KK n × AA n × NN n) ≃ₗ[ℝ] Matrix (Fin n) (Fin n) ℝ
 
+/-- Milestone 5 (d), in `IwasawaLieDecomposition.lean`: `Sym_n = 𝔞 ⊕ 𝔫_sym`,
+where `NNsym n = {X + Xᵀ : X ∈ NN n}`. -/
+theorem sym_eq_aa_sup_nnSym : Sym n = AA n ⊔ NNsym n
+theorem disjoint_AA_NNsym : Disjoint (AA n) (NNsym n)
+
 /-- Milestone 5 and 6: geometric differential of the product map at the
 identity and at a general point, in the project's charts. The `-2` on the
 `K`-direction is the Cayley chart's first-order coefficient. -/
@@ -140,8 +145,9 @@ theorem absDetInIwasawaBases_fderiv_iwasawaCharted_general
 /-- `GL_n(ℝ)` is unimodular: its modular character is identically 1. -/
 theorem modularCharacterFun_eq_one (g : G n) : Measure.modularCharacterFun g = 1
 
-/-- The conjugation crux: conjugation by `a ∈ A` scales `haarN` by
-`δ(a) = det (adNN a) = ∏_{i<j} a_i/a_j` (here as the `toNNReal` scalar). -/
+/-- The conjugation crux: `conjAut a` is `u ↦ a⁻¹ u a`, and pushing `haarN`
+forward along it multiplies it by `δ(a) = det (adNN a) = ∏_{i<j} a_i/a_j`
+(here as the `toNNReal` scalar). -/
 lemma map_conjAut_haarN (a : A n) :
     Measure.map (conjAut a) (haarN (n := n))
       = (LinearMap.det (adNN a).toLinearMap).toNNReal • haarN
@@ -154,8 +160,45 @@ lemma haarAExplicit_eq_haarScalarFactor_smul_haarA :
 lemma nuU_eq_haarScalarFactor_smul_haarN :
     nuU (n := n) = Measure.haarScalarFactor (nuU (n := n)) haarN • haarN
 
-/- Milestone 7: the K Cayley chart Haar (namespace `IwasawaCoC.Complete`,
-`IwasawaHaarK.lean`). The exponent −(n−1) is read off `det_sandwichOnSkCLM`. -/
+/- Milestone 8: the integration formula (namespace `IwasawaCoC.Complete`,
+`IwasawaIntegration.lean`). `iwasawaDeltaNN a = ∏_{i<j} a_i/a_j` as an `ℝ≥0`. -/
+
+/-- `U` and `K = O(n)` are unimodular. -/
+theorem modularCharacterFun_UU_eq_one (u : UU n) : Measure.modularCharacterFun u = 1
+theorem modularCharacterFun_K_eq_one (k : K n) : Measure.modularCharacterFun k = 1
+
+/-- The Iwasawa integration formula, Lang's order `g = k a u`. -/
+theorem map_iwasawaMap_haar :
+    ∃ c : ℝ≥0, 0 < c ∧
+      Measure.map (iwasawaMap (n := n))
+          ((haarK (n := n)).prod
+            (((haarA (n := n)).withDensity fun a => (iwasawaDeltaNN a : ℝ≥0∞)).prod haarN))
+        = c • haarG
+
+/-- The same, as an integration formula. -/
+theorem lintegral_iwasawa :
+    ∃ c : ℝ≥0, 0 < c ∧ ∀ f : G n → ℝ≥0∞, Measurable f →
+      (c : ℝ≥0∞) * ∫⁻ g, f g ∂haarG
+        = ∫⁻ k, ∫⁻ a, (iwasawaDeltaNN a : ℝ≥0∞) *
+            ∫⁻ u, f (iwasawaMap (k, a, u)) ∂haarN ∂haarA ∂haarK
+
+/-- Jorgenson and Lang's order `g = u a k`, with weight `δ(a)⁻¹`. -/
+theorem map_iwasawaMapJL_haar :
+    ∃ c : ℝ≥0, 0 < c ∧
+      Measure.map (iwasawaMapJL (n := n))
+          ((haarN (n := n)).prod
+            (((haarA (n := n)).withDensity fun a => ((iwasawaDeltaNN a)⁻¹ : ℝ≥0)).prod
+              haarK))
+        = c • haarG
+
+/-- The modular character of `B = A·U` (Mathlib's `Measure.modularCharacterFun`) at
+`a ∈ A` is `δ(a)`. Here `toBB (a, 1)` is `a` as an element of `B`. -/
+theorem modularCharacterFun_toBB (a : A n) :
+    Measure.modularCharacterFun (toBB (a, 1)) = iwasawaDeltaNN a
+
+/- The explicit Haar measure on K in Cayley coordinates (namespace
+`IwasawaCoC.Complete`, `IwasawaHaarK.lean`); not needed for the integration formula.
+The exponent −(n−1) is read off `det_sandwichOnSkCLM`. -/
 
 /-- The intrinsic Cayley chart derivative on `Sk n`, equal to `-2 • sandwichOnSkCLM ((1+X)⁻¹)`. -/
 noncomputable def cayleyDerivOnSk (X : Sk n) : Sk n →L[ℝ] Sk n
@@ -189,3 +232,33 @@ correction $`((1 + 0).\det)^{-1\,(n-1)}`$ is $`1`$, and the formula reduces to t
 chart-center value $`2^{\,n(n-1)/2}\,(\det a)^{n}\,\det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr)`$;
 this consistency is checked in `IwasawaComplete.lean`.
 
+## Milestone index
+
+Where each piece sits relative to Jorgenson and Lang, *Spherical Inversion on*
+$`SL_n(\mathbb{R})`$, Chapter I. Everything listed is proved except the last row.
+
+| # | Result | Jorgenson and Lang |
+|---|--------|--------------------|
+| 1 | `iwasawaEquiv : K × A × U ≃ GL_n(ℝ)` | Thm I.1.1, set theoretic part |
+| 1b | `inv_iwasawa_jl`: $`(kau)^{-1} = u^{-1} a^{-1} k^T`$, Lang's order to theirs | §I.1, p. 2 |
+| 1b | `cartanInvolution`, `cartanInvolution_involutive` | §I.1, p. 2 |
+| 2 | `continuous_iwasawaMap`, `continuous_iwasawaSymm`, `iwasawaHomeomorph` | Thm I.1.1 |
+| 3 | smooth structures on `G n`, `UU n`, `A n`; the Cayley transform (`cayley`, `cayleyInv`, `cayleyEquiv`, `cayleyHomeomorph`, `cayleyDiffeomorph`) | Thm I.1.1; Cayley 1846 |
+| 3 | the atlas `cayleyOpenChartAt`, `instChartedSpaceK`, `instIsManifoldK` | Thm I.1.1 |
+| 3 | `iwasawaDiffeomorph : K × A × U ≃ₘ GL_n(ℝ)` | Thm I.1.1 |
+| 4 | `cartanLieDecomp`: $`\mathfrak{gl}_n = \mathrm{Sym} \oplus \mathrm{Sk}`$ | §I.3, p. 12 |
+| 5 | `iwasawaLieDecomp`, `iwasawaLieEquiv`: $`\mathfrak{gl}_n = \mathfrak{k} \oplus \mathfrak{a} \oplus \mathfrak{n}`$ | §I.3 |
+| 5 | `sym_eq_aa_sup_nnSym`, `disjoint_AA_NNsym`: $`\mathrm{Sym} = \mathfrak{a} \oplus \mathfrak{n}_{\mathrm{sym}}`$ | §I.3, p. 14 |
+| 5 | `iwasawaMfderivAtIdentity`: the differential at the identity | §I.3 |
+| 6 | `iwasawaMfderivAtFactored`: the differential at a general point | §I.2, §I.3 |
+| 6 | `det_sandwichOnSkCLM`: Sylvester-Franke, $`(\det B)^{n-1}`$ on $`\mathrm{Sk}_n`$ | |
+| 6 | `adNN_det_eq_pair_product`: $`\det(\mathrm{Ad}(a)\vert_{\mathfrak{n}}) = \prod_{i<j} a_i / a_j`$ | §I.2, Eq. (3) |
+| 6 | `absDetInIwasawaBases_fderiv_iwasawaCharted_general`: the Jacobian determinant | §I.2 |
+| 7 | `modularCharacterFun_eq_one`: $`GL_n(\mathbb{R})`$ is unimodular | §I.2 |
+| 7 | `map_conjAut_haarN`: pushing $`\mathrm{haar}_N`$ along $`u \mapsto a^{-1}ua`$ multiplies it by $`\delta(a)`$ | §I.2, Eq. (1) to (3) |
+| 7 | `nuG_eq_haarScalarFactor_smul_haarG`, `haarAExplicit_eq_…`, `nuU_eq_…`: explicit Haar measures | §I.2 |
+| 7 | `det_cayleyDerivOnSk`, `nuK`, `cayleyLeftTrans`, `mem_cayleyLeftDom_iff`: Haar measure on $`K`$ in Cayley coordinates (partial) | |
+| 7 | `MvPolynomial.volume_setOf_eval_eq_zero`: polynomial zero sets are null | |
+| 8 | `map_iwasawaMap_haar`, `lintegral_iwasawa`, `map_iwasawaMapJL_haar`: the integration formula | §I.2, Prop. 2.1 to 2.4 |
+| 8 | `modularCharacterFun_toBB`: the modular character of $`B = AU`$ on $`A`$ is $`\delta`$ | §I.2 |
+| | not done: left invariance of `nuK`, the $`\det = -1`$ component, `nuK = c • haarK` | |

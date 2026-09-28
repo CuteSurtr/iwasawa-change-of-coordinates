@@ -36,13 +36,13 @@ $`(((g.1)^T)^{-1})^{T-1} = g.1`$ via the rewrite chain
 `Matrix.transpose_nonsing_inv → Matrix.transpose_transpose →
 Matrix.nonsing_inv_nonsing_inv`.
 
-### Milestone 2: Topology and Gram, Schmidt continuity
+### Milestone 2: Topology and Gram-Schmidt continuity
 
 `continuous_iwasawaMap` is one rule of `Continuous.matrix_mul` lifted
 through subtype embeddings.
 
 `continuous_iwasawaSymm` is the substantial piece. It reduces to
-continuity of the parent project's Gram, Schmidt derived `qMat`, `dMat`,
+continuity of the parent project's Gram-Schmidt derived `qMat`, `dMat`,
 `uMat` on `G n`, which in turn reduces to continuity of `gramSchmidt`
 and `gramSchmidtNormed` (Mathlib's
 `Mathlib.Analysis.InnerProductSpace.GramSchmidtOrtho`) in the input
@@ -61,7 +61,7 @@ Mathlib v4.30 does not package this continuity, so we prove it inline:
 * `continuous_qMat_subtype`, `continuous_rMat_subtype`,
   `continuous_dMat_subtype`, `continuous_diagInv_dMat_subtype`,
   `continuous_uMat_subtype`: entry wise continuity of the four matrix
-  factors built from Gram, Schmidt outputs.
+  factors built from Gram-Schmidt outputs.
 * `continuous_iwasawaSymm` assembles the three factors.
 
 This is the kind of result that could plausibly be upstreamed to
@@ -97,8 +97,10 @@ The major mathematical work. The Cayley transform
 \mathrm{cayley}\,X = (1 - X)(1 + X)^{-1}
 ```
 
-provides a parametrization of $`O(n)`$ minus a measure zero set by
-skew symmetric matrices. The full chain:
+parametrizes $`SO(n)`$ minus a measure zero set (the orthogonal matrices with
+eigenvalue $`-1`$) by skew symmetric matrices. It never reaches the other
+component of $`O(n)`$: an orthogonal $`Q`$ with $`\det Q = -1`$ always has $`-1`$ as
+an eigenvalue. The full chain:
 
 * `one_add_skew_isUnit` ($`1 + X`$ invertible for $`X`$ skew). Proof:
   $`(1 + X)(1 - X) = 1 + X \cdot X^T`$ (using $`X^T = -X`$), and
@@ -113,7 +115,7 @@ skew symmetric matrices. The full chain:
   $`\mathrm{cayley}(\mathrm{cayley}\,X) = X`$. The proof shows
   $`1 - \mathrm{cayley}\,X = X \cdot (1 + \mathrm{cayley}\,X)`$ by post multiplying both sides by
   $`(1 + X)`$ and using the algebraic identities
-  $`(1 \pm \mathrm{cayley}\,X)(1 + X) = X + X`$ and $`(1 + \mathrm{cayley}\,X)(1 + X) = 1 + 1`$.
+  $`(1 - \mathrm{cayley}\,X)(1 + X) = X + X`$ and $`(1 + \mathrm{cayley}\,X)(1 + X) = 1 + 1`$.
   Specializations give the left and right inverses
   `cayleyInv_cayley` (on `Sk n`) and `cayley_cayleyInv` (on the
   invertibility set).
@@ -141,8 +143,8 @@ skew symmetric matrices. The full chain:
 ### Milestone 3: Multi chart atlas (Sphere pattern)
 
 The single Cayley chart at the identity covers $`K_{\mathrm{open}}\,n`$ (the open
-dense subset of $`O(n)`$ where $`-1`$ is not an eigenvalue of $`Q`$). To
-cover the rest of $`O(n)`$, we follow Mathlib's pattern from
+dense subset of $`SO(n)`$ where $`-1`$ is not an eigenvalue of $`Q`$). To
+cover the rest of $`O(n)`$, including the whole $`\det = -1`$ component, we follow Mathlib's pattern from
 [`Mathlib.Geometry.Manifold.Instances.Sphere`](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/Instances/Sphere.html)
 (stereographic projection from each unit vector, due to Heather Macbeth,
 2021) and put a chart at every point.
@@ -214,10 +216,10 @@ $`(X, Y, Z) \in \mathfrak{k} \times \mathfrak{a} \times \mathfrak{n} \mapsto X +
 This is the algebraic content of "the differential of the Iwasawa map
 at the identity is invertible," realized as a `LinearEquiv`.
 
-### Milestone 6: Jacobian determinant (Sylvester, Franke)
+### Milestone 6: Jacobian determinant (Sylvester-Franke)
 
 `det_sandwichOnSkCLM` ($`\det(\mathrm{sandwich}(B)) = (\det B)^{n-1}`$ on $`\mathrm{Sk}_n`$) is
-the $`k = 2`$ case of the Sylvester, Franke identity
+the $`k = 2`$ case of the Sylvester-Franke identity
 $`\det(\Lambda^k B) = (\det B)^{\binom{n-1}{k-1}}`$, via the isomorphism
 $`\mathrm{Sk}_n \cong \Lambda^2(\mathbb{R}^n)`$. The proof reduces $`B`$ to a product of
 elementary matrices (`Matrix.TransvectionStruct`): the determinant is multiplicative
@@ -239,9 +241,10 @@ section (subsections 10 to 14). In one line each:
 - `modularCharacterFun_eq_one`: the $`|\det g|^{-n}`$ weighted coordinate Haar is both
   left and right invariant (each translation is linear with determinant
   $`(\det g_0)^n`$, cancelled by the density), so $`GL_n(\mathbb{R})`$ is unimodular.
-- `map_conjAut_haarN`: in the entry chart, conjugation by $`a`$ is the linear
-  automorphism $`Z \mapsto a Z a^{-1}`$ of determinant $`\delta(a) > 0`$; pushing Haar
-  through it yields the factor $`\delta(a)`$, that is $`(\mathrm{conj}_a)_*\mathrm{haar}_N = \delta(a)\,\mathrm{haar}_N`$.
+- `map_conjAut_haarN`: `conjAut a` is $`u \mapsto a^{-1} u a`$. In the entry chart it is
+  the diagonal linear map $`Z \mapsto a^{-1} Z a`$, of determinant $`\delta(a)^{-1}`$, and a
+  linear map scales Lebesgue measure under pushforward by the inverse of its
+  determinant, so $`(\mathrm{conjAut}\,a)_*\mathrm{haar}_N = \delta(a)\,\mathrm{haar}_N`$.
 - `det_cayleyDerivOnSk`: the left translated Cayley derivative on $`\mathrm{Sk}_n`$ is
   $`-2\cdot\mathrm{sandwichOnSkCLM}((1+X)^{-1})`$, so its determinant is
   $`(-2)^{\binom n 2}(\det(1+X))^{-(n-1)}`$ by `det_sandwichOnSkCLM`.
@@ -249,3 +252,23 @@ section (subsections 10 to 14). In one line each:
   with a null base set from the leading coefficient and finite one variable slices,
   assembled by Fubini (`measure_prod_null`).
 
+### Milestone 8: the integration formula
+
+`map_iwasawaMap_haar` in `IwasawaIntegration.lean`, by Haar uniqueness on $`K \times B`$
+with $`B = AU`$ (details in [mathematics.md, section 15](mathematics.md#15-the-integration-formula-iwasawaintegrationlean)):
+
+- `BB`, `toBBHomeomorph`: $`B`$ is a subgroup of $`G`$, homeomorphic to $`A \times U`$.
+- `kbHomeomorph`, `kbHomeomorph_mul`: $`(k, b) \mapsto k b^{-1}`$ identifies $`K \times B`$
+  with $`G`$ and turns left multiplication by $`(k_0, b_0)`$ into $`g \mapsto k_0 g b_0^{-1}`$.
+- `instIsHaarMeasure_haarKB`: the pullback of $`\mathrm{haar}_G`$ is a Haar measure on
+  $`K \times B`$ (unimodularity of $`G`$ handles the right multiplication).
+- `map_rightMulAU_haarAU`: in coordinates $`(a, u)`$, right multiplication on $`B`$ is
+  $`(a, u) \mapsto (aa', (a'^{-1}ua')u')`$; it multiplies $`\delta(a)\,da`$ by
+  $`\delta(a')^{-1}`$ and $`du`$ by $`\delta(a')`$, so $`\delta(a)\,da\,du`$ is invariant.
+- `instIsMulLeftInvariant_candKB`, `candKB_eq_smul_haarKB`: the candidate measure is left
+  invariant, hence a multiple of the pullback of $`\mathrm{haar}_G`$.
+- `map_iwasawaMapJL_haar`: the $`uak`$ order follows by inversion, using that the Haar
+  measures of $`G`$, $`U`$, $`K`$ (unimodular) and $`A`$ (abelian) are inversion invariant.
+- `modularCharacterFun_toBB`: $`\delta(a)\,da\,du`$ carried to $`B`$ is a Haar measure on $`B`$,
+  and right multiplication by $`a`$ scales it by $`\delta(a)`$, which is the modular
+  character by definition.
