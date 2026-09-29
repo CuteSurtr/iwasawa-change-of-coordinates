@@ -18,7 +18,7 @@ $`GL_n(\mathbb{R})`$, written in them, is
 
 ```math
 \int_{GL_n(\mathbb{R})} f(g)\, dg \;=\; c \int_K \int_A \int_U f(kau)\, \delta(a)\, du\, da\, dk,
-\qquad \delta(a) = \prod_{i<j} \frac{a_i}{a_j},
+\qquad \delta(a) = \prod_{i \lt j} \frac{a_i}{a_j},
 ```
 
 for a constant $`c \gt 0`$, where $`dk`$, $`da`$, $`du`$ are Haar measures on the three

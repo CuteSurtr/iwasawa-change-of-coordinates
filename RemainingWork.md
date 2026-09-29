@@ -42,7 +42,7 @@ The Haar pushforward itself is not yet stated as a theorem; it cannot be without
 
 For the Iwasawa decomposition of `G = GL(n, ℝ)` with `G = KAN`, `K = O(n)`, `A` = positive diagonals, `N` = upper unipotent, the modular function of the Borel subgroup `B = AN` is
 
-$$\delta_B(a) = \prod_{\alpha \in \Sigma^+} a^\alpha = \prod_{i < j} \frac{a_i}{a_j}.$$
+$$\delta_B(a) = \prod_{\alpha \in \Sigma^+} a^\alpha = \prod_{i \lt j} \frac{a_i}{a_j}.$$
 
 This is `|det (adNN a)|` in our notation, via `ad_on_n_det_eq_pair_product`.
 
