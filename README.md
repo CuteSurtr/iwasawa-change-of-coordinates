@@ -6,7 +6,7 @@ This is the follow-up to my [Iwasawa decomposition](https://github.com/CuteSurtr
 project. That one proves every invertible real matrix factors uniquely as
 $`g = kau`$ with $`k`$ orthogonal, $`a`$ positive diagonal and $`u`$ upper unipotent.
 Here I prove the stronger statement Jorgenson and Lang make in Theorem 1.1 of
-*Spherical Inversion on $`SL_n(\mathbb{R})`$* (Chapter I): the product map
+*Spherical Inversion on* $`SL_n(\mathbb{R})`$ (Chapter I): the product map
 
 ```math
 \Phi : K \times A \times U \to GL_n(\mathbb{R}), \qquad (k, a, u) \mapsto kau
@@ -21,7 +21,7 @@ $`GL_n(\mathbb{R})`$, written in them, is
 \qquad \delta(a) = \prod_{i<j} \frac{a_i}{a_j},
 ```
 
-for a constant $`c > 0`$, where $`dk`$, $`da`$, $`du`$ are Haar measures on the three
+for a constant $`c \gt 0`$, where $`dk`$, $`da`$, $`du`$ are Haar measures on the three
 factors and $`a = \mathrm{diag}(a_1, \dots, a_n)`$.
 
 Everything builds against a pinned Mathlib with no `sorry`, and every result
@@ -203,7 +203,7 @@ out of date, which the ones about the Haar measure say at the top.
 
 ## References
 
-- J. Jorgenson and S. Lang, *Spherical Inversion on $`SL_n(\mathbb{R})`$*, Springer
+- J. Jorgenson and S. Lang, *Spherical Inversion on* $`SL_n(\mathbb{R})`$, Springer
   Monographs in Mathematics, 2001. Chapter I, §1 to §3.
 - S. Lang, *Linear Algebra*, 3rd ed., Springer, 1987. Appendix II.
 - A. W. Knapp, *Lie Groups Beyond an Introduction*, 2nd ed., Birkhäuser, 2002.

@@ -272,7 +272,7 @@ $`SL_n(\mathbb{R})`$, Chapter I. Everything listed is proved except the last row
 | 5 | `iwasawaMfderivAtIdentity`: the differential at the identity | §I.3 |
 | 6 | `iwasawaMfderivAtFactored`: the differential at a general point | §I.2, §I.3 |
 | 6 | `det_sandwichOnSkCLM`: Sylvester-Franke, $`(\det B)^{n-1}`$ on $`\mathrm{Sk}_n`$ | |
-| 6 | `adNN_det_eq_pair_product`: $`\det(\mathrm{Ad}(a)\vert_{\mathfrak{n}}) = \prod_{i<j} a_i / a_j`$ | §I.2, Eq. (3) |
+| 6 | `adNN_det_eq_pair_product`: $`\det(\mathrm{Ad}(a)\vert_{\mathfrak{n}}) = \prod_{i \lt j} a_i / a_j`$ | §I.2, Eq. (3) |
 | 6 | `absDetInIwasawaBases_fderiv_iwasawaCharted_general`: the Jacobian determinant | §I.2 |
 | 7 | `modularCharacterFun_eq_one`: $`GL_n(\mathbb{R})`$ is unimodular | §I.2 |
 | 7 | `map_conjAut_haarN`: pushing $`\mathrm{haar}_N`$ along $`u \mapsto a^{-1}ua`$ multiplies it by $`\delta(a)`$ | §I.2, Eq. (1) to (3) |

@@ -283,7 +283,7 @@ Whether to redefine `G n := Matrix.GeneralLinearGroup (Fin n) ℝ` is a separate
 ## 11. References
 
 Project's existing references (`README.md`):
-- Jorgenson, Lang. *Spherical Inversion on $SL_n(\mathbb{R})$*. Springer, 2001.
+- Jorgenson, Lang. *Spherical Inversion on* $`SL_n(\mathbb{R})`$. Springer, 2001.
 - Lang. *Linear Algebra*, 3rd ed. Springer UTM, 1987.
 - Cayley 1846, "Sur quelques propriétés des déterminants gauches".
 - Mathlib community, [Mathlib4](https://github.com/leanprover-community/mathlib4).

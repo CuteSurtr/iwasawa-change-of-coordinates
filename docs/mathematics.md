@@ -70,7 +70,7 @@ and in Jorgenson and Lang's order $`g = uak`$ the weight is inverted,
 \int_G f(g)\, dg = c \int_U \int_A \int_K f(uak)\, \delta(a)^{-1}\, dk\, da\, du ,
 ```
 
-for a constant $`c > 0`$ (depending only on how the four Haar measures are normalized)
+for a constant $`c \gt 0`$ (depending only on how the four Haar measures are normalized)
 and the **Iwasawa character**
 
 ```math
@@ -675,7 +675,7 @@ equivalently when its **modular character** $`\Delta : G \to \mathbb{R}^{+}`$ is
 equal to $`1`$. For $`G = GL_n(\mathbb{R})`$ this is classical, and we prove it as
 
 ```math
-\texttt{modularCharacterFun\_eq\_one} : \quad \Delta_G \equiv 1 .
+\mathtt{modularCharacterFun\_eq\_one} : \quad \Delta_G \equiv 1 .
 ```
 
 The proof routes through an explicit *coordinate* Haar measure on $`G`$. Identify
@@ -700,7 +700,7 @@ instances `instIsHaarMeasure_nuG`, `instRegular_nuG`. Haar uniqueness on the
 second countable group $`G`$ then yields
 
 ```math
-\texttt{nuG\_eq\_haarScalarFactor\_smul\_haarG} : \quad \nu_G = c \cdot \mathrm{haar}_G, \qquad c = \mathrm{haarScalarFactor}\,\nu_G\,\mathrm{haar}_G > 0 .
+\mathtt{nuG\_eq\_haarScalarFactor\_smul\_haarG} : \quad \nu_G = c \cdot \mathrm{haar}_G, \qquad c = \mathrm{haarScalarFactor}\,\nu_G\,\mathrm{haar}_G > 0 .
 ```
 
 For integrals this reads (`haarG_lintegral_eq_smul_setLIntegral_coord`): for every
@@ -718,7 +718,7 @@ $`\mathrm{conj}_a(u) = a^{-1}\,u\,a`$; this is a group automorphism of $`U`$ (`c
 The statement is
 
 ```math
-\texttt{map\_conjAut\_haarN} : \quad (\mathrm{conj}_a)_{*}\,\mathrm{haar}_N = \delta(a)\,\mathrm{haar}_N, \qquad \delta(a) = \det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr) = \prod_{i \lt j} \frac{a_i}{a_j} > 0,
+\mathtt{map\_conjAut\_haarN} : \quad (\mathrm{conj}_a)_{*}\,\mathrm{haar}_N = \delta(a)\,\mathrm{haar}_N, \qquad \delta(a) = \det\bigl(\mathrm{Ad}(a)|_{\mathfrak{n}}\bigr) = \prod_{i \lt j} \frac{a_i}{a_j} > 0,
 ```
 
 matching the Lean statement `map (conjAut a) haarN = (det (adNN a)).toNNReal • haarN`.
@@ -746,14 +746,14 @@ a global chart, and we prove it left invariant directly:
   (`toFinNRHomeomorph_mul`). Pushing Lebesgue measure forward through its inverse
   gives the explicit left invariant measure $`\mathrm{haar}_A^{\exp}`$ (`haarAExplicit`,
   `instIsMulLeftInvariantHaarAExplicit`). By Haar uniqueness,
-  $`\texttt{haarAExplicit\_eq\_haarScalarFactor\_smul\_haarA} : \mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$.
+  $`\mathtt{haarAExplicit\_eq\_haarScalarFactor\_smul\_haarA} : \mathrm{haar}_A^{\exp} = c\cdot\mathrm{haar}_A`$.
 
 - **$`U`$ (unipotent, entry chart).** Left translation $`u \mapsto u_0 u`$ in the entry
   chart $`U \cong NN_n`$ is the *affine* map $`Z \mapsto u_0 Z + (u_0 - 1)`$ with unit
   linear part (`det_transLin`), so it preserves Lebesgue (`map_transLin_volume`),
   making the pushforward $`\nu_U`$ left invariant (`instIsMulLeftInvariant_nuU`,
   `instIsHaarMeasure_nuU`). Haar uniqueness gives
-  $`\texttt{nuU\_eq\_haarScalarFactor\_smul\_haarN} : \nu_U = c\cdot\mathrm{haar}_N`$.
+  $`\mathtt{nuU\_eq\_haarScalarFactor\_smul\_haarN} : \nu_U = c\cdot\mathrm{haar}_N`$.
 
 The contrast with $`K = O(n)`$ in the next section is the whole point: $`A`$ and $`U`$
 are *flat* groups (their group law linearizes in the chart), so flat Lebesgue is
@@ -795,7 +795,7 @@ is the congruence whose determinant is the Sylvester-Franke value
 $`(\det B)^{n-1}`$ (`det_sandwichOnSkCLM`, Milestone 6). Therefore
 
 ```math
-\texttt{det\_cayleyDerivOnSk} : \quad \det\bigl(\mathrm{cayleyDerivOnSk}(X)\bigr) = (-2)^{\,\binom{n}{2}}\,\bigl(\det(1 + X)\bigr)^{-(n-1)},
+\mathtt{det\_cayleyDerivOnSk} : \quad \det\bigl(\mathrm{cayleyDerivOnSk}(X)\bigr) = (-2)^{\,\binom{n}{2}}\,\bigl(\det(1 + X)\bigr)^{-(n-1)},
 ```
 
 with $`\binom{n}{2} = \#\,\mathrm{nnIndex}\,n = \dim \mathrm{Sk}_n`$. Taking absolute values
@@ -804,8 +804,8 @@ absolute chart Jacobian, up to the positive constant $`2^{\binom n 2}`$ that Haa
 uniqueness later absorbs (`ofReal_abs_det_cayleyDerivOnSk`).
 
 **$`SO(2)`$ sanity check.** For $`n = 2`$, $`\mathrm{Sk}_2`$ is one dimensional
-($`\#\,\mathrm{nnIndex}\,2 = 1`$, `card_nnIndex_two`), and with
-$`X = \left(\begin{smallmatrix} 0 & a \\ -a & 0 \end{smallmatrix}\right)`$ one has
+($`\#\,\mathrm{nnIndex}\,2 = 1`$, `card_nnIndex_two`), and for the skew matrix $`X`$ with
+$`X_{12} = a`$ and $`X_{21} = -a`$ one has
 $`\det(1+X) = 1 + a^2`$ and $`\mathrm{cayley}(X)`$ is rotation by $`2\arctan a`$. The Haar
 measure $`d\theta`$ pulls back to $`\tfrac{2}{1 + a^2}\,da`$, matching
 $`2\cdot\rho_K`$ exactly (`abs_det_cayleyDerivOnSk_two`). This is the concrete check
@@ -817,7 +817,7 @@ makes the inverse continuous everywhere) and $`\mathrm{volSk}`$ the Lebesgue mea
 $`\mathrm{Sk}_n`$ from the basis `skBasis` (`volSk`), we set
 
 ```math
-\nu_K = (\mathrm{cayleyToK})_{*}\bigl(\mathrm{volSk}.\mathrm{withDensity}\,\rho_K\bigr) \qquad (\texttt{nuK}),
+\nu_K = (\mathrm{cayleyToK})_{*}\bigl(\mathrm{volSk}.\mathrm{withDensity}\,\rho_K\bigr) \qquad (\mathtt{nuK}),
 ```
 
 a genuine pushforward since `cayleyToK` is measurable (`measurable_cayleyToK`,
@@ -827,7 +827,7 @@ a genuine pushforward since `cayleyToK` is measurable (`measurable_cayleyToK`,
 Cayley coordinates, is the Mobius map
 
 ```math
-\Psi_{k_0}(X) = \mathrm{cayleyInv}(k_0 \cdot \mathrm{cayley}(X)) \qquad (\texttt{cayleyLeftTrans}),
+\Psi_{k_0}(X) = \mathrm{cayleyInv}(k_0 \cdot \mathrm{cayley}(X)) \qquad (\mathtt{cayleyLeftTrans}),
 ```
 
 defined on the open domain $`\mathrm{cayleyLeftDom}\,k_0 = \{X \mid 1 + k_0\,\mathrm{cayley}(X)\text{ invertible}\}`$
@@ -835,7 +835,7 @@ defined on the open domain $`\mathrm{cayleyLeftDom}\,k_0 = \{X \mid 1 + k_0\,\ma
 the geometric heart of left invariance:
 
 ```math
-\texttt{cayley\_cayleyLeftTrans} : \quad \mathrm{cayley}(\Psi_{k_0}(X)) = k_0 \cdot \mathrm{cayley}(X),
+\mathtt{cayley\_cayleyLeftTrans} : \quad \mathrm{cayley}(\Psi_{k_0}(X)) = k_0 \cdot \mathrm{cayley}(X),
 ```
 
 equivalently $`\mathrm{cayleyToK}(\Psi_{k_0}(X)) = k_0 \cdot \mathrm{cayleyToK}(X)`$
@@ -851,7 +851,7 @@ $`(1 + k_0\,\mathrm{cayley}(X))(1 + X) = (1 + X) + k_0(1 - X)`$ (`one_add_k_cayl
 $`\det(1 + X) \ne 0`$,
 
 ```math
-\texttt{mem\_cayleyLeftDom\_iff} : \quad X \in \mathrm{cayleyLeftDom}\,k_0 \iff \det\bigl((1 + X) + k_0(1 - X)\bigr) \ne 0,
+\mathtt{mem\_cayleyLeftDom\_iff} : \quad X \in \mathrm{cayleyLeftDom}\,k_0 \iff \det\bigl((1 + X) + k_0(1 - X)\bigr) \ne 0,
 ```
 
 and the right side is a polynomial in the entries of $`X`$ (the matrix is affine in
@@ -868,7 +868,7 @@ sets, but **not** the multivariate Lebesgue statement. We prove it from scratch 
 self contained, upstreamable lemma:
 
 ```math
-\texttt{volume\_setOf\_eval\_eq\_zero} : \quad p \ne 0 \implies \mathrm{volume}\,\{x \in \mathbb{R}^d \mid \mathrm{eval}\,x\,p = 0\} = 0 \qquad (p \in \mathbb{R}[X_1, \ldots, X_d]).
+\mathtt{volume\_setOf\_eval\_eq\_zero} : \quad p \ne 0 \implies \mathrm{volume}\,\{x \in \mathbb{R}^d \mid \mathrm{eval}\,x\,p = 0\} = 0 \qquad (p \in \mathbb{R}[X_1, \ldots, X_d]).
 ```
 
 *Proof, by induction on the number of variables $`d`$.*
@@ -914,7 +914,7 @@ $`\Psi_{k_0}`$, is the substantial one; see [What's not done](../README.md#whats
 The statement, in Lang's order, is
 
 ```math
-\texttt{map\_iwasawaMap\_haar} : \quad (k, a, u) \mapsto kau \ \text{ pushes } \ dk \times \delta(a)\,da \times du \ \text{ forward to } \ c \cdot dg, \qquad c > 0,
+\mathtt{map\_iwasawaMap\_haar} : \quad (k, a, u) \mapsto kau \ \text{ pushes } \ dk \times \delta(a)\,da \times du \ \text{ forward to } \ c \cdot dg, \qquad c > 0,
 ```
 
 with `lintegral_iwasawa` the same statement for integrals of measurable
@@ -931,7 +931,7 @@ coordinates, which are continuous by `continuous_iwasawaSymm`.
 (`kbHomeomorph`), and for $`h = (k_0, b_0)`$ in the product group $`K \times B`$,
 
 ```math
-\psi(h \cdot x) = k_0\, \psi(x)\, b_0^{-1} \qquad (\texttt{kbHomeomorph\_mul}).
+\psi(h \cdot x) = k_0\, \psi(x)\, b_0^{-1} \qquad (\mathtt{kbHomeomorph\_mul}).
 ```
 
 Haar measure on $`G`$ is invariant under $`g \mapsto k_0\, g\, b_0^{-1}`$: under left
@@ -946,7 +946,7 @@ $`(k_0, b_0)`$ with $`b_0^{-1} = a'u'`$ becomes $`k \mapsto k_0 k`$ on the first
 and, on the other two,
 
 ```math
-(a, u) \mapsto \bigl(a a',\ (a'^{-1} u a')\, u'\bigr) \qquad (\texttt{toBB\_mul}),
+(a, u) \mapsto \bigl(a a',\ (a'^{-1} u a')\, u'\bigr) \qquad (\mathtt{toBB\_mul}),
 ```
 
 because $`b_0\,(au)^{-1} = \bigl((au)\,b_0^{-1}\bigr)^{-1} = \bigl((au)(a'u')\bigr)^{-1}`$. On the $`A`$ coordinate this is translation by $`a'`$, which turns

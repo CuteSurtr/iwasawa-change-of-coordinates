@@ -23,7 +23,7 @@ project's existence (`Iwasawa.exists_iwasawa`) and uniqueness
 `inv_iwasawa_jl` is a direct algebraic identity:
 
 ```math
-\begin{aligned} (k \cdot a \cdot u)^{-1} &= u^{-1} \cdot (k \cdot a)^{-1} && (\texttt{Matrix.mul\_inv\_rev}) \\ &= u^{-1} \cdot a^{-1} \cdot k^{-1} && (\texttt{Matrix.mul\_inv\_rev}, \texttt{mul\_assoc}) \\ &= u^{-1} \cdot a^{-1} \cdot k^T && (\texttt{IsOrthogonal.matInv\_eq\_transpose}) \end{aligned}
+\begin{aligned} (k \cdot a \cdot u)^{-1} &= u^{-1} \cdot (k \cdot a)^{-1} && (\mathtt{Matrix.mul\_inv\_rev}) \\ &= u^{-1} \cdot a^{-1} \cdot k^{-1} && (\mathtt{Matrix.mul\_inv\_rev}, \mathtt{mul\_assoc}) \\ &= u^{-1} \cdot a^{-1} \cdot k^T && (\mathtt{IsOrthogonal.matInv\_eq\_transpose}) \end{aligned}
 ```
 
 `cartanInvolution g := ⟨(g.1)ᵀ⁻¹, _⟩` requires showing
